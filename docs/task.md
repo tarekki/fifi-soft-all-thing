@@ -15,6 +15,9 @@
     - [/] Setup Django Backend (PostgreSQL)
       - [x] Setup REST Framework + CORS
       - [x] Configure drf-spectacular for API docs
+      - [x] Environment variables setup (.env.example)
+      - [x] Remove hardcoded secrets from settings.py
+      - [x] Implement production security validation
     - [ ] Setup Next.js Frontend
     - [ ] Setup React Native (Expo)
 - [x] **Database Schema**
@@ -56,13 +59,13 @@
 - [ ] Barcode System
 
 ## Phase 5: Security & Hardening (Newly Added) 🛡️
-- [ ] **Backend Security**
+- [/] **Backend Security**
     - [ ] Implement JWT Authentication
     - [ ] Setup Role-Based Access Control (RBAC)
     - [ ] Configure Rate Limiting & Throttling
 - [ ] **Frontend & Mobile Security**
     - [ ] Secure JWT Storage (HttpOnly / Secure Store)
     - [ ] Implement Content Security Policy (CSP)
-- [ ] **Infrastructure**
-    - [ ] Secure Environment Variables (Remove hardcoded secrets)
+- [/] **Infrastructure**
+    - [x] Secure Environment Variables (Remove hardcoded secrets)
     - [ ] Setup SSL/TLS Certificates

@@ -29,9 +29,9 @@
 - [ ] Create shared API client
 
 #### DevOps
-- [ ] Git repository structure (Monorepo or Multi-repo)
-- [ ] Environment variables setup
-- [ ] Docker Compose for local development
+- [x] Git repository structure (Monorepo or Multi-repo)
+- [x] Environment variables setup
+- [x] Docker Compose for local development
 
 ---
 
