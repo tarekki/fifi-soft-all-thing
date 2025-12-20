@@ -11,7 +11,7 @@
 
 #### Backend (Django)
 - [x] Initialize Django project with PostgreSQL
-- [ ] Setup REST Framework + CORS
+- [x] Setup REST Framework + CORS
 - [ ] Create Multi-Vendor Database Schema:
   - `Vendor` (id, name, logo, commission_rate)
   - `Product` (id, vendor, name, description, base_price)

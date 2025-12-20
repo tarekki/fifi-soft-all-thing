@@ -13,6 +13,8 @@
 - [/] **Project Setup**
     - [x] Initialize Git Monorepo
     - [/] Setup Django Backend (PostgreSQL)
+      - [x] Setup REST Framework + CORS
+      - [x] Configure drf-spectacular for API docs
     - [ ] Setup Next.js Frontend
     - [ ] Setup React Native (Expo)
 - [x] **Database Schema**

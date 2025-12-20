@@ -1,23 +1,89 @@
 """
 URL configuration for core project.
+إعدادات URLs للمشروع الرئيسي
 
-The `urlpatterns` list routes URLs to views. For more information please see:
+This file defines all the URL routes for the application.
+هذا الملف يحدد جميع مسارات URLs للتطبيق
+
+For more information please see:
     https://docs.djangoproject.com/en/5.0/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
+from django.conf import settings
+from django.conf.urls.static import static
+from django.http import JsonResponse
+from drf_spectacular.views import (
+    SpectacularAPIView,      # View للحصول على schema الـ API
+    SpectacularRedocView,    # View لـ ReDoc documentation
+    SpectacularSwaggerView,  # View لـ Swagger UI documentation
+)
 
+
+# Home Page View
+# عرض الصفحة الرئيسية
+def home_view(request):
+    """
+    Home page view - displays API information
+    عرض الصفحة الرئيسية - يعرض معلومات عن الـ API
+    """
+    return JsonResponse({
+        "message": "Welcome to Trendyol-SY API",
+        "version": "1.0.0",
+        "description": "Multi-vendor e-commerce platform API for Syrian market",
+        "endpoints": {
+            "admin": "/admin/",
+            "api_schema": "/api/schema/",
+            "swagger_ui": "/api/schema/swagger-ui/",
+            "redoc": "/api/schema/redoc/",
+        },
+        "docs": "Visit /api/schema/swagger-ui/ for interactive API documentation"
+    })
+
+# URL Patterns
+# قائمة مسارات URLs للتطبيق
 urlpatterns = [
+    # Home Page
+    # الصفحة الرئيسية
+    path("", home_view, name="home"),
+    
+    # Django Admin Panel
+    # لوحة إدارة Django
     path("admin/", admin.site.urls),
+    
+    # API Documentation (drf-spectacular)
+    # توثيق الـ API - Swagger UI
+    # الوصول: http://localhost:8000/api/schema/swagger-ui/
+    path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
+    
+    # Swagger UI - واجهة تفاعلية لاختبار الـ API
+    # الوصول: http://localhost:8000/api/schema/swagger-ui/
+    path(
+        "api/schema/swagger-ui/",
+        SpectacularSwaggerView.as_view(url_name="schema"),
+        name="swagger-ui",
+    ),
+    
+    # ReDoc - واجهة توثيق بديلة
+    # الوصول: http://localhost:8000/api/schema/redoc/
+    path(
+        "api/schema/redoc/",
+        SpectacularRedocView.as_view(url_name="schema"),
+        name="redoc",
+    ),
+    
+    # API URLs - سيتم إضافتها لاحقاً
+    # مسارات الـ API (vendors, products, orders)
+    # path("api/vendors/", include("vendors.urls")),
+    # path("api/products/", include("products.urls")),
+    # path("api/orders/", include("orders.urls")),
 ]
+
+# Media Files Configuration (Development Only)
+# إعدادات ملفات Media (الصور والملفات المرفوعة) - للتطوير فقط
+# في الإنتاج يجب استخدام خادم ويب (Nginx/Apache) لخدمة الملفات الثابتة
+if settings.DEBUG:
+    # إضافة مسار لخدمة ملفات Media في وضع التطوير
+    # يسمح بالوصول للملفات المرفوعة مثل صور المنتجات
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -84,17 +84,35 @@ WSGI_APPLICATION = "core.wsgi.application"
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
+# إعدادات قاعدة البيانات PostgreSQL
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": config('DB_NAME', default='trendyol_syria'),
-        "USER": config('DB_USER', default='postgres'),
-        "PASSWORD": config('DB_PASSWORD', default='postgres123'),
-        "HOST": config('DB_HOST', default='localhost'),
-        "PORT": config('DB_PORT', default='5432'),
+# استخدام DATABASE_URL إذا كان موجوداً (لـ Docker)
+# Use DATABASE_URL if available (for Docker)
+import dj_database_url
+
+# محاولة استخدام DATABASE_URL من environment variable (لـ Docker)
+# Try to use DATABASE_URL from environment variable (for Docker)
+database_url = config('DATABASE_URL', default=None)
+
+if database_url:
+    # إذا كان DATABASE_URL موجوداً، استخدمه (Docker)
+    # If DATABASE_URL exists, use it (Docker)
+    DATABASES = {
+        "default": dj_database_url.parse(database_url)
     }
-}
+else:
+    # إذا لم يكن موجوداً، استخدم الإعدادات العادية (Local development)
+    # If not, use normal settings (Local development)
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": config('DB_NAME', default='trendyol_syria'),
+            "USER": config('DB_USER', default='postgres'),
+            "PASSWORD": config('DB_PASSWORD', default='postgres123'),
+            "HOST": config('DB_HOST', default='localhost'),
+            "PORT": config('DB_PORT', default='5432'),
+        }
+    }
 
 
 # Password validation
@@ -140,18 +158,70 @@ MEDIA_ROOT = BASE_DIR / "media"
 # Default primary key field type
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# REST Framework
+# ============================================================================
+# REST Framework Configuration
+# إعدادات Django REST Framework للـ API
+# ============================================================================
 REST_FRAMEWORK = {
+    # Schema Class for API Documentation
+    # كلاس Schema لتوثيق الـ API تلقائياً (drf-spectacular)
+    # يولد OpenAPI schema تلقائياً من serializers و views
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    
+    # Filter Backends
+    # محركات الفلترة للبحث والتصفية في الـ API
+    # django_filters: يسمح بالفلترة حسب الحقول (vendor, color, size, etc.)
     "DEFAULT_FILTER_BACKENDS": ["django_filters.rest_framework.DjangoFilterBackend"],
+    
+    # Pagination Configuration
+    # إعدادات التقسيم للصفحات
+    # PageNumberPagination: يقسم النتائج لصفحات (مثل: ?page=1, ?page=2)
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    
+    # Page Size: عدد العناصر في كل صفحة
+    # 24 منتج لكل صفحة (مناسب لعرض grid من المنتجات)
     "PAGE_SIZE": 24,
+    
+    # Note: Authentication & Permissions سيتم إضافتها لاحقاً عند تنفيذ JWT
+    # ملاحظة: Authentication و Permissions ستُضاف لاحقاً عند تنفيذ JWT
 }
 
-# CORS Settings
+# ============================================================================
+# CORS (Cross-Origin Resource Sharing) Settings
+# إعدادات CORS للسماح للـ Frontend بالوصول للـ API
+# ============================================================================
+# CORS_ALLOWED_ORIGINS: قائمة المصادر المسموح لها بالوصول للـ API
+# في التطوير: نسمح فقط لـ localhost:3000 (Next.js frontend)
+# في الإنتاج: يجب تحديث هذه القائمة لتشمل domain الإنتاج
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
+    "http://localhost:3000",      # Next.js development server
+    "http://127.0.0.1:3000",      # Alternative localhost
 ]
 
+
+# CORS_ALLOW_CREDENTIALS: السماح بإرسال credentials (cookies, auth headers)
+# مهم للـ JWT authentication لاحقاً
 CORS_ALLOW_CREDENTIALS = True
+
+# ============================================================================
+# drf-spectacular Settings (API Documentation)
+# إعدادات drf-spectacular لتوثيق الـ API
+# ============================================================================
+SPECTACULAR_SETTINGS = {
+    # API Title and Version
+    # عنوان ونسخة الـ API
+    "TITLE": "Trendyol-SY API",
+    "DESCRIPTION": "Multi-vendor e-commerce platform API for Syrian market",
+    "VERSION": "1.0.0",
+    
+    # API Server URLs
+    # عناوين خوادم الـ API
+    "SERVERS": [
+        {"url": "http://localhost:8000", "description": "Development server"},
+        # {"url": "https://api.trendyol-sy.com", "description": "Production server"},
+    ],
+    
+    # Schema Settings
+    # إعدادات Schema
+    "SCHEMA_PATH_PREFIX": "/api/",  # Prefix لجميع مسارات الـ API
+}
