@@ -47,9 +47,9 @@
 - [ ] Admin Panel customization (Django Admin)
 - [ ] Bulk Product Import (CSV/Excel)
 - [ ] API Endpoints:
-  - `GET /api/vendors/`
-  - `GET /api/products/?vendor=fifi`
-  - `GET /api/products/:id/variants/`
+  - [x] `GET /api/vendors/` - Vendor Management API (completed)
+  - [ ] `GET /api/products/?vendor=fifi`
+  - [ ] `GET /api/products/:id/variants/`
 
 #### Testing
 - [ ] Load test with 1000 dummy products

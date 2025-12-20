@@ -30,7 +30,11 @@
 
 ## Phase 2: Core Features (Week 3-4) 💎
 - [ ] **Backend APIs**
-    - [ ] Vendor Management
+    - [x] Vendor Management
+      - [x] VendorSerializer
+      - [x] VendorViewSet (list, retrieve)
+      - [x] Filtering, Search, Ordering
+      - [x] Pagination support
     - [ ] Product CRUD (with variants)
     - [ ] Manual Product Entry Interface
 - [ ] **Web Frontend**

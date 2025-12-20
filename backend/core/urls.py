@@ -73,11 +73,23 @@ urlpatterns = [
         name="redoc",
     ),
     
-    # API URLs - سيتم إضافتها لاحقاً
+    # API URLs
     # مسارات الـ API (vendors, products, orders)
-    # path("api/vendors/", include("vendors.urls")),
-    # path("api/products/", include("products.urls")),
-    # path("api/orders/", include("orders.urls")),
+    
+    # Vendor API
+    # API البائعين
+    # Endpoints:
+    #   GET /api/vendors/          - قائمة جميع البائعين
+    #   GET /api/vendors/{id}/     - تفاصيل بائع معين
+    path("api/", include("vendors.urls")),
+    
+    # Product API - سيتم إضافتها لاحقاً
+    # API المنتجات - سيتم إضافتها لاحقاً
+    # path("api/", include("products.urls")),
+    
+    # Order API - سيتم إضافتها لاحقاً
+    # API الطلبات - سيتم إضافتها لاحقاً
+    # path("api/", include("orders.urls")),
 ]
 
 # Media Files Configuration (Development Only)
