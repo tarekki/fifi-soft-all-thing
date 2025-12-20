@@ -55,14 +55,29 @@
   - [x] Update Order Model (user field, guest orders)
   - [x] Admin Panel for User management
   - [x] Database migrations applied
+- [x] JWT Authentication System:
+  - [x] Install and configure djangorestframework-simplejwt
+  - [x] User Registration API with email verification
+  - [x] User Login API (JWT tokens)
+  - [x] User Profile Management APIs
+  - [x] Password Change API
+  - [x] Email Verification System (Gmail SMTP)
+  - [x] Custom Permissions (RBAC)
+  - [x] Rate Limiting configuration
 - [ ] Admin Panel customization (Django Admin)
 - [ ] Bulk Product Import (CSV/Excel)
 - [ ] API Endpoints:
   - [x] `GET /api/vendors/` - Vendor Management API (completed)
   - [x] `GET /api/products/?vendor=fifi` - Product API with filtering (completed)
   - [x] `GET /api/products/:id/variants/` - Product variants endpoint (completed)
-  - [ ] `POST /api/users/register/` - User Registration (next)
-  - [ ] `POST /api/users/login/` - User Login (JWT) (next)
+  - [x] `POST /api/users/register/` - User Registration (completed)
+  - [x] `POST /api/users/login/` - User Login (JWT) (completed)
+  - [x] `POST /api/users/refresh/` - Refresh Access Token (completed)
+  - [x] `GET /api/users/profile/` - Get User Profile (completed)
+  - [x] `PUT /api/users/profile/` - Update User Profile (completed)
+  - [x] `POST /api/users/profile/change_password/` - Change Password (completed)
+  - [x] `POST /api/users/verify-email/` - Verify Email Address (completed)
+  - [x] `POST /api/users/resend-verification/` - Resend Verification Email (completed)
 
 #### Testing
 - [ ] Load test with 1000 dummy products

@@ -76,6 +76,19 @@ urlpatterns = [
     # API URLs
     # مسارات الـ API (vendors, products, orders)
     
+    # User API (Authentication & Profile)
+    # API المستخدمين (المصادقة والملف الشخصي)
+    # Endpoints:
+    #   POST /api/users/register/              - تسجيل مستخدم جديد
+    #   POST /api/users/login/                 - تسجيل دخول (JWT tokens)
+    #   POST /api/users/refresh/                - تجديد access token
+    #   GET  /api/users/profile/               - عرض الملف الشخصي
+    #   PUT  /api/users/profile/                - تحديث الملف الشخصي
+    #   POST /api/users/profile/change_password/ - تغيير كلمة المرور
+    #   POST /api/users/verify-email/          - التحقق من البريد الإلكتروني
+    #   POST /api/users/resend-verification/     - إعادة إرسال بريد التحقق
+    path("api/users/", include("users.urls")),
+    
     # Vendor API
     # API البائعين
     # Endpoints:

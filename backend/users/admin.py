@@ -12,7 +12,7 @@ in the Django admin interface for easy management.
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.utils.translation import gettext_lazy as _
-from .models import User, UserProfile, VendorUser
+from .models import User, UserProfile, VendorUser, EmailVerification
 
 
 # ============================================================================
@@ -89,6 +89,23 @@ class UserAdmin(BaseUserAdmin):
         'is_superuser',
         'created_at',
     ]
+    
+    # Default queryset - exclude superusers from default list
+    # الاستعلام الافتراضي - استبعاد superusers من القائمة الافتراضية
+    def get_queryset(self, request):
+        """
+        Exclude superusers from default user list
+        استبعاد superusers من قائمة المستخدمين الافتراضية
+        
+        Superusers can still be accessed via filter or search.
+        يمكن الوصول لـ superusers عبر الفلترة أو البحث.
+        """
+        qs = super().get_queryset(request)
+        # Show all users to superusers, but hide superusers from regular staff
+        # عرض جميع المستخدمين للمطورين، لكن إخفاء superusers من الموظفين العاديين
+        if request.user.is_superuser:
+            return qs
+        return qs.filter(is_superuser=False)
     
     # Fields to search by
     # الحقول للبحث
@@ -251,6 +268,52 @@ class VendorUserAdmin(admin.ModelAdmin):
         (_('Permissions'), {
             'fields': ('permissions',),
             'description': _('JSON object with vendor-specific permissions. Example: {"can_manage_products": true}')
+        }),
+        (_('Timestamps'), {
+            'fields': ('created_at', 'updated_at')
+        }),
+    )
+
+
+# ============================================================================
+# Email Verification Admin
+# إدارة التحقق من البريد الإلكتروني
+# ============================================================================
+
+@admin.register(EmailVerification)
+class EmailVerificationAdmin(admin.ModelAdmin):
+    """
+    Admin interface for EmailVerification model
+    واجهة إدارة لنموذج التحقق من البريد الإلكتروني
+    """
+    
+    list_display = [
+        'user',
+        'is_verified',
+        'expires_at',
+        'created_at',
+    ]
+    
+    list_filter = [
+        'is_verified',
+        'created_at',
+        'expires_at',
+    ]
+    
+    search_fields = [
+        'user__email',
+        'user__full_name',
+        'token',
+    ]
+    
+    readonly_fields = ['token', 'created_at', 'updated_at']
+    
+    fieldsets = (
+        (None, {
+            'fields': ('user', 'token', 'is_verified')
+        }),
+        (_('Expiration'), {
+            'fields': ('expires_at',)
         }),
         (_('Timestamps'), {
             'fields': ('created_at', 'updated_at')

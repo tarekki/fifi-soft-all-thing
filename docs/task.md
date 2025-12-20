@@ -50,6 +50,12 @@
       - [x] Ordering (price, newest, name)
       - [x] Pagination support
     - [ ] Manual Product Entry Interface
+    - [x] User Authentication APIs
+      - [x] User Registration (with email verification)
+      - [x] User Login (JWT tokens)
+      - [x] User Profile Management
+      - [x] Password Change
+      - [x] Email Verification
     - [⏸️] Order APIs (Deferred - Waiting for Inventory Sync Solution)
       - [ ] Order Creation API
       - [ ] Order Detail & List APIs
@@ -84,9 +90,27 @@
 ## Phase 5: Security & Hardening (Newly Added) 🛡️
 - [/] **Backend Security**
     - [x] User System with Roles (Customer, Vendor, Admin)
-    - [ ] Implement JWT Authentication
-    - [ ] Setup Role-Based Access Control (RBAC) - Models ready, need API permissions
-    - [ ] Configure Rate Limiting & Throttling
+    - [x] Implement JWT Authentication
+      - [x] Install djangorestframework-simplejwt
+      - [x] Configure JWT settings (Access Token: 15min, Refresh Token: 7days)
+      - [x] Token Rotation & Blacklist
+      - [x] User Registration API (POST /api/users/register/)
+      - [x] User Login API (POST /api/users/login/)
+      - [x] Refresh Token API (POST /api/users/refresh/)
+      - [x] User Profile API (GET/PUT /api/users/profile/)
+      - [x] Password Change API (POST /api/users/profile/change_password/)
+      - [x] Email Verification System
+        - [x] EmailVerification Model
+        - [x] Verify Email API (POST /api/users/verify-email/)
+        - [x] Resend Verification API (POST /api/users/resend-verification/)
+        - [x] Gmail SMTP configuration
+    - [x] Setup Role-Based Access Control (RBAC)
+      - [x] Custom Permissions (IsCustomer, IsVendor, IsAdmin, IsVendorOwner)
+      - [x] Permission classes in views
+    - [x] Configure Rate Limiting & Throttling
+      - [x] Login: 5 attempts/minute
+      - [x] Register: 3 attempts/minute
+      - [x] API calls: 1000/hour (authenticated), 100/hour (anonymous)
 - [ ] **Frontend & Mobile Security**
     - [ ] Secure JWT Storage (HttpOnly / Secure Store)
     - [ ] Implement Content Security Policy (CSP)

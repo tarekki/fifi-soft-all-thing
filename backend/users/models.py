@@ -373,3 +373,83 @@ class VendorUser(models.Model):
         """String representation"""
         owner_text = " (Owner)" if self.is_owner else ""
         return f"{self.user.email} - {self.vendor.name}{owner_text}"
+
+
+# ============================================================================
+# Email Verification Model
+# نموذج التحقق من البريد الإلكتروني
+# ============================================================================
+
+class EmailVerification(models.Model):
+    """
+    Email verification tokens
+    رموز التحقق من البريد الإلكتروني
+    
+    Stores verification tokens for email verification.
+    يخزن رموز التحقق للتحقق من البريد الإلكتروني.
+    """
+    
+    # User to verify
+    # المستخدم المراد التحقق منه
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name='email_verification',
+        help_text=_('User to verify.')
+    )
+    
+    # Verification token
+    # رمز التحقق
+    token = models.CharField(
+        _('verification token'),
+        max_length=100,
+        unique=True,
+        help_text=_('Unique verification token.')
+    )
+    
+    # Verification status
+    # حالة التحقق
+    is_verified = models.BooleanField(
+        _('is verified'),
+        default=False,
+        help_text=_('Whether the email has been verified.')
+    )
+    
+    # Token expiration
+    # انتهاء صلاحية الرمز
+    expires_at = models.DateTimeField(
+        _('expires at'),
+        help_text=_('Token expiration date and time.')
+    )
+    
+    # Timestamps
+    # الطوابع الزمنية
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name = _('email verification')
+        verbose_name_plural = _('email verifications')
+        indexes = [
+            models.Index(fields=['token']),
+            models.Index(fields=['user', 'is_verified']),
+        ]
+    
+    def __str__(self):
+        """String representation"""
+        status = "Verified" if self.is_verified else "Pending"
+        return f"{self.user.email} - {status}"
+    
+    def is_expired(self):
+        """Check if token is expired"""
+        from django.utils import timezone
+        return timezone.now() > self.expires_at
+    
+    @classmethod
+    def generate_token(cls):
+        """
+        Generate a unique verification token
+        إنشاء رمز تحقق فريد
+        """
+        import secrets
+        return secrets.token_urlsafe(32)  # 32 bytes = 44 characters

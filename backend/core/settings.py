@@ -236,8 +236,33 @@ REST_FRAMEWORK = {
     # 24 منتج لكل صفحة (مناسب لعرض grid من المنتجات)
     "PAGE_SIZE": 24,
     
-    # Note: Authentication & Permissions سيتم إضافتها لاحقاً عند تنفيذ JWT
-    # ملاحظة: Authentication و Permissions ستُضاف لاحقاً عند تنفيذ JWT
+    # Authentication Classes
+    # فئات المصادقة - JWT Authentication
+    # SimpleJWT: يستخدم JSON Web Tokens للمصادقة بدون حالة (stateless)
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "rest_framework.authentication.SessionAuthentication",  # للـ Django Admin
+    ],
+    
+    # Permission Classes
+    # فئات الصلاحيات - افتراضياً: يجب أن يكون المستخدم مسجلاً
+    # IsAuthenticated: يسمح فقط للمستخدمين المسجلين
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticated",
+    ],
+    
+    # Throttling (Rate Limiting)
+    # تحديد معدل الطلبات - حماية من الإفراط في الاستخدام
+    "DEFAULT_THROTTLE_CLASSES": [
+        "rest_framework.throttling.AnonRateThrottle",  # للمستخدمين غير المسجلين
+        "rest_framework.throttling.UserRateThrottle",  # للمستخدمين المسجلين
+    ],
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": "100/hour",      # 100 طلب في الساعة للمستخدمين غير المسجلين
+        "user": "1000/hour",     # 1000 طلب في الساعة للمستخدمين المسجلين
+        "login": "5/minute",     # 5 محاولات تسجيل دخول في الدقيقة
+        "register": "3/minute",  # 3 محاولات تسجيل في الدقيقة
+    },
 }
 
 # ============================================================================
@@ -279,3 +304,99 @@ SPECTACULAR_SETTINGS = {
     # إعدادات Schema
     "SCHEMA_PATH_PREFIX": "/api/",  # Prefix لجميع مسارات الـ API
 }
+
+# ============================================================================
+# JWT (JSON Web Token) Configuration
+# إعدادات JWT للمصادقة
+# ============================================================================
+from datetime import timedelta
+
+SIMPLE_JWT = {
+    # Access Token Lifetime
+    # مدة صلاحية Access Token (15 دقيقة)
+    # Access Token يستخدم للوصول للـ API
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
+    
+    # Refresh Token Lifetime
+    # مدة صلاحية Refresh Token (7 أيام)
+    # Refresh Token يستخدم لتجديد Access Token
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    
+    # Rotate Refresh Tokens
+    # تدوير Refresh Tokens: عند استخدام refresh token، يتم إنشاء refresh token جديد
+    # هذا يحسن الأمان: إذا تم سرقة refresh token، يصبح غير صالح بعد الاستخدام
+    "ROTATE_REFRESH_TOKENS": True,
+    
+    # Blacklist After Rotation
+    # إضافة Refresh Token القديم للقائمة السوداء بعد التدوير
+    # يمنع استخدام نفس refresh token مرتين
+    "BLACKLIST_AFTER_ROTATION": True,
+    
+    # Update Last Login
+    # تحديث last_login عند استخدام token
+    "UPDATE_LAST_LOGIN": True,
+    
+    # Algorithm
+    # خوارزمية التوقيع: HS256 (متناظرة - أسرع)
+    "ALGORITHM": "HS256",
+    
+    # Signing Key
+    # مفتاح التوقيع: يستخدم SECRET_KEY من Django
+    "SIGNING_KEY": SECRET_KEY,
+    
+    # Token Type
+    # نوع Token في الـ header
+    "AUTH_HEADER_TYPES": ("Bearer",),
+    
+    # Auth Header Name
+    # اسم الـ header للمصادقة
+    "AUTH_HEADER_NAME": "HTTP_AUTHORIZATION",
+    
+    # User ID Field
+    # الحقل المستخدم كـ user identifier في token
+    "USER_ID_FIELD": "id",
+    "USER_ID_CLAIM": "user_id",
+    
+    # Token Blacklist
+    # استخدام blacklist للـ tokens الملغاة
+    # يتطلب تثبيت: pip install django-rest-framework-simplejwt[blacklist]
+    # "BLACKLIST_TOKEN_CHECKS": ["rest_framework_simplejwt.token_blacklist.models.BlacklistedToken"],
+}
+
+# ============================================================================
+# Email Configuration (Gmail SMTP - Free)
+# إعدادات البريد الإلكتروني (Gmail SMTP - مجاني)
+# ============================================================================
+# Email Backend
+# محرك البريد الإلكتروني: SMTP
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+
+# SMTP Server Settings
+# إعدادات خادم SMTP (Gmail)
+EMAIL_HOST = config("EMAIL_HOST", default="smtp.gmail.com")
+EMAIL_PORT = config("EMAIL_PORT", default=587, cast=int)
+EMAIL_USE_TLS = config("EMAIL_USE_TLS", default=True, cast=bool)
+
+# Email Credentials
+# بيانات اعتماد البريد الإلكتروني
+# يجب إنشاء App Password من Gmail (ليس كلمة المرور العادية)
+# https://myaccount.google.com/apppasswords
+EMAIL_HOST_USER = config("EMAIL_HOST_USER", default="")
+EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", default="")
+
+# Default From Email
+# البريد الإلكتروني الافتراضي للمرسل
+DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default=EMAIL_HOST_USER)
+SERVER_EMAIL = DEFAULT_FROM_EMAIL
+
+# Email Subject Prefix
+# بادئة موضوع البريد الإلكتروني
+EMAIL_SUBJECT_PREFIX = "[Trendyol-SY] "
+
+# ============================================================================
+# Site Configuration (for Email Links)
+# إعدادات الموقع (لروابط البريد الإلكتروني)
+# ============================================================================
+# Frontend URL (for email verification links)
+# رابط Frontend (لروابط التحقق من البريد الإلكتروني)
+FRONTEND_URL = config("FRONTEND_URL", default="http://localhost:3000")
