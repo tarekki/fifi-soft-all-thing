@@ -18,15 +18,33 @@ from decouple import config
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
+# ============================================================================
+# Security Settings
+# إعدادات الأمان
+# ============================================================================
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config('SECRET_KEY', default="django-insecure-+u-)o53=j=8z4#($d%vksxydv2f5tnqpbm(0x2v5^l*y9z6=p*")
+# تحذير أمني: احتفظ بمفتاح Django السري سراً في الإنتاج!
+
+# Django Secret Key
+# مفتاح Django السري - مطلوب في جميع البيئات
+# يجب أن يكون قوياً وفريداً - لا تشاركه أبداً
+# Generate: python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
+SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG', default=True, cast=bool)
+# تحذير أمني: لا تشغل DEBUG=True في الإنتاج!
 
+# Debug Mode
+# وضع التطوير - يعرض معلومات خطأ مفصلة
+# في الإنتاج: يجب أن يكون False دائماً
+# في التطوير: يمكن أن يكون True
+DEBUG = config('DEBUG', default=False, cast=bool)
+
+# Allowed Hosts
+# القائمة المسموح لها بالوصول للتطبيق
+# في الإنتاج: يجب تحديد domain names الفعلية
+# في التطوير: localhost, 127.0.0.1
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')
 
 
@@ -82,37 +100,62 @@ TEMPLATES = [
 WSGI_APPLICATION = "core.wsgi.application"
 
 
-# Database
-# https://docs.djangoproject.com/en/5.0/ref/settings/#databases
+# ============================================================================
+# Database Configuration
 # إعدادات قاعدة البيانات PostgreSQL
+# ============================================================================
+# https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
-# استخدام DATABASE_URL إذا كان موجوداً (لـ Docker)
-# Use DATABASE_URL if available (for Docker)
 import dj_database_url
 
-# محاولة استخدام DATABASE_URL من environment variable (لـ Docker)
-# Try to use DATABASE_URL from environment variable (for Docker)
+# Database URL (Priority 1: For Docker/Production)
+# رابط قاعدة البيانات (الأولوية الأولى: لـ Docker/الإنتاج)
+# Format: postgresql://user:password@host:port/dbname
 database_url = config('DATABASE_URL', default=None)
 
 if database_url:
-    # إذا كان DATABASE_URL موجوداً، استخدمه (Docker)
-    # If DATABASE_URL exists, use it (Docker)
+    # إذا كان DATABASE_URL موجوداً، استخدمه (Docker/Production)
+    # If DATABASE_URL exists, use it (Docker/Production)
     DATABASES = {
         "default": dj_database_url.parse(database_url)
     }
 else:
-    # إذا لم يكن موجوداً، استخدم الإعدادات العادية (Local development)
-    # If not, use normal settings (Local development)
+    # Individual Database Settings (Priority 2: For Local Development)
+    # إعدادات قاعدة البيانات الفردية (الأولوية الثانية: للتطوير المحلي)
+    # في الإنتاج: يجب استخدام DATABASE_URL بدلاً من هذه القيم
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
-            "NAME": config('DB_NAME', default='trendyol_syria'),
-            "USER": config('DB_USER', default='postgres'),
-            "PASSWORD": config('DB_PASSWORD', default='postgres123'),
-            "HOST": config('DB_HOST', default='localhost'),
-            "PORT": config('DB_PORT', default='5432'),
+            "NAME": config('DB_NAME'),  # مطلوب - اسم قاعدة البيانات
+            "USER": config('DB_USER'),  # مطلوب - مستخدم قاعدة البيانات
+            "PASSWORD": config('DB_PASSWORD'),  # مطلوب - كلمة مرور قوية
+            "HOST": config('DB_HOST', default='localhost'),  # افتراضي: localhost
+            "PORT": config('DB_PORT', default='5432'),  # افتراضي: 5432
         }
     }
+
+# ============================================================================
+# Production Security Validation
+# التحقق من الأمان في الإنتاج
+# ============================================================================
+if not DEBUG:
+    # في الإنتاج، تأكد من أن SECRET_KEY قوي
+    # In production, ensure SECRET_KEY is strong
+    if SECRET_KEY.startswith('django-insecure-'):
+        raise ValueError(
+            "SECURITY ERROR: You must set a strong SECRET_KEY in production! "
+            "Do not use the default insecure key."
+        )
+    
+    # في الإنتاج، تأكد من أن ALLOWED_HOSTS محددة
+    # In production, ensure ALLOWED_HOSTS is specified
+    if 'localhost' in ALLOWED_HOSTS or '127.0.0.1' in ALLOWED_HOSTS:
+        import warnings
+        warnings.warn(
+            "SECURITY WARNING: localhost/127.0.0.1 in ALLOWED_HOSTS in production! "
+            "This is insecure. Use your actual domain names.",
+            UserWarning
+        )
 
 
 # Password validation
