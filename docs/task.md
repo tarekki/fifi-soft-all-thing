@@ -35,7 +35,13 @@
       - [x] VendorViewSet (list, retrieve)
       - [x] Filtering, Search, Ordering
       - [x] Pagination support
-    - [ ] Product CRUD (with variants)
+    - [x] Product CRUD (with variants)
+      - [x] ProductSerializer, ProductDetailSerializer, ProductVariantSerializer
+      - [x] ProductViewSet (list, retrieve, variants action)
+      - [x] Advanced Filtering (vendor, type, color, size, price range)
+      - [x] Search (name, description)
+      - [x] Ordering (price, newest, name)
+      - [x] Pagination support
     - [ ] Manual Product Entry Interface
 - [ ] **Web Frontend**
     - [ ] Homepage (Dual Brand)

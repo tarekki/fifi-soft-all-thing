@@ -48,8 +48,8 @@
 - [ ] Bulk Product Import (CSV/Excel)
 - [ ] API Endpoints:
   - [x] `GET /api/vendors/` - Vendor Management API (completed)
-  - [ ] `GET /api/products/?vendor=fifi`
-  - [ ] `GET /api/products/:id/variants/`
+  - [x] `GET /api/products/?vendor=fifi` - Product API with filtering (completed)
+  - [x] `GET /api/products/:id/variants/` - Product variants endpoint (completed)
 
 #### Testing
 - [ ] Load test with 1000 dummy products

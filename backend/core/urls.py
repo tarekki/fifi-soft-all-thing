@@ -83,9 +83,21 @@ urlpatterns = [
     #   GET /api/vendors/{id}/     - تفاصيل بائع معين
     path("api/", include("vendors.urls")),
     
-    # Product API - سيتم إضافتها لاحقاً
-    # API المنتجات - سيتم إضافتها لاحقاً
-    # path("api/", include("products.urls")),
+    # Product API
+    # API المنتجات
+    # Endpoints:
+    #   GET /api/products/                    - قائمة جميع المنتجات
+    #   GET /api/products/{id}/               - تفاصيل منتج معين (مع جميع المتغيرات)
+    #   GET /api/products/{id}/variants/      - متغيرات منتج معين
+    #   GET /api/products/?vendor_slug=fifi   - فلترة حسب البائع
+    #   GET /api/products/?product_type=shoes - فلترة حسب النوع
+    #   GET /api/products/?color=red          - فلترة حسب اللون
+    #   GET /api/products/?size=38             - فلترة حسب المقاس
+    #   GET /api/products/?min_price=100000   - فلترة حسب السعر الأدنى
+    #   GET /api/products/?max_price=500000   - فلترة حسب السعر الأعلى
+    #   GET /api/products/?search=sneaker     - بحث في الاسم والوصف
+    #   GET /api/products/?ordering=-base_price - ترتيب حسب السعر
+    path("api/", include("products.urls")),
     
     # Order API - سيتم إضافتها لاحقاً
     # API الطلبات - سيتم إضافتها لاحقاً
