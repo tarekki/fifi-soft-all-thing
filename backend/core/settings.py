@@ -63,6 +63,7 @@ INSTALLED_APPS = [
     "django_filters",
     "drf_spectacular",
     # Local apps
+    "users",      # User management app - must be before other apps that reference User
     "vendors",
     "products",
     "orders",
@@ -80,6 +81,16 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = "core.urls"
+
+# ============================================================================
+# Custom User Model Configuration
+# إعدادات نموذج المستخدم المخصص
+# ============================================================================
+# Tell Django to use our custom User model instead of the default one
+# أخبر Django باستخدام نموذج المستخدم المخصص بدلاً من الافتراضي
+# IMPORTANT: This must be set before creating any migrations!
+# مهم: يجب تعيين هذا قبل إنشاء أي migrations!
+AUTH_USER_MODEL = 'users.User'
 
 TEMPLATES = [
     {

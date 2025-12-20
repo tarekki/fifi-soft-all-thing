@@ -12,18 +12,25 @@
 ## Phase 1: Foundation (Week 1-2) 🏗️
 - [/] **Project Setup**
     - [x] Initialize Git Monorepo
-    - [/] Setup Django Backend (PostgreSQL)
+    - [x] Setup Django Backend (PostgreSQL)
       - [x] Setup REST Framework + CORS
       - [x] Configure drf-spectacular for API docs
       - [x] Environment variables setup (.env.example)
       - [x] Remove hardcoded secrets from settings.py
       - [x] Implement production security validation
+      - [x] Custom User System (User, UserProfile, VendorUser models)
+      - [x] Update Order Model (user field, guest orders support)
+      - [x] Apply migrations to database
+      - [x] Setup pgAdmin for database access
     - [ ] Setup Next.js Frontend
     - [ ] Setup React Native (Expo)
 - [x] **Database Schema**
     - [x] Vendor Model
     - [x] Product & ProductVariant Models
     - [x] Order & Commission Models
+    - [x] User Model (Custom - email-based authentication)
+    - [x] UserProfile Model
+    - [x] VendorUser Model (links users to vendors)
 - [/] **Brand Identity**
     - [x] Extract colors from logos
     - [x] Create Design System
@@ -76,8 +83,9 @@
 
 ## Phase 5: Security & Hardening (Newly Added) 🛡️
 - [/] **Backend Security**
+    - [x] User System with Roles (Customer, Vendor, Admin)
     - [ ] Implement JWT Authentication
-    - [ ] Setup Role-Based Access Control (RBAC)
+    - [ ] Setup Role-Based Access Control (RBAC) - Models ready, need API permissions
     - [ ] Configure Rate Limiting & Throttling
 - [ ] **Frontend & Mobile Security**
     - [ ] Secure JWT Storage (HttpOnly / Secure Store)

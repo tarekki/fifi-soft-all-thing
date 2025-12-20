@@ -12,11 +12,14 @@
 #### Backend (Django)
 - [x] Initialize Django project with PostgreSQL
 - [x] Setup REST Framework + CORS
-- [ ] Create Multi-Vendor Database Schema:
-  - `Vendor` (id, name, logo, commission_rate)
-  - `Product` (id, vendor, name, description, base_price)
-  - `ProductVariant` (id, product, color, size, model, stock, images)
-  - `Order` (id, items, total, yalla_go_fee, commission)
+- [x] Create Multi-Vendor Database Schema:
+  - [x] `Vendor` (id, name, logo, commission_rate)
+  - [x] `Product` (id, vendor, name, description, base_price)
+  - [x] `ProductVariant` (id, product, color, size, model, stock, images)
+  - [x] `Order` (id, items, total, yalla_go_fee, commission, user, is_guest_order)
+  - [x] `User` (Custom - email-based, roles: Customer/Vendor/Admin)
+  - [x] `UserProfile` (address, avatar, preferred_language)
+  - [x] `VendorUser` (links users to vendors with permissions)
 
 #### Frontend (Next.js)
 - [ ] Initialize Next.js 14 (App Router)
@@ -32,6 +35,7 @@
 - [x] Git repository structure (Monorepo or Multi-repo)
 - [x] Environment variables setup
 - [x] Docker Compose for local development
+- [x] pgAdmin setup for database access (http://localhost:5050)
 
 ---
 
@@ -44,12 +48,21 @@
 - [ ] Design Product Card component
 
 #### Backend
+- [x] User System Implementation:
+  - [x] Custom User Model (email-based authentication)
+  - [x] UserProfile Model
+  - [x] VendorUser Model (multi-user vendor support)
+  - [x] Update Order Model (user field, guest orders)
+  - [x] Admin Panel for User management
+  - [x] Database migrations applied
 - [ ] Admin Panel customization (Django Admin)
 - [ ] Bulk Product Import (CSV/Excel)
 - [ ] API Endpoints:
   - [x] `GET /api/vendors/` - Vendor Management API (completed)
   - [x] `GET /api/products/?vendor=fifi` - Product API with filtering (completed)
   - [x] `GET /api/products/:id/variants/` - Product variants endpoint (completed)
+  - [ ] `POST /api/users/register/` - User Registration (next)
+  - [ ] `POST /api/users/login/` - User Login (JWT) (next)
 
 #### Testing
 - [ ] Load test with 1000 dummy products
