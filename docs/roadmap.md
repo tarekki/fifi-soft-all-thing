@@ -81,9 +81,11 @@
 ### Week 4: Checkout & Orders
 
 #### Backend
-- [ ] Order Creation API
-- [ ] Commission Calculation Logic
-- [ ] Order Status Management
+- [⏸️] Order Creation API (Deferred - Waiting for Inventory Sync)
+- [⏸️] Commission Calculation Logic (Deferred)
+- [⏸️] Order Status Management (Deferred)
+- **Note**: Order APIs require inventory sync system to properly manage stock quantities. 
+  Will be implemented after Phase 4: Inventory Sync System is completed.
 
 #### Web
 - [ ] Cart Page

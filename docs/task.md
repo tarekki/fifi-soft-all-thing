@@ -43,6 +43,12 @@
       - [x] Ordering (price, newest, name)
       - [x] Pagination support
     - [ ] Manual Product Entry Interface
+    - [⏸️] Order APIs (Deferred - Waiting for Inventory Sync Solution)
+      - [ ] Order Creation API
+      - [ ] Order Detail & List APIs
+      - [ ] Order Status Management
+      - [ ] Commission Calculation Logic
+      - **Note**: Requires inventory sync system to handle stock management properly
 - [ ] **Web Frontend**
     - [ ] Homepage (Dual Brand)
     - [ ] Product Listing (Filters: Color/Size/Model)
