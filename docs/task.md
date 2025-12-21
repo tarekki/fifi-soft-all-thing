@@ -22,7 +22,20 @@
       - [x] Update Order Model (user field, guest orders support)
       - [x] Apply migrations to database
       - [x] Setup pgAdmin for database access
-    - [ ] Setup Next.js Frontend
+    - [/] Setup Next.js Frontend
+      - [x] Initialize Next.js 14 project (TypeScript + Tailwind)
+      - [x] Project structure (app/, core/, lib/, types/)
+      - [x] TypeScript configuration (strict mode)
+      - [x] ESLint + Prettier setup
+      - [x] Environment variables (.env.example)
+      - [x] Basic app structure (layout, page, middleware)
+      - [x] Core Layer foundation (Domain, Services, Ports)
+      - [x] Type definitions (Product, User, Order, Vendor, API)
+      - [x] API client (fetch wrapper)
+      - [x] Server Actions structure
+      - [ ] Complete Core Layer (all domains)
+      - [ ] Complete Server Actions (all actions)
+      - [ ] Auth system implementation
     - [ ] Setup React Native (Expo)
 - [x] **Database Schema**
     - [x] Vendor Model
@@ -86,11 +99,22 @@
         - [ ] Update `OrderViewSet.update_status()` - Handle stock when status changes
         - **See**: `docs/order_api_future_modifications.md` for detailed modification plan
     - [⏸️] Bulk Product Import (Deferred - Waiting for accounting system integration method)
-- [ ] **Web Frontend**
-    - [ ] Homepage (Dual Brand)
-    - [ ] Product Listing (Filters: Color/Size/Model)
-    - [ ] Product Detail Page
-    - [ ] Cart & Checkout (Manual)
+- [/] **Web Frontend**
+    - [x] Project Setup (Next.js 14 + TypeScript + Tailwind)
+    - [x] Basic Project Structure (app/, core/, lib/, types/)
+    - [x] TypeScript Types (Product, User, Order, Vendor, API)
+    - [x] Core Layer Foundation (Domain, Services, Ports)
+    - [x] API Client (fetch wrapper for public read-only)
+    - [x] Server Actions Structure (product.actions.ts)
+    - [x] Middleware Setup (placeholder for auth)
+    - [ ] Complete Core Layer (Order, User, Vendor domains)
+    - [ ] Complete Server Actions (Order, Auth, Vendor)
+    - [ ] Complete API Clients (Vendors, Orders, Auth)
+    - [ ] Auth System (JWT, Cookies, Permissions)
+    - [ ] Homepage (Dual Brand) - Deferred until design is ready
+    - [ ] Product Listing (Filters: Color/Size/Model) - Deferred until design is ready
+    - [ ] Product Detail Page - Deferred until design is ready
+    - [ ] Cart & Checkout (Manual) - Deferred until design is ready
 - [ ] **Mobile App**
     - [ ] Bottom Tab Navigation
     - [ ] Product Browsing

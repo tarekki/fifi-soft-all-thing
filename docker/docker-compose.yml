@@ -57,24 +57,25 @@ services:
     depends_on:
       - db
 
-  # Next.js Frontend - Disabled (Frontend not started yet)
-  # Frontend Next.js - معطل (لم نبدأ Frontend بعد)
-  # frontend:
-  #   build:
-  #     context: ../frontend-web
-  #     dockerfile: Dockerfile.dev
-  #   container_name: trendyol_frontend
-  #   command: npm run dev
-  #   volumes:
-  #     - ../frontend-web:/app
-  #     - /app/node_modules
-  #     - /app/.next
-  #   ports:
-  #     - "3000:3000"
-  #   environment:
-  #     - NEXT_PUBLIC_API_URL=http://localhost:8000/api
-  #   depends_on:
-  #     - backend
+  # Next.js Frontend
+  # Frontend Next.js
+  frontend:
+    build:
+      context: ../frontend-web
+      dockerfile: Dockerfile
+    container_name: trendyol_frontend
+    command: npm run dev
+    volumes:
+      - ../frontend-web:/app
+      - /app/node_modules
+      - /app/.next
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
+      - NEXT_PUBLIC_FRONTEND_URL=http://localhost:3000
+    depends_on:
+      - backend
 
 volumes:
   postgres_data:
