@@ -52,6 +52,12 @@ def api_v1_home(request):
                     "detail": "/api/v1/products/{id}/",
                     "variants": "/api/v1/products/{id}/variants/",
                 },
+                "orders": {
+                    "create": "/api/v1/orders/",
+                    "list": "/api/v1/orders/",
+                    "detail": "/api/v1/orders/{id}/",
+                    "update_status": "/api/v1/orders/{id}/update-status/",
+                },
             },
             "documentation": {
                 "swagger_ui": "/api/schema/swagger-ui/",

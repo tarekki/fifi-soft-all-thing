@@ -22,6 +22,7 @@ from .auth_urls import urlpatterns as auth_urls
 from .users_urls import urlpatterns as users_urls
 from vendors.urls import urlpatterns as vendors_urls
 from products.urls import urlpatterns as products_urls
+from orders.urls import urlpatterns as orders_urls
 from .views import api_v1_home
 
 # ============================================================================
@@ -54,8 +55,9 @@ urlpatterns = [
     # /api/v1/products/, /api/v1/products/{id}/
     path("products/", include(products_urls), name="api-v1-products"),
     
-    # Order endpoints (future)
-    # نقاط نهاية الطلبات (مستقبلاً)
-    # path("orders/", include("orders.urls"), name="api-v1-orders"),
+    # Order endpoints
+    # نقاط نهاية الطلبات
+    # /api/v1/orders/, /api/v1/orders/{id}/
+    path("orders/", include(orders_urls), name="api-v1-orders"),
 ]
 

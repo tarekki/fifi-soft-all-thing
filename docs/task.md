@@ -69,13 +69,23 @@
       - [x] Custom Middleware (Request Logging, Error Handling)
       - [x] Updated all existing APIs to use new structure
       - [x] Removed Legacy API endpoints (clean code, single API structure)
-    - [⏸️] Order APIs (Deferred - Waiting for Inventory Sync Solution)
+    - [x] Order APIs (Basic Implementation - ⚠️ **Requires Future Modifications for Inventory Sync**)
+      - [x] Order Creation API (POST /api/v1/orders/)
+      - [x] Order List API (GET /api/v1/orders/) - Filtered by user role
+      - [x] Order Detail API (GET /api/v1/orders/{id}/)
+      - [x] Order Status Update API (PATCH /api/v1/orders/{id}/update-status/)
+      - [x] Commission Calculation Logic (Automatic 10%)
+      - [x] Guest Orders Support
+      - [x] Role-based Access Control (Customer/Vendor/Admin)
+      - **⚠️ Future Modifications Required (When Inventory Sync is Implemented):**
+        - [ ] Add stock validation in `OrderCreateSerializer.validate()` - Check if sufficient stock exists
+        - [ ] Add stock reduction in `OrderCreateSerializer.create()` - Reduce stock when order is created
+        - [ ] Add stock restoration in order cancellation - Restore stock when order is cancelled
+        - [ ] Add stock sync service - Sync stock from accounting systems
+        - [ ] Add scheduled stock sync tasks - Automatic stock synchronization
+        - [ ] Update `OrderViewSet.update_status()` - Handle stock when status changes
+        - **See**: `docs/order_api_future_modifications.md` for detailed modification plan
     - [⏸️] Bulk Product Import (Deferred - Waiting for accounting system integration method)
-      - [ ] Order Creation API
-      - [ ] Order Detail & List APIs
-      - [ ] Order Status Management
-      - [ ] Commission Calculation Logic
-      - **Note**: Requires inventory sync system to handle stock management properly
 - [ ] **Web Frontend**
     - [ ] Homepage (Dual Brand)
     - [ ] Product Listing (Filters: Color/Size/Model)
