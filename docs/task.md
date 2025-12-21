@@ -115,8 +115,12 @@
       - [x] Auth Service (secure authentication logic)
       - [x] Vendor Service (business logic)
       - [x] All Ports/Interfaces (Order, Auth, Vendor repositories)
-    - [ ] Complete Server Actions (Order, Auth, Vendor)
-    - [ ] Complete API Clients (Vendors, Orders, Auth)
+    - [x] Complete Server Actions (Order, Auth, Vendor)
+      - [x] Order Actions (getOrders, getOrderById, createOrder, updateStatus, cancel)
+      - [x] Auth Actions (register, login, refreshToken, getCurrentUser, verifyEmail, resendVerification, changePassword, logout)
+      - [x] Vendor Actions (getVendors, getVendorById, getVendorBySlug)
+      - [x] Public Vendors API (read-only)
+    - [ ] Complete API Clients (Orders, Auth)
     - [ ] Auth System (JWT, Cookies, Permissions)
     - [ ] Homepage (Dual Brand) - Deferred until design is ready
     - [ ] Product Listing (Filters: Color/Size/Model) - Deferred until design is ready
