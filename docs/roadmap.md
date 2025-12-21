@@ -26,10 +26,11 @@
 - [ ] Setup Tailwind CSS + Design System
 - [ ] Create Layout Components (Header, Footer, Nav)
 
-#### Mobile (React Native)
+#### Mobile (React Native) - **Deferred**
 - [ ] Initialize Expo project
 - [ ] Setup React Navigation
 - [ ] Create shared API client
+- **Note**: Mobile app development will start after backend is fully ready
 
 #### DevOps
 - [x] Git repository structure (Monorepo or Multi-repo)
@@ -66,13 +67,20 @@
   - [x] Rate Limiting configuration
 - [ ] Admin Panel customization (Django Admin)
 - [ ] Bulk Product Import (CSV/Excel)
-- [ ] API Endpoints:
-  - [x] `GET /api/vendors/` - Vendor Management API (completed)
-  - [x] `GET /api/products/?vendor=fifi` - Product API with filtering (completed)
-  - [x] `GET /api/products/:id/variants/` - Product variants endpoint (completed)
-  - [x] `POST /api/users/register/` - User Registration (completed)
-  - [x] `POST /api/users/login/` - User Login (JWT) (completed)
-  - [x] `POST /api/users/refresh/` - Refresh Access Token (completed)
+    - [x] API Endpoints (All using /api/v1/):
+      - [x] `GET /api/v1/vendors/` - Vendor Management API (completed)
+      - [x] `GET /api/v1/products/?vendor_slug=fifi` - Product API with filtering (completed)
+      - [x] `GET /api/v1/products/{id}/variants/` - Product variants endpoint (completed)
+      - [x] `POST /api/v1/auth/register/` - User Registration (completed)
+      - [x] `POST /api/v1/auth/login/` - User Login (JWT) (completed)
+      - [x] `POST /api/v1/auth/refresh/` - Refresh Access Token (completed)
+      - [x] `GET /api/v1/users/profile/` - User Profile Management (completed)
+      - [x] `POST /api/v1/auth/verify-email/` - Email Verification (completed)
+    - [x] **Backend Architecture Improvements**:
+      - [x] API Versioning (/api/v1/ only - Legacy API removed)
+      - [x] Standard Response Wrapper (unified format)
+      - [x] Unified Pagination (Web & Mobile compatible)
+      - [x] Custom Middleware (Logging & Error Handling)
   - [x] `GET /api/users/profile/` - Get User Profile (completed)
   - [x] `PUT /api/users/profile/` - Update User Profile (completed)
   - [x] `POST /api/users/profile/change_password/` - Change Password (completed)

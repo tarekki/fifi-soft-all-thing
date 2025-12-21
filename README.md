@@ -41,8 +41,11 @@ docker-compose up
 
 # Access the services:
 # - Backend API: http://localhost:8000
+# - API v1: http://localhost:8000/api/v1/
+# - API Documentation (Swagger): http://localhost:8000/api/schema/swagger-ui/
 # - Web Frontend: http://localhost:3000
 # - PostgreSQL: localhost:5432
+# - pgAdmin: http://localhost:5050
 ```
 
 ## Development

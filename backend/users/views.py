@@ -29,6 +29,8 @@ from django.core.mail import send_mail
 from django.conf import settings
 from django.urls import reverse
 
+from core.utils import success_response, error_response
+
 from .models import User, UserProfile, EmailVerification
 from .serializers import (
     UserRegistrationSerializer,
@@ -116,16 +118,19 @@ class UserRegistrationView(generics.CreateAPIView):
         # إنشاء JWT tokens
         refresh = RefreshToken.for_user(user)
         
-        # Return user data and tokens
-        # إرجاع بيانات المستخدم والـ tokens
-        return Response({
-            'message': 'User registered successfully. Please check your email for verification.',
-            'user': UserProfileSerializer(user).data,
-            'tokens': {
-                'refresh': str(refresh),
-                'access': str(refresh.access_token),
-            }
-        }, status=status.HTTP_201_CREATED)
+        # Return user data and tokens using standard response format
+        # إرجاع بيانات المستخدم والـ tokens باستخدام تنسيق الاستجابة الموحد
+        return success_response(
+            data={
+                'user': UserProfileSerializer(user).data,
+                'tokens': {
+                    'refresh': str(refresh),
+                    'access': str(refresh.access_token),
+                }
+            },
+            message='User registered successfully. Please check your email for verification.',
+            status_code=status.HTTP_201_CREATED
+        )
 
 
 # ============================================================================
@@ -163,16 +168,19 @@ class UserLoginView(generics.GenericAPIView):
         # إنشاء JWT tokens
         refresh = RefreshToken.for_user(user)
         
-        # Return user data and tokens
-        # إرجاع بيانات المستخدم والـ tokens
-        return Response({
-            'message': 'Login successful.',
-            'user': UserProfileSerializer(user).data,
-            'tokens': {
-                'refresh': str(refresh),
-                'access': str(refresh.access_token),
-            }
-        }, status=status.HTTP_200_OK)
+        # Return user data and tokens using standard response format
+        # إرجاع بيانات المستخدم والـ tokens باستخدام تنسيق الاستجابة الموحد
+        return success_response(
+            data={
+                'user': UserProfileSerializer(user).data,
+                'tokens': {
+                    'refresh': str(refresh),
+                    'access': str(refresh.access_token),
+                }
+            },
+            message='Login successful.',
+            status_code=status.HTTP_200_OK
+        )
 
 
 # ============================================================================
@@ -227,9 +235,11 @@ class UserProfileViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         
-        return Response({
-            'message': 'Password changed successfully.'
-        }, status=status.HTTP_200_OK)
+        return success_response(
+            data=None,
+            message='Password changed successfully.',
+            status_code=status.HTTP_200_OK
+        )
 
 
 # ============================================================================
@@ -256,23 +266,27 @@ def verify_email(request):
     try:
         verification = EmailVerification.objects.get(token=token)
     except EmailVerification.DoesNotExist:
-        return Response({
-            'error': 'Invalid verification token.'
-        }, status=status.HTTP_400_BAD_REQUEST)
+        return error_response(
+            message='Invalid verification token.',
+            status_code=status.HTTP_400_BAD_REQUEST
+        )
     
     # Check if already verified
     # التحقق من إذا كان تم التحقق بالفعل
     if verification.is_verified:
-        return Response({
-            'message': 'Email already verified.'
-        }, status=status.HTTP_200_OK)
+        return success_response(
+            data=None,
+            message='Email already verified.',
+            status_code=status.HTTP_200_OK
+        )
     
     # Check if token expired
     # التحقق من إذا انتهت صلاحية الرمز
     if verification.is_expired():
-        return Response({
-            'error': 'Verification token has expired. Please request a new one.'
-        }, status=status.HTTP_400_BAD_REQUEST)
+        return error_response(
+            message='Verification token has expired. Please request a new one.',
+            status_code=status.HTTP_400_BAD_REQUEST
+        )
     
     # Mark as verified
     # وضع علامة كـ verified
@@ -285,9 +299,11 @@ def verify_email(request):
     user.is_active = True
     user.save()
     
-    return Response({
-        'message': 'Email verified successfully. Your account is now active.'
-    }, status=status.HTTP_200_OK)
+    return success_response(
+        data=None,
+        message='Email verified successfully. Your account is now active.',
+        status_code=status.HTTP_200_OK
+    )
 
 
 # ============================================================================
@@ -311,9 +327,11 @@ def resend_verification_email(request):
     try:
         verification = user.email_verification
         if verification.is_verified:
-            return Response({
-                'message': 'Email already verified.'
-            }, status=status.HTTP_200_OK)
+            return success_response(
+                data=None,
+                message='Email already verified.',
+                status_code=status.HTTP_200_OK
+            )
     except EmailVerification.DoesNotExist:
         # Create new verification if doesn't exist
         # إنشاء تحقق جديد إذا لم يكن موجوداً
@@ -353,10 +371,13 @@ def resend_verification_email(request):
             fail_silently=False,
         )
         
-        return Response({
-            'message': 'Verification email sent successfully.'
-        }, status=status.HTTP_200_OK)
+        return success_response(
+            data=None,
+            message='Verification email sent successfully.',
+            status_code=status.HTTP_200_OK
+        )
     except Exception as e:
-        return Response({
-            'error': f'Failed to send verification email: {str(e)}'
-        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return error_response(
+            message=f'Failed to send verification email: {str(e)}',
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )

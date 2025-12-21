@@ -6,13 +6,15 @@ This module contains ViewSets for Product API endpoints.
 هذا الملف يحتوي على ViewSets لـ endpoints المنتجات
 """
 
-from rest_framework import viewsets, filters
+from rest_framework import viewsets, filters, status
 from rest_framework.permissions import AllowAny
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from django_filters import rest_framework as django_filters
 from decimal import Decimal
+
+from core.utils import success_response
 
 from .models import Product, ProductVariant
 from .serializers import (
@@ -195,10 +197,14 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
             context={'request': request}
         )
         
-        return Response({
-            'product_id': product.id,
-            'product_name': product.name,
-            'variants': serializer.data,
-            'count': variants.count(),
-        })
+        return success_response(
+            data={
+                'product_id': product.id,
+                'product_name': product.name,
+                'variants': serializer.data,
+                'count': variants.count(),
+            },
+            message='Product variants retrieved successfully.',
+            status_code=status.HTTP_200_OK
+        )
 

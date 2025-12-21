@@ -78,6 +78,10 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    # Custom Middleware
+    # Middleware مخصص
+    "core.middleware.RequestLoggingMiddleware",  # Request logging for API monitoring
+    "core.middleware.ErrorHandlingMiddleware",  # Standardized error handling
 ]
 
 ROOT_URLCONF = "core.urls"
@@ -229,11 +233,13 @@ REST_FRAMEWORK = {
     
     # Pagination Configuration
     # إعدادات التقسيم للصفحات
-    # PageNumberPagination: يقسم النتائج لصفحات (مثل: ?page=1, ?page=2)
-    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    # StandardResultsSetPagination: تقسيم موحد يعمل للويب والموبايل
+    # StandardResultsSetPagination: unified pagination that works for both web and mobile
+    "DEFAULT_PAGINATION_CLASS": "core.pagination.StandardResultsSetPagination",
     
     # Page Size: عدد العناصر في كل صفحة
     # 24 منتج لكل صفحة (مناسب لعرض grid من المنتجات)
+    # 24 products per page (suitable for product grid display)
     "PAGE_SIZE": 24,
     
     # Authentication Classes

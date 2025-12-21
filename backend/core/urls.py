@@ -29,16 +29,29 @@ def home_view(request):
     عرض الصفحة الرئيسية - يعرض معلومات عن الـ API
     """
     return JsonResponse({
+        "success": True,
         "message": "Welcome to Trendyol-SY API",
-        "version": "1.0.0",
-        "description": "Multi-vendor e-commerce platform API for Syrian market",
-        "endpoints": {
-            "admin": "/admin/",
-            "api_schema": "/api/schema/",
-            "swagger_ui": "/api/schema/swagger-ui/",
-            "redoc": "/api/schema/redoc/",
+        "data": {
+            "version": "1.0.0",
+            "description": "Multi-vendor e-commerce platform API for Syrian market",
+            "api_version": "v1",
+            "endpoints": {
+                "admin": "/admin/",
+                "api_v1": "/api/v1/",
+                "api_schema": "/api/schema/",
+                "swagger_ui": "/api/schema/swagger-ui/",
+                "redoc": "/api/schema/redoc/",
+            },
+            "api_structure": {
+                "auth": "/api/v1/auth/",
+                "users": "/api/v1/users/",
+                "vendors": "/api/v1/vendors/",
+                "products": "/api/v1/products/",
+            },
+            "note": "Legacy API endpoints have been removed. Please use /api/v1/ endpoints only.",
+            "docs": "Visit /api/schema/swagger-ui/ for interactive API documentation"
         },
-        "docs": "Visit /api/schema/swagger-ui/ for interactive API documentation"
+        "errors": None
     })
 
 # URL Patterns
@@ -74,43 +87,45 @@ urlpatterns = [
     ),
     
     # API URLs
-    # مسارات الـ API (vendors, products, orders)
+    # مسارات الـ API
     
-    # User API (Authentication & Profile)
-    # API المستخدمين (المصادقة والملف الشخصي)
+    # ========================================================================
+    # API Version 1 (Main API)
+    # API الإصدار الأول (الـ API الرئيسي)
+    # ========================================================================
+    # Structured API with versioning for future compatibility
+    # API منظم مع versioning للتوافق المستقبلي
+    # 
     # Endpoints:
-    #   POST /api/users/register/              - تسجيل مستخدم جديد
-    #   POST /api/users/login/                 - تسجيل دخول (JWT tokens)
-    #   POST /api/users/refresh/                - تجديد access token
-    #   GET  /api/users/profile/               - عرض الملف الشخصي
-    #   PUT  /api/users/profile/                - تحديث الملف الشخصي
-    #   POST /api/users/profile/change_password/ - تغيير كلمة المرور
-    #   POST /api/users/verify-email/          - التحقق من البريد الإلكتروني
-    #   POST /api/users/resend-verification/     - إعادة إرسال بريد التحقق
-    path("api/users/", include("users.urls")),
-    
-    # Vendor API
-    # API البائعين
-    # Endpoints:
-    #   GET /api/vendors/          - قائمة جميع البائعين
-    #   GET /api/vendors/{id}/     - تفاصيل بائع معين
-    path("api/", include("vendors.urls")),
-    
-    # Product API
-    # API المنتجات
-    # Endpoints:
-    #   GET /api/products/                    - قائمة جميع المنتجات
-    #   GET /api/products/{id}/               - تفاصيل منتج معين (مع جميع المتغيرات)
-    #   GET /api/products/{id}/variants/      - متغيرات منتج معين
-    #   GET /api/products/?vendor_slug=fifi   - فلترة حسب البائع
-    #   GET /api/products/?product_type=shoes - فلترة حسب النوع
-    #   GET /api/products/?color=red          - فلترة حسب اللون
-    #   GET /api/products/?size=38             - فلترة حسب المقاس
-    #   GET /api/products/?min_price=100000   - فلترة حسب السعر الأدنى
-    #   GET /api/products/?max_price=500000   - فلترة حسب السعر الأعلى
-    #   GET /api/products/?search=sneaker     - بحث في الاسم والوصف
-    #   GET /api/products/?ordering=-base_price - ترتيب حسب السعر
-    path("api/", include("products.urls")),
+    #   Authentication:
+    #     POST /api/v1/auth/register/        - User registration
+    #     POST /api/v1/auth/login/           - User login
+    #     POST /api/v1/auth/refresh/          - Refresh token
+    #     POST /api/v1/auth/verify-email/     - Verify email
+    #     POST /api/v1/auth/resend-verification/ - Resend verification
+    #   
+    #   User Management:
+    #     GET  /api/v1/users/profile/        - Get user profile
+    #     PUT  /api/v1/users/profile/        - Update user profile
+    #     POST /api/v1/users/profile/change_password/ - Change password
+    #   
+    #   Vendors:
+    #     GET /api/v1/vendors/               - List all vendors
+    #     GET /api/v1/vendors/{id}/          - Vendor details
+    #   
+    #   Products:
+    #     GET /api/v1/products/              - List all products
+    #     GET /api/v1/products/{id}/         - Product details
+    #     GET /api/v1/products/{id}/variants/ - Product variants
+    #     GET /api/v1/products/?vendor_slug=fifi - Filter by vendor
+    #     GET /api/v1/products/?product_type=shoes - Filter by type
+    #     GET /api/v1/products/?color=red    - Filter by color
+    #     GET /api/v1/products/?size=38       - Filter by size
+    #     GET /api/v1/products/?min_price=100000 - Filter by min price
+    #     GET /api/v1/products/?max_price=500000 - Filter by max price
+    #     GET /api/v1/products/?search=sneaker - Search products
+    #     GET /api/v1/products/?ordering=-base_price - Order by price
+    path("api/v1/", include("core.api.v1.urls"), name="api-v1"),
     
     # Order API - سيتم إضافتها لاحقاً
     # API الطلبات - سيتم إضافتها لاحقاً
