@@ -137,6 +137,23 @@
       - [x] Session Management (get current user, refresh, clear)
       - [x] Permissions System (role-based: Admin, Vendor, Customer)
       - [x] Middleware with Auth Protection (route protection, redirects)
+    - [x] Shadcn/ui Setup
+      - [x] Install dependencies (class-variance-authority, clsx, tailwind-merge, @radix-ui/react-slot, tailwindcss-animate)
+      - [x] Configure components.json
+      - [x] Update tailwind.config.js with Shadcn/ui theme
+      - [x] Update globals.css with CSS variables
+      - [x] Create lib/utils.ts with cn() helper
+    - [x] Route-level Layouts (Structure only, no design)
+      - [x] (public)/layout.tsx - Public layout structure
+      - [x] (customer)/layout.tsx - Customer layout structure
+      - [x] (vendor)/layout.tsx - Vendor layout structure
+      - [x] (admin)/layout.tsx - Admin layout structure
+    - [x] Custom Hooks
+      - [x] useAuth - Authentication state and operations
+      - [x] useProducts - Product data fetching
+      - [x] useOrders - Order data fetching and management
+      - [x] useCart - Shopping cart management
+      - [x] useVendors - Vendor data fetching
     - [ ] Homepage (Dual Brand) - Deferred until design is ready
     - [ ] Product Listing (Filters: Color/Size/Model) - Deferred until design is ready
     - [ ] Product Detail Page - Deferred until design is ready
