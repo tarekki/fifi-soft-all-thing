@@ -3,7 +3,11 @@
  * أنواع استجابات الـ API
  */
 
-import { ApiResponse, PaginatedResponse } from './common'
+import type { ApiResponse, PaginatedResponse } from './common'
+
+// Re-export for convenience
+// إعادة التصدير للراحة
+export type { ApiResponse, PaginatedResponse } from './common'
 
 export type ApiError = {
   message: string

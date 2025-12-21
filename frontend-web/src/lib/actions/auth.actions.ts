@@ -3,19 +3,28 @@
  * إجراءات الخادم للمصادقة
  * 
  * Server Actions for authentication and user management
- * These actions run on the server and call the Auth Service
+ * These actions run on the server and use the Auth API Client
  * 
  * إجراءات الخادم للمصادقة وإدارة المستخدمين
- * هذه الإجراءات تعمل على الخادم وتستدعي خدمة المصادقة
+ * هذه الإجراءات تعمل على الخادم وتستخدم عميل API المصادقة
+ * 
+ * Security:
+ * - Tokens are stored in HttpOnly cookies (XSS protection)
+ * - Automatic token refresh on expiration
+ * - Password validation and strength requirements
+ * 
+ * الأمان:
+ * - الرموز مخزنة في HttpOnly cookies (حماية من XSS)
+ * - تجديد الرمز تلقائياً عند انتهاء الصلاحية
+ * - التحقق من كلمة المرور ومتطلبات القوة
  */
 
 'use server'
 
-import { AuthService } from '@/core/services/auth.service'
+import * as authApi from '@/lib/api/authenticated/auth'
+import { setTokens, removeAllTokens, getRefreshToken } from '@/lib/auth/cookies'
 import type { User, AuthTokens } from '@/types/user'
-
-// TODO: Create AuthRepository implementation
-// سيتم إنشاء تنفيذ AuthRepository لاحقاً
+import type { ApiResponse } from '@/types/api'
 
 /**
  * Register a new user
@@ -24,11 +33,29 @@ import type { User, AuthTokens } from '@/types/user'
  * @param data - Registration data (email, phone, password, etc.)
  * @returns User and authentication tokens
  * 
- * Security: Validates email, phone, password strength
- * Business Logic: Applies password validation rules, email verification
+ * Security: 
+ * - Validates email format and uniqueness
+ * - Validates phone format and uniqueness
+ * - Enforces password strength requirements
+ * - Checks password confirmation match
  * 
- * الأمان: يتحقق من البريد الإلكتروني، الهاتف، قوة كلمة المرور
- * منطق العمل: يطبق قواعد التحقق من كلمة المرور، التحقق من البريد الإلكتروني
+ * Business Logic: 
+ * - Creates user account
+ * - Sends verification email
+ * - Returns JWT tokens for immediate login
+ * - Stores tokens in HttpOnly cookies
+ * 
+ * الأمان:
+ * - يتحقق من تنسيق البريد الإلكتروني وعدم التكرار
+ * - يتحقق من تنسيق الهاتف وعدم التكرار
+ * - يفرض متطلبات قوة كلمة المرور
+ * - يتحقق من تطابق تأكيد كلمة المرور
+ * 
+ * منطق العمل:
+ * - ينشئ حساب مستخدم
+ * - يرسل بريد التحقق
+ * - يعيد رموز JWT لتسجيل الدخول الفوري
+ * - يخزن الرموز في HttpOnly cookies
  */
 export async function registerAction(data: {
   email: string
@@ -36,18 +63,52 @@ export async function registerAction(data: {
   full_name: string
   password: string
   password_confirm: string
-  role?: string
+  role?: 'customer' | 'vendor' | 'admin'
 }): Promise<{ user: User; tokens: AuthTokens }> {
   try {
-    // TODO: Initialize AuthService with AuthRepository
-    // const repository = new AuthRepository()
-    // const service = new AuthService(repository)
-    // return service.register(data)
+    // Validate input
+    // التحقق من الإدخال
+    if (!data.email || data.email.trim().length === 0) {
+      throw new Error('Email is required')
+    }
 
-    // Temporary: Return error until repository is implemented
-    throw new Error('AuthRepository not implemented yet - will use API directly')
+    if (!data.phone || data.phone.trim().length === 0) {
+      throw new Error('Phone is required')
+    }
+
+    if (!data.full_name || data.full_name.trim().length === 0) {
+      throw new Error('Full name is required')
+    }
+
+    if (!data.password || data.password.length === 0) {
+      throw new Error('Password is required')
+    }
+
+    if (data.password !== data.password_confirm) {
+      throw new Error('Passwords do not match')
+    }
+
+    // Call Auth API Client
+    // استدعاء عميل API المصادقة
+    const response: ApiResponse<{ user: User; tokens: AuthTokens }> = await authApi.register({
+      email: data.email.trim(),
+      phone: data.phone.trim(),
+      full_name: data.full_name.trim(),
+      password: data.password,
+      password_confirm: data.password_confirm,
+      role: data.role || 'customer',
+    })
+
+    if (!response.success || !response.data) {
+      throw new Error(response.message || 'Registration failed')
+    }
+
+    // Store tokens in HttpOnly cookies
+    // تخزين الرموز في HttpOnly cookies
+    await setTokens(response.data.tokens.access, response.data.tokens.refresh)
+
+    return response.data
   } catch (error) {
-    // Log error for debugging (in production, use proper logging)
     console.error('Error in registerAction:', error)
     throw error
   }
@@ -61,11 +122,23 @@ export async function registerAction(data: {
  * @param password - User password
  * @returns User and authentication tokens
  * 
- * Security: Validates credentials, returns JWT tokens
- * Business Logic: Applies authentication rules
+ * Security: 
+ * - Validates credentials
+ * - Returns JWT tokens (access + refresh)
+ * - Stores tokens in HttpOnly cookies
  * 
- * الأمان: يتحقق من بيانات الاعتماد، يعيد رموز JWT
- * منطق العمل: يطبق قواعد المصادقة
+ * Business Logic: 
+ * - Checks if user is active
+ * - Checks if email is verified (if verification is required)
+ * 
+ * الأمان:
+ * - يتحقق من بيانات الاعتماد
+ * - يعيد رموز JWT (access + refresh)
+ * - يخزن الرموز في HttpOnly cookies
+ * 
+ * منطق العمل:
+ * - يتحقق من إذا كان المستخدم نشطاً
+ * - يتحقق من إذا كان البريد الإلكتروني مؤكداً (إذا كان التحقق مطلوباً)
  */
 export async function loginAction(
   email: string,
@@ -80,12 +153,22 @@ export async function loginAction(
       throw new Error('Password is required')
     }
 
-    // TODO: Initialize AuthService with AuthRepository
-    // const repository = new AuthRepository()
-    // const service = new AuthService(repository)
-    // return service.login(email, password)
+    // Call Auth API Client
+    // استدعاء عميل API المصادقة
+    const response: ApiResponse<{ user: User; tokens: AuthTokens }> = await authApi.login(
+      email.trim(),
+      password
+    )
 
-    throw new Error('AuthRepository not implemented yet')
+    if (!response.success || !response.data) {
+      throw new Error(response.message || 'Login failed')
+    }
+
+    // Store tokens in HttpOnly cookies
+    // تخزين الرموز في HttpOnly cookies
+    await setTokens(response.data.tokens.access, response.data.tokens.refresh)
+
+    return response.data
   } catch (error) {
     console.error('Error in loginAction:', error)
     throw error
@@ -96,25 +179,44 @@ export async function loginAction(
  * Refresh access token
  * تجديد رمز الوصول
  * 
- * @param refreshToken - Refresh token
+ * @param refreshToken - Refresh token (optional, will get from cookies if not provided)
  * @returns New access and refresh tokens
  * 
- * Security: Validates refresh token, returns new tokens
+ * Security: 
+ * - Validates refresh token
+ * - Returns new tokens
+ * - Old refresh token is invalidated (if token rotation is enabled)
+ * - Stores new tokens in HttpOnly cookies
  * 
- * الأمان: يتحقق من رمز التحديث، يعيد رموز جديدة
+ * الأمان:
+ * - يتحقق من رمز التحديث
+ * - يعيد رموز جديدة
+ * - رمز التحديث القديم يُبطل (إذا كان تدوير الرموز مفعلاً)
+ * - يخزن الرموز الجديدة في HttpOnly cookies
  */
-export async function refreshTokenAction(refreshToken: string): Promise<AuthTokens> {
+export async function refreshTokenAction(refreshToken?: string): Promise<AuthTokens> {
   try {
-    if (!refreshToken || refreshToken.length === 0) {
+    // Get refresh token from cookies if not provided
+    // الحصول على رمز التحديث من الكوكيز إذا لم يتم توفيره
+    const token = refreshToken || (await getRefreshToken())
+    
+    if (!token || token.length === 0) {
       throw new Error('Refresh token is required')
     }
 
-    // TODO: Initialize AuthService with AuthRepository
-    // const repository = new AuthRepository()
-    // const service = new AuthService(repository)
-    // return service.refreshToken(refreshToken)
+    // Call Auth API Client
+    // استدعاء عميل API المصادقة
+    const response: ApiResponse<AuthTokens> = await authApi.refreshToken(token)
 
-    throw new Error('AuthRepository not implemented yet')
+    if (!response.success || !response.data) {
+      throw new Error(response.message || 'Failed to refresh token')
+    }
+
+    // Store new tokens in HttpOnly cookies
+    // تخزين الرموز الجديدة في HttpOnly cookies
+    await setTokens(response.data.access, response.data.refresh)
+
+    return response.data
   } catch (error) {
     console.error('Error in refreshTokenAction:', error)
     throw error
@@ -125,25 +227,30 @@ export async function refreshTokenAction(refreshToken: string): Promise<AuthToke
  * Get current authenticated user
  * الحصول على المستخدم الحالي المصادق عليه
  * 
- * @param accessToken - Access token
- * @returns Current user
+ * @returns Current user with profile
  * 
- * Security: Validates access token, returns user data
+ * Security: 
+ * - Requires authentication (JWT token from cookies)
+ * - Returns user data based on token
  * 
- * الأمان: يتحقق من رمز الوصول، يعيد بيانات المستخدم
+ * الأمان:
+ * - يتطلب المصادقة (رمز JWT من الكوكيز)
+ * - يعيد بيانات المستخدم بناءً على الرمز
  */
-export async function getCurrentUserAction(accessToken: string): Promise<User> {
+export async function getCurrentUserAction(): Promise<User & { profile?: import('@/types/user').UserProfile }> {
   try {
-    if (!accessToken || accessToken.length === 0) {
-      throw new Error('Access token is required')
+    // Call Auth API Client
+    // استدعاء عميل API المصادقة
+    // The API client automatically uses JWT token from HttpOnly cookies
+    // عميل API يستخدم تلقائياً رمز JWT من HttpOnly cookies
+    const response: ApiResponse<User & { profile?: import('@/types/user').UserProfile }> = 
+      await authApi.getCurrentUser()
+
+    if (!response.success || !response.data) {
+      throw new Error(response.message || 'Failed to get current user')
     }
 
-    // TODO: Initialize AuthService with AuthRepository
-    // const repository = new AuthRepository()
-    // const service = new AuthService(repository)
-    // return service.getCurrentUser(accessToken)
-
-    throw new Error('AuthRepository not implemented yet')
+    return response.data
   } catch (error) {
     console.error('Error in getCurrentUserAction:', error)
     throw error
@@ -155,24 +262,33 @@ export async function getCurrentUserAction(accessToken: string): Promise<User> {
  * التحقق من البريد الإلكتروني
  * 
  * @param token - Verification token
- * @returns Success status
+ * @returns Success message
  * 
- * Security: Validates verification token
+ * Security: 
+ * - Validates verification token
+ * - Checks token expiration
+ * - Marks email as verified
  * 
- * الأمان: يتحقق من رمز التحقق
+ * الأمان:
+ * - يتحقق من رمز التحقق
+ * - يتحقق من انتهاء صلاحية الرمز
+ * - يضع علامة على البريد الإلكتروني كمؤكد
  */
-export async function verifyEmailAction(token: string): Promise<boolean> {
+export async function verifyEmailAction(token: string): Promise<string> {
   try {
     if (!token || token.length === 0) {
       throw new Error('Verification token is required')
     }
 
-    // TODO: Initialize AuthService with AuthRepository
-    // const repository = new AuthRepository()
-    // const service = new AuthService(repository)
-    // return service.verifyEmail(token)
+    // Call Auth API Client
+    // استدعاء عميل API المصادقة
+    const response: ApiResponse<{ message: string }> = await authApi.verifyEmail(token)
 
-    throw new Error('AuthRepository not implemented yet')
+    if (!response.success || !response.data) {
+      throw new Error(response.message || 'Email verification failed')
+    }
+
+    return response.data.message
   } catch (error) {
     console.error('Error in verifyEmailAction:', error)
     throw error
@@ -183,25 +299,28 @@ export async function verifyEmailAction(token: string): Promise<boolean> {
  * Resend verification email
  * إعادة إرسال بريد التحقق
  * 
- * @param email - User email
- * @returns Success status
+ * @param email - User email (optional, uses current user if not provided)
+ * @returns Success message
  * 
- * Security: Validates email, sends verification email
+ * Security: 
+ * - Requires authentication (if email not provided)
+ * - Rate limiting applies (prevents spam)
  * 
- * الأمان: يتحقق من البريد الإلكتروني، يرسل بريد التحقق
+ * الأمان:
+ * - يتطلب المصادقة (إذا لم يتم توفير البريد الإلكتروني)
+ * - يطبق تحديد المعدل (يمنع البريد المزعج)
  */
-export async function resendVerificationEmailAction(email: string): Promise<boolean> {
+export async function resendVerificationEmailAction(email?: string): Promise<string> {
   try {
-    if (!email || email.trim().length === 0) {
-      throw new Error('Email is required')
+    // Call Auth API Client
+    // استدعاء عميل API المصادقة
+    const response: ApiResponse<{ message: string }> = await authApi.resendVerification(email)
+
+    if (!response.success || !response.data) {
+      throw new Error(response.message || 'Failed to resend verification email')
     }
 
-    // TODO: Initialize AuthService with AuthRepository
-    // const repository = new AuthRepository()
-    // const service = new AuthService(repository)
-    // return service.resendVerificationEmail(email)
-
-    throw new Error('AuthRepository not implemented yet')
+    return response.data.message
   } catch (error) {
     console.error('Error in resendVerificationEmailAction:', error)
     throw error
@@ -212,30 +331,38 @@ export async function resendVerificationEmailAction(email: string): Promise<bool
  * Change user password
  * تغيير كلمة مرور المستخدم
  * 
- * @param userId - User ID
- * @param oldPassword - Current password
+ * @param currentPassword - Current password
  * @param newPassword - New password
  * @param newPasswordConfirm - New password confirmation
- * @returns Success status
+ * @returns Success message
  * 
- * Security: Validates old password, enforces password strength rules
- * Business Logic: Applies password validation policies
+ * Security: 
+ * - Requires authentication
+ * - Validates current password
+ * - Enforces password strength rules
+ * - Requires password confirmation
  * 
- * الأمان: يتحقق من كلمة المرور القديمة، يفرض قواعد قوة كلمة المرور
- * منطق العمل: يطبق سياسات التحقق من كلمة المرور
+ * Business Logic: 
+ * - Applies password validation policies
+ * - Prevents reuse of recent passwords (if implemented)
+ * 
+ * الأمان:
+ * - يتطلب المصادقة
+ * - يتحقق من كلمة المرور الحالية
+ * - يفرض قواعد قوة كلمة المرور
+ * - يتطلب تأكيد كلمة المرور
+ * 
+ * منطق العمل:
+ * - يطبق سياسات التحقق من كلمة المرور
+ * - يمنع إعادة استخدام كلمات المرور الأخيرة (إذا تم تنفيذها)
  */
 export async function changePasswordAction(
-  userId: number,
-  oldPassword: string,
+  currentPassword: string,
   newPassword: string,
   newPasswordConfirm: string
-): Promise<boolean> {
+): Promise<string> {
   try {
-    if (!userId || userId <= 0) {
-      throw new Error('Invalid user ID')
-    }
-
-    if (!oldPassword || oldPassword.length === 0) {
+    if (!currentPassword || currentPassword.length === 0) {
       throw new Error('Current password is required')
     }
 
@@ -247,12 +374,19 @@ export async function changePasswordAction(
       throw new Error('New passwords do not match')
     }
 
-    // TODO: Initialize AuthService with AuthRepository
-    // const repository = new AuthRepository()
-    // const service = new AuthService(repository)
-    // return service.changePassword(userId, oldPassword, newPassword, newPasswordConfirm)
+    // Call Auth API Client
+    // استدعاء عميل API المصادقة
+    const response: ApiResponse<{ message: string }> = await authApi.changePassword({
+      current_password: currentPassword,
+      new_password: newPassword,
+      new_password_confirm: newPasswordConfirm,
+    })
 
-    throw new Error('AuthRepository not implemented yet')
+    if (!response.success || !response.data) {
+      throw new Error(response.message || 'Failed to change password')
+    }
+
+    return response.data.message
   } catch (error) {
     console.error('Error in changePasswordAction:', error)
     throw error
@@ -263,28 +397,36 @@ export async function changePasswordAction(
  * Logout user
  * تسجيل خروج المستخدم
  * 
- * @param refreshToken - Refresh token to invalidate
- * @returns Success status
+ * @returns Success message
  * 
- * Security: Invalidates refresh token (blacklist)
+ * Security: 
+ * - Removes tokens from HttpOnly cookies
+ * - If backend supports token blacklisting, invalidates tokens
  * 
- * الأمان: يبطل رمز التحديث (قائمة سوداء)
+ * الأمان:
+ * - يزيل الرموز من HttpOnly cookies
+ * - إذا كان الخادم يدعم إبطال الرموز، يبطل الرموز
  */
-export async function logoutAction(refreshToken: string): Promise<boolean> {
+export async function logoutAction(): Promise<string> {
   try {
-    if (!refreshToken || refreshToken.length === 0) {
-      throw new Error('Refresh token is required')
-    }
+    // Call Auth API Client (if backend has logout endpoint)
+    // استدعاء عميل API المصادقة (إذا كان الخادم لديه endpoint تسجيل خروج)
+    // For now, logout is handled client-side (removing cookies)
+    // حالياً، تسجيل الخروج يتم التعامل معه على جانب العميل (إزالة الكوكيز)
+    const response: ApiResponse<{ message: string }> = await authApi.logout()
 
-    // TODO: Initialize AuthService with AuthRepository
-    // const repository = new AuthRepository()
-    // const service = new AuthService(repository)
-    // return service.logout(refreshToken)
+    // Remove tokens from HttpOnly cookies
+    // إزالة الرموز من HttpOnly cookies
+    await removeAllTokens()
 
-    throw new Error('AuthRepository not implemented yet')
+    return response.data?.message || 'Logged out successfully'
   } catch (error) {
+    // Even if API call fails, remove tokens from cookies
+    // حتى لو فشلت استدعاء API، أزل الرموز من الكوكيز
+    await removeAllTokens()
+    
     console.error('Error in logoutAction:', error)
-    throw error
+    return 'Logged out successfully'
   }
 }
 

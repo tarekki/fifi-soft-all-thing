@@ -120,7 +120,11 @@
       - [x] Auth Actions (register, login, refreshToken, getCurrentUser, verifyEmail, resendVerification, changePassword, logout)
       - [x] Vendor Actions (getVendors, getVendorById, getVendorBySlug)
       - [x] Public Vendors API (read-only)
-    - [ ] Complete API Clients (Orders, Auth) - For authenticated requests
+    - [x] Complete API Clients (Orders, Auth) - For authenticated requests
+      - [x] Authenticated API Client (JWT support from HttpOnly cookies)
+      - [x] Orders API Client (create, get, update status, cancel)
+      - [x] Auth API Client (register, login, refresh, profile, verify email, change password, logout)
+      - [x] Updated Server Actions to use new API clients
     - [x] Auth System (JWT, Cookies, Permissions)
       - [x] JWT Token Handling (decode, validate, extract user data)
       - [x] HttpOnly Cookies Management (secure, safe, XSS protection)
