@@ -120,8 +120,13 @@
       - [x] Auth Actions (register, login, refreshToken, getCurrentUser, verifyEmail, resendVerification, changePassword, logout)
       - [x] Vendor Actions (getVendors, getVendorById, getVendorBySlug)
       - [x] Public Vendors API (read-only)
-    - [ ] Complete API Clients (Orders, Auth)
-    - [ ] Auth System (JWT, Cookies, Permissions)
+    - [ ] Complete API Clients (Orders, Auth) - For authenticated requests
+    - [x] Auth System (JWT, Cookies, Permissions)
+      - [x] JWT Token Handling (decode, validate, extract user data)
+      - [x] HttpOnly Cookies Management (secure, safe, XSS protection)
+      - [x] Session Management (get current user, refresh, clear)
+      - [x] Permissions System (role-based: Admin, Vendor, Customer)
+      - [x] Middleware with Auth Protection (route protection, redirects)
     - [ ] Homepage (Dual Brand) - Deferred until design is ready
     - [ ] Product Listing (Filters: Color/Size/Model) - Deferred until design is ready
     - [ ] Product Detail Page - Deferred until design is ready
