@@ -3,20 +3,24 @@
  * إجراءات الخادم للبائعين
  * 
  * Server Actions for vendor management
- * These actions run on the server and call the Vendor Service
+ * These actions run on the server and use Vendor Service with Repository
  * 
  * إجراءات الخادم لإدارة البائعين
- * هذه الإجراءات تعمل على الخادم وتستدعي خدمة البائعين
+ * هذه الإجراءات تعمل على الخادم وتستخدم خدمة البائعين مع المستودع
+ * 
+ * Architecture:
+ * Server Action → Service → Repository → API Client → Backend
+ * 
+ * البنية المعمارية:
+ * Server Action → Service → Repository → API Client → Backend
  */
 
 'use server'
 
 import { VendorService } from '@/core/services/vendor.service'
+import { VendorRepository } from '@/core/repositories/vendor.repository'
 import type { Vendor } from '@/types/vendor'
 import type { ApiPaginatedResponse } from '@/types/api'
-
-// TODO: Create VendorRepository implementation
-// سيتم إنشاء تنفيذ VendorRepository لاحقاً
 
 /**
  * Get all vendors
@@ -37,16 +41,15 @@ export async function getVendorsAction(params?: {
   page?: number
 }): Promise<ApiPaginatedResponse<Vendor>> {
   try {
-    // TODO: Initialize VendorService with VendorRepository
-    // const repository = new VendorRepository()
-    // const service = new VendorService(repository)
-    // return service.getVendors(params)
+    // Initialize Repository and Service
+    // تهيئة المستودع والخدمة
+    const repository = new VendorRepository()
+    const service = new VendorService(repository)
 
-    // Temporary: Use public API directly
-    const { getVendors } = await import('@/lib/api/public/vendors')
-    return getVendors(params)
+    // Call Service method
+    // استدعاء طريقة الخدمة
+    return await service.getVendors(params)
   } catch (error) {
-    // Log error for debugging (in production, use proper logging)
     console.error('Error in getVendorsAction:', error)
     throw error
   }
@@ -71,12 +74,14 @@ export async function getVendorByIdAction(id: number): Promise<Vendor> {
       throw new Error('Invalid vendor ID')
     }
 
-    // TODO: Initialize VendorService with VendorRepository
-    // const repository = new VendorRepository()
-    // const service = new VendorService(repository)
-    // return service.getVendorById(id)
+    // Initialize Repository and Service
+    // تهيئة المستودع والخدمة
+    const repository = new VendorRepository()
+    const service = new VendorService(repository)
 
-    throw new Error('VendorRepository not implemented yet')
+    // Call Service method
+    // استدعاء طريقة الخدمة
+    return await service.getVendorById(id)
   } catch (error) {
     console.error('Error in getVendorByIdAction:', error)
     throw error
@@ -102,12 +107,14 @@ export async function getVendorBySlugAction(slug: string): Promise<Vendor> {
       throw new Error('Vendor slug is required')
     }
 
-    // TODO: Initialize VendorService with VendorRepository
-    // const repository = new VendorRepository()
-    // const service = new VendorService(repository)
-    // return service.getVendorBySlug(slug)
+    // Initialize Repository and Service
+    // تهيئة المستودع والخدمة
+    const repository = new VendorRepository()
+    const service = new VendorService(repository)
 
-    throw new Error('VendorRepository not implemented yet')
+    // Call Service method
+    // استدعاء طريقة الخدمة
+    return await service.getVendorBySlug(slug)
   } catch (error) {
     console.error('Error in getVendorBySlugAction:', error)
     throw error

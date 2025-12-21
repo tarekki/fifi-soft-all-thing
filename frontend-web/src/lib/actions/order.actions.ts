@@ -3,27 +3,35 @@
  * إجراءات الخادم للطلبات
  * 
  * Server Actions for order management
- * These actions run on the server and use the Orders API Client
+ * These actions run on the server and use Order Service with Repository
  * 
  * إجراءات الخادم لإدارة الطلبات
- * هذه الإجراءات تعمل على الخادم وتستخدم عميل API الطلبات
+ * هذه الإجراءات تعمل على الخادم وتستخدم خدمة الطلبات مع المستودع
+ * 
+ * Architecture:
+ * Server Action → Service → Repository → API Client → Backend
+ * 
+ * البنية المعمارية:
+ * Server Action → Service → Repository → API Client → Backend
  * 
  * Security:
  * - All requests are authenticated using JWT tokens from HttpOnly cookies
  * - Orders are filtered by user role (customer/vendor/admin)
- * - Business logic validation is handled by the backend
+ * - Business logic validation is handled by OrderService and OrderPolicy
  * 
  * الأمان:
  * - جميع الطلبات مصادق عليها باستخدام رموز JWT من HttpOnly cookies
  * - الطلبات مفلترة حسب دور المستخدم (عميل/بائع/مطور)
- * - التحقق من منطق العمل يتم التعامل معه بواسطة الخادم
+ * - التحقق من منطق العمل يتم التعامل معه بواسطة OrderService و OrderPolicy
  */
 
 'use server'
 
-import * as ordersApi from '@/lib/api/authenticated/orders'
+import { OrderService } from '@/core/services/order.service'
+import { OrderRepository } from '@/core/repositories/order.repository'
+import { getCurrentUser } from '@/lib/auth/session'
 import type { Order, CreateOrderDTO, OrderStatus } from '@/types/order'
-import type { ApiPaginatedResponse, ApiResponse } from '@/types/api'
+import type { ApiPaginatedResponse } from '@/types/api'
 
 /**
  * Get orders for the current user
@@ -50,15 +58,23 @@ export async function getOrdersAction(params?: {
   search?: string
 }): Promise<ApiPaginatedResponse<Order>> {
   try {
-    // Call Orders API Client
-    // استدعاء عميل API الطلبات
-    // The API client handles authentication automatically using JWT from cookies
-    // عميل API يتعامل مع المصادقة تلقائياً باستخدام JWT من الكوكيز
-    const response = await ordersApi.getOrders(params)
-    return response
+    // Get current user from session
+    // الحصول على المستخدم الحالي من الجلسة
+    const user = await getCurrentUser()
+
+    // Initialize Repository and Service
+    // تهيئة المستودع والخدمة
+    const repository = new OrderRepository()
+    const service = new OrderService(repository)
+
+    // Call Service method
+    // استدعاء طريقة الخدمة
+    return await service.getOrders(user, {
+      vendor_id: params?.vendor_id,
+      status: params?.status,
+      page: params?.page,
+    })
   } catch (error) {
-    // Log error for debugging (in production, use proper logging)
-    // تسجيل الخطأ للتشخيص (في الإنتاج، استخدم تسجيل مناسب)
     console.error('Error in getOrdersAction:', error)
     throw error
   }
@@ -87,17 +103,18 @@ export async function getOrderByIdAction(id: number): Promise<Order> {
       throw new Error('Invalid order ID')
     }
 
-    // Call Orders API Client
-    // استدعاء عميل API الطلبات
-    const response: ApiResponse<Order> = await ordersApi.getOrderById(id)
-    
-    // Extract order from API response
-    // استخراج الطلب من استجابة API
-    if (!response.success || !response.data) {
-      throw new Error(response.message || 'Failed to get order')
-    }
-    
-    return response.data
+    // Get current user from session
+    // الحصول على المستخدم الحالي من الجلسة
+    const user = await getCurrentUser()
+
+    // Initialize Repository and Service
+    // تهيئة المستودع والخدمة
+    const repository = new OrderRepository()
+    const service = new OrderService(repository)
+
+    // Call Service method
+    // استدعاء طريقة الخدمة
+    return await service.getOrderById(id, user)
   } catch (error) {
     console.error('Error in getOrderByIdAction:', error)
     throw error
@@ -133,35 +150,18 @@ export async function getOrderByIdAction(id: number): Promise<Order> {
  */
 export async function createOrderAction(data: CreateOrderDTO): Promise<Order> {
   try {
-    // Validate required fields
-    // التحقق من الحقول المطلوبة
-    if (!data.items || data.items.length === 0) {
-      throw new Error('Order must contain at least one item')
-    }
+    // Get current user from session (may be null for guest orders)
+    // الحصول على المستخدم الحالي من الجلسة (قد يكون null للطلبات الضيفية)
+    const user = await getCurrentUser()
 
-    if (!data.customer_name || data.customer_name.trim().length === 0) {
-      throw new Error('Customer name is required')
-    }
+    // Initialize Repository and Service
+    // تهيئة المستودع والخدمة
+    const repository = new OrderRepository()
+    const service = new OrderService(repository)
 
-    if (!data.customer_phone || data.customer_phone.trim().length === 0) {
-      throw new Error('Customer phone is required')
-    }
-
-    if (!data.customer_address || data.customer_address.trim().length === 0) {
-      throw new Error('Customer address is required')
-    }
-
-    // Call Orders API Client
-    // استدعاء عميل API الطلبات
-    const response: ApiResponse<Order> = await ordersApi.createOrder(data)
-    
-    // Extract order from API response
-    // استخراج الطلب من استجابة API
-    if (!response.success || !response.data) {
-      throw new Error(response.message || 'Failed to create order')
-    }
-    
-    return response.data
+    // Call Service method (validates permissions and business rules)
+    // استدعاء طريقة الخدمة (تتحقق من الصلاحيات وقواعد العمل)
+    return await service.createOrder(data, user)
   } catch (error) {
     console.error('Error in createOrderAction:', error)
     throw error
@@ -195,24 +195,22 @@ export async function updateOrderStatusAction(
       throw new Error('Status is required')
     }
 
-    // Validate status value
-    // التحقق من قيمة الحالة
-    const validStatuses: OrderStatus[] = ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled']
-    if (!validStatuses.includes(status)) {
-      throw new Error(`Invalid status. Must be one of: ${validStatuses.join(', ')}`)
+    // Get current user from session
+    // الحصول على المستخدم الحالي من الجلسة
+    const user = await getCurrentUser()
+
+    if (!user) {
+      throw new Error('Authentication required to update order status')
     }
 
-    // Call Orders API Client
-    // استدعاء عميل API الطلبات
-    const response: ApiResponse<Order> = await ordersApi.updateOrderStatus(id, status)
-    
-    // Extract order from API response
-    // استخراج الطلب من استجابة API
-    if (!response.success || !response.data) {
-      throw new Error(response.message || 'Failed to update order status')
-    }
-    
-    return response.data
+    // Initialize Repository and Service
+    // تهيئة المستودع والخدمة
+    const repository = new OrderRepository()
+    const service = new OrderService(repository)
+
+    // Call Service method (validates permissions and status transition)
+    // استدعاء طريقة الخدمة (تتحقق من الصلاحيات وانتقال الحالة)
+    return await service.updateOrderStatus(id, status, user)
   } catch (error) {
     console.error('Error in updateOrderStatusAction:', error)
     throw error
@@ -244,17 +242,22 @@ export async function cancelOrderAction(id: number): Promise<Order> {
       throw new Error('Invalid order ID')
     }
 
-    // Call Orders API Client to cancel order (sets status to 'cancelled')
-    // استدعاء عميل API الطلبات لإلغاء الطلب (يضع الحالة على 'cancelled')
-    const response: ApiResponse<Order> = await ordersApi.cancelOrder(id)
-    
-    // Extract order from API response
-    // استخراج الطلب من استجابة API
-    if (!response.success || !response.data) {
-      throw new Error(response.message || 'Failed to cancel order')
+    // Get current user from session
+    // الحصول على المستخدم الحالي من الجلسة
+    const user = await getCurrentUser()
+
+    if (!user) {
+      throw new Error('Authentication required to cancel order')
     }
-    
-    return response.data
+
+    // Initialize Repository and Service
+    // تهيئة المستودع والخدمة
+    const repository = new OrderRepository()
+    const service = new OrderService(repository)
+
+    // Call Service method (validates permissions)
+    // استدعاء طريقة الخدمة (تتحقق من الصلاحيات)
+    return await service.cancelOrder(id, user)
   } catch (error) {
     console.error('Error in cancelOrderAction:', error)
     throw error

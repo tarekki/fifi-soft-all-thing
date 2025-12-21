@@ -3,28 +3,34 @@
  * إجراءات الخادم للمصادقة
  * 
  * Server Actions for authentication and user management
- * These actions run on the server and use the Auth API Client
+ * These actions run on the server and use Auth Service with Repository
  * 
  * إجراءات الخادم للمصادقة وإدارة المستخدمين
- * هذه الإجراءات تعمل على الخادم وتستخدم عميل API المصادقة
+ * هذه الإجراءات تعمل على الخادم وتستخدم خدمة المصادقة مع المستودع
+ * 
+ * Architecture:
+ * Server Action → Service → Repository → API Client → Backend
+ * 
+ * البنية المعمارية:
+ * Server Action → Service → Repository → API Client → Backend
  * 
  * Security:
  * - Tokens are stored in HttpOnly cookies (XSS protection)
  * - Automatic token refresh on expiration
- * - Password validation and strength requirements
+ * - Password validation and strength requirements (handled by AuthService)
  * 
  * الأمان:
  * - الرموز مخزنة في HttpOnly cookies (حماية من XSS)
  * - تجديد الرمز تلقائياً عند انتهاء الصلاحية
- * - التحقق من كلمة المرور ومتطلبات القوة
+ * - التحقق من كلمة المرور ومتطلبات القوة (يتم التعامل معه بواسطة AuthService)
  */
 
 'use server'
 
-import * as authApi from '@/lib/api/authenticated/auth'
-import { setTokens, removeAllTokens, getRefreshToken } from '@/lib/auth/cookies'
+import { AuthService } from '@/core/services/auth.service'
+import { AuthRepository } from '@/core/repositories/auth.repository'
+import { setTokens, removeAllTokens, getRefreshToken, getAccessToken } from '@/lib/auth/cookies'
 import type { User, AuthTokens } from '@/types/user'
-import type { ApiResponse } from '@/types/api'
 
 /**
  * Register a new user
@@ -88,26 +94,27 @@ export async function registerAction(data: {
       throw new Error('Passwords do not match')
     }
 
-    // Call Auth API Client
-    // استدعاء عميل API المصادقة
-    const response: ApiResponse<{ user: User; tokens: AuthTokens }> = await authApi.register({
-      email: data.email.trim(),
-      phone: data.phone.trim(),
-      full_name: data.full_name.trim(),
-      password: data.password,
-      password_confirm: data.password_confirm,
-      role: data.role || 'customer',
-    })
+      // Initialize Repository and Service
+      // تهيئة المستودع والخدمة
+      const repository = new AuthRepository()
+      const service = new AuthService(repository)
 
-    if (!response.success || !response.data) {
-      throw new Error(response.message || 'Registration failed')
-    }
+      // Call Service method (validates email, phone, password)
+      // استدعاء طريقة الخدمة (تتحقق من البريد الإلكتروني، الهاتف، كلمة المرور)
+      const result = await service.register({
+        email: data.email.trim(),
+        phone: data.phone.trim(),
+        full_name: data.full_name.trim(),
+        password: data.password,
+        password_confirm: data.password_confirm,
+        role: data.role || 'customer',
+      })
 
-    // Store tokens in HttpOnly cookies
-    // تخزين الرموز في HttpOnly cookies
-    await setTokens(response.data.tokens.access, response.data.tokens.refresh)
+      // Store tokens in HttpOnly cookies
+      // تخزين الرموز في HttpOnly cookies
+      await setTokens(result.tokens.access, result.tokens.refresh)
 
-    return response.data
+      return result
   } catch (error) {
     console.error('Error in registerAction:', error)
     throw error
@@ -153,22 +160,20 @@ export async function loginAction(
       throw new Error('Password is required')
     }
 
-    // Call Auth API Client
-    // استدعاء عميل API المصادقة
-    const response: ApiResponse<{ user: User; tokens: AuthTokens }> = await authApi.login(
-      email.trim(),
-      password
-    )
+      // Initialize Repository and Service
+      // تهيئة المستودع والخدمة
+      const repository = new AuthRepository()
+      const service = new AuthService(repository)
 
-    if (!response.success || !response.data) {
-      throw new Error(response.message || 'Login failed')
-    }
+      // Call Service method (validates email format)
+      // استدعاء طريقة الخدمة (تتحقق من تنسيق البريد الإلكتروني)
+      const result = await service.login(email.trim(), password)
 
-    // Store tokens in HttpOnly cookies
-    // تخزين الرموز في HttpOnly cookies
-    await setTokens(response.data.tokens.access, response.data.tokens.refresh)
+      // Store tokens in HttpOnly cookies
+      // تخزين الرموز في HttpOnly cookies
+      await setTokens(result.tokens.access, result.tokens.refresh)
 
-    return response.data
+      return result
   } catch (error) {
     console.error('Error in loginAction:', error)
     throw error
@@ -204,19 +209,20 @@ export async function refreshTokenAction(refreshToken?: string): Promise<AuthTok
       throw new Error('Refresh token is required')
     }
 
-    // Call Auth API Client
-    // استدعاء عميل API المصادقة
-    const response: ApiResponse<AuthTokens> = await authApi.refreshToken(token)
+      // Initialize Repository and Service
+      // تهيئة المستودع والخدمة
+      const repository = new AuthRepository()
+      const service = new AuthService(repository)
 
-    if (!response.success || !response.data) {
-      throw new Error(response.message || 'Failed to refresh token')
-    }
+      // Call Service method
+      // استدعاء طريقة الخدمة
+      const result = await service.refreshToken(token)
 
-    // Store new tokens in HttpOnly cookies
-    // تخزين الرموز الجديدة في HttpOnly cookies
-    await setTokens(response.data.access, response.data.refresh)
+      // Store new tokens in HttpOnly cookies
+      // تخزين الرموز الجديدة في HttpOnly cookies
+      await setTokens(result.access, result.refresh)
 
-    return response.data
+      return result
   } catch (error) {
     console.error('Error in refreshTokenAction:', error)
     throw error
@@ -239,18 +245,22 @@ export async function refreshTokenAction(refreshToken?: string): Promise<AuthTok
  */
 export async function getCurrentUserAction(): Promise<User & { profile?: import('@/types/user').UserProfile }> {
   try {
-    // Call Auth API Client
-    // استدعاء عميل API المصادقة
-    // The API client automatically uses JWT token from HttpOnly cookies
-    // عميل API يستخدم تلقائياً رمز JWT من HttpOnly cookies
-    const response: ApiResponse<User & { profile?: import('@/types/user').UserProfile }> = 
-      await authApi.getCurrentUser()
+      // Get access token from cookies
+      // الحصول على رمز الوصول من الكوكيز
+      const accessToken = await getAccessToken()
 
-    if (!response.success || !response.data) {
-      throw new Error(response.message || 'Failed to get current user')
-    }
+      if (!accessToken) {
+        throw new Error('Authentication required')
+      }
 
-    return response.data
+      // Initialize Repository and Service
+      // تهيئة المستودع والخدمة
+      const repository = new AuthRepository()
+      const service = new AuthService(repository)
+
+      // Call Service method
+      // استدعاء طريقة الخدمة
+      return await service.getCurrentUser(accessToken)
   } catch (error) {
     console.error('Error in getCurrentUserAction:', error)
     throw error
@@ -280,15 +290,16 @@ export async function verifyEmailAction(token: string): Promise<string> {
       throw new Error('Verification token is required')
     }
 
-    // Call Auth API Client
-    // استدعاء عميل API المصادقة
-    const response: ApiResponse<{ message: string }> = await authApi.verifyEmail(token)
+      // Initialize Repository and Service
+      // تهيئة المستودع والخدمة
+      const repository = new AuthRepository()
+      const service = new AuthService(repository)
 
-    if (!response.success || !response.data) {
-      throw new Error(response.message || 'Email verification failed')
-    }
+      // Call Service method
+      // استدعاء طريقة الخدمة
+      await service.verifyEmail(token)
 
-    return response.data.message
+      return 'Email verified successfully'
   } catch (error) {
     console.error('Error in verifyEmailAction:', error)
     throw error
@@ -312,15 +323,20 @@ export async function verifyEmailAction(token: string): Promise<string> {
  */
 export async function resendVerificationEmailAction(email?: string): Promise<string> {
   try {
-    // Call Auth API Client
-    // استدعاء عميل API المصادقة
-    const response: ApiResponse<{ message: string }> = await authApi.resendVerification(email)
-
-    if (!response.success || !response.data) {
-      throw new Error(response.message || 'Failed to resend verification email')
+    if (!email || email.trim().length === 0) {
+      throw new Error('Email is required')
     }
 
-    return response.data.message
+    // Initialize Repository and Service
+    // تهيئة المستودع والخدمة
+    const repository = new AuthRepository()
+    const service = new AuthService(repository)
+
+    // Call Service method (validates email format)
+    // استدعاء طريقة الخدمة (تتحقق من تنسيق البريد الإلكتروني)
+    await service.resendVerificationEmail(email.trim())
+
+    return 'Verification email sent successfully'
   } catch (error) {
     console.error('Error in resendVerificationEmailAction:', error)
     throw error
@@ -374,19 +390,27 @@ export async function changePasswordAction(
       throw new Error('New passwords do not match')
     }
 
-    // Call Auth API Client
-    // استدعاء عميل API المصادقة
-    const response: ApiResponse<{ message: string }> = await authApi.changePassword({
-      current_password: currentPassword,
-      new_password: newPassword,
-      new_password_confirm: newPasswordConfirm,
-    })
+      // Get current user to get user ID
+      // الحصول على المستخدم الحالي للحصول على معرف المستخدم
+      const accessToken = await getAccessToken()
+      if (!accessToken) {
+        throw new Error('Authentication required')
+      }
 
-    if (!response.success || !response.data) {
-      throw new Error(response.message || 'Failed to change password')
-    }
+      // Initialize Repository and Service
+      // تهيئة المستودع والخدمة
+      const repository = new AuthRepository()
+      const service = new AuthService(repository)
 
-    return response.data.message
+      // Get user to get user ID
+      // الحصول على المستخدم للحصول على معرف المستخدم
+      const user = await service.getCurrentUser(accessToken)
+
+      // Call Service method (validates password strength)
+      // استدعاء طريقة الخدمة (تتحقق من قوة كلمة المرور)
+      await service.changePassword(user.id, currentPassword, newPassword, newPasswordConfirm)
+
+      return 'Password changed successfully'
   } catch (error) {
     console.error('Error in changePasswordAction:', error)
     throw error

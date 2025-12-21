@@ -115,10 +115,16 @@
       - [x] Auth Service (secure authentication logic)
       - [x] Vendor Service (business logic)
       - [x] All Ports/Interfaces (Order, Auth, Vendor repositories)
+      - [x] Repository Implementations (Product, Order, Auth, Vendor)
+        - [x] ProductRepository (implements ProductPort using Public API)
+        - [x] OrderRepository (implements OrderPort using Authenticated API)
+        - [x] AuthRepository (implements AuthPort using Authenticated API)
+        - [x] VendorRepository (implements VendorPort using Public API)
     - [x] Complete Server Actions (Order, Auth, Vendor)
-      - [x] Order Actions (getOrders, getOrderById, createOrder, updateStatus, cancel)
-      - [x] Auth Actions (register, login, refreshToken, getCurrentUser, verifyEmail, resendVerification, changePassword, logout)
-      - [x] Vendor Actions (getVendors, getVendorById, getVendorBySlug)
+      - [x] Order Actions (getOrders, getOrderById, createOrder, updateStatus, cancel) - Uses OrderService with OrderRepository
+      - [x] Auth Actions (register, login, refreshToken, getCurrentUser, verifyEmail, resendVerification, changePassword, logout) - Uses AuthService with AuthRepository
+      - [x] Vendor Actions (getVendors, getVendorById, getVendorBySlug) - Uses VendorService with VendorRepository
+      - [x] Product Actions (getProducts, getProductBySlug) - Uses ProductService with ProductRepository
       - [x] Public Vendors API (read-only)
     - [x] Complete API Clients (Orders, Auth) - For authenticated requests
       - [x] Authenticated API Client (JWT support from HttpOnly cookies)
