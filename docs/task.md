@@ -111,6 +111,337 @@
 - [ ] Payment Gateway
 - [ ] Barcode System
 
+## Phase 6: Frontend Architecture Enhancements (Deferred - Future) 🏗️
+- [⏸️] **Domain Events System** (Deferred - For future notifications, analytics, webhooks)
+  - [ ] Product Created Event
+  - [ ] Order Paid Event
+  - [ ] Order Cancelled Event
+  - **Note**: Will be implemented when notifications/analytics system is needed
+- [⏸️] **Background Jobs System** (Deferred - For async tasks)
+  - [ ] Email Sending Jobs
+  - [ ] Vendor Sync Jobs
+  - [ ] Token Cleanup Jobs
+  - **Note**: Will use Next.js API Routes + Cron initially, then BullMQ if needed
+- [⏸️] **Comprehensive Testing Suite** (Deferred - After MVP launch)
+  - [ ] Unit Tests (Core Services, Policies)
+  - [ ] Integration Tests (API Actions)
+  - [ ] Component Tests (React Components)
+  - [ ] E2E Tests (Critical User Flows)
+  - **Note**: Testing will be added after MVP is stable and in production
+
+---
+
+## 📁 Frontend Architecture - Final Structure
+## بنية الفرونت إند - الهيكل النهائي
+
+### Project Structure (البنية النهائية)
+
+```
+frontend-web/
+├── .env.local                    # Environment variables (local)
+├── .env.example                  # Environment variables template
+├── .eslintrc.json                # ESLint configuration (strict)
+├── .prettierrc                   # Prettier configuration
+├── .gitignore                    # Git ignore rules
+├── next.config.js                # Next.js configuration
+├── package.json                  # Dependencies
+├── tsconfig.json                 # TypeScript configuration (strict)
+├── tailwind.config.js            # Tailwind CSS configuration
+├── postcss.config.js             # PostCSS configuration
+│
+├── public/                       # Static assets
+│   ├── images/
+│   │   ├── logos/
+│   │   │   ├── fifi-logo.png
+│   │   │   └── soft-logo.png
+│   │   └── placeholders/
+│   │       └── product-placeholder.png
+│   ├── icons/
+│   │   └── favicon.ico
+│   └── fonts/                    # Custom fonts (if needed)
+│
+├── src/
+│   ├── app/                      # Next.js 14 App Router (UI Only)
+│   │   ├── layout.tsx            # Root layout
+│   │   ├── page.tsx              # Root page (redirect to homepage)
+│   │   ├── loading.tsx           # Global loading UI
+│   │   ├── error.tsx             # Global error UI
+│   │   ├── not-found.tsx         # 404 page
+│   │   ├── globals.css           # Global styles
+│   │   │
+│   │   ├── (public)/            # Public routes group
+│   │   │   ├── layout.tsx       # Public layout (Header + Footer)
+│   │   │   ├── page.tsx         # Homepage
+│   │   │   │
+│   │   │   ├── products/        # Products routes
+│   │   │   │   ├── page.tsx     # All products listing
+│   │   │   │   └── [slug]/
+│   │   │   │       └── page.tsx # Product detail (SEO-friendly)
+│   │   │   │
+│   │   │   ├── vendors/         # Vendors routes
+│   │   │   │   └── [vendorSlug]/
+│   │   │   │       ├── page.tsx        # Vendor page
+│   │   │   │       └── products/
+│   │   │   │           └── page.tsx    # Vendor products
+│   │   │   │
+│   │   │   └── auth/           # Authentication routes
+│   │   │       ├── login/
+│   │   │       │   └── page.tsx
+│   │   │       ├── register/
+│   │   │       │   └── page.tsx
+│   │   │       ├── verify-email/
+│   │   │       │   └── page.tsx
+│   │   │       └── forgot-password/
+│   │   │           └── page.tsx
+│   │   │
+│   │   ├── (customer)/         # Customer routes group
+│   │   │   ├── layout.tsx      # Customer layout (Header + Cart + Account)
+│   │   │   │
+│   │   │   ├── cart/
+│   │   │   │   └── page.tsx    # Shopping cart
+│   │   │   │
+│   │   │   ├── checkout/
+│   │   │   │   └── page.tsx    # Checkout page
+│   │   │   │
+│   │   │   ├── orders/
+│   │   │   │   ├── page.tsx    # Order history
+│   │   │   │   └── [id]/
+│   │   │   │       └── page.tsx # Order details
+│   │   │   │
+│   │   │   └── profile/
+│   │   │       └── page.tsx    # User profile
+│   │   │
+│   │   ├── (vendor)/           # Vendor routes group
+│   │   │   ├── layout.tsx      # Vendor layout (Sidebar + TopBar)
+│   │   │   │
+│   │   │   ├── dashboard/
+│   │   │   │   └── page.tsx   # Vendor dashboard
+│   │   │   │
+│   │   │   ├── products/
+│   │   │   │   ├── page.tsx   # Manage products
+│   │   │   │   ├── new/
+│   │   │   │   │   └── page.tsx # Create product
+│   │   │   │   └── [id]/
+│   │   │   │       └── page.tsx # Edit product
+│   │   │   │
+│   │   │   └── orders/
+│   │   │       ├── page.tsx   # Vendor orders
+│   │   │       └── [id]/
+│   │   │           └── page.tsx # Order details
+│   │   │
+│   │   └── (admin)/            # Admin routes group
+│   │       ├── layout.tsx     # Admin layout (Admin Sidebar + TopBar)
+│   │       │
+│   │       ├── dashboard/
+│   │       │   └── page.tsx   # Admin dashboard
+│   │       │
+│   │       ├── vendors/
+│   │       │   ├── page.tsx   # Manage vendors
+│   │       │   └── [id]/
+│   │       │       └── page.tsx
+│   │       │
+│   │       ├── products/
+│   │       │   └── page.tsx   # All products
+│   │       │
+│   │       ├── orders/
+│   │       │   ├── page.tsx   # All orders
+│   │       │   └── [id]/
+│   │       │       └── page.tsx
+│   │       │
+│   │       └── users/
+│   │           └── page.tsx   # User management
+│   │
+│   ├── core/                    # 🎯 Business Logic Layer (الأهم)
+│   │   ├── domain/             # Domain Models & Business Rules
+│   │   │   ├── product/
+│   │   │   │   ├── product.entity.ts      # Product entity
+│   │   │   │   ├── product.types.ts       # Product types
+│   │   │   │   └── product.policy.ts      # Business rules (validation, permissions)
+│   │   │   │
+│   │   │   ├── order/
+│   │   │   │   ├── order.entity.ts       # Order entity
+│   │   │   │   ├── order.types.ts        # Order types
+│   │   │   │   └── order.policy.ts      # Business rules
+│   │   │   │
+│   │   │   ├── user/
+│   │   │   │   ├── user.entity.ts        # User entity
+│   │   │   │   ├── user.types.ts         # User types
+│   │   │   │   └── user.policy.ts        # Business rules
+│   │   │   │
+│   │   │   └── vendor/
+│   │   │       ├── vendor.entity.ts      # Vendor entity
+│   │   │       ├── vendor.types.ts        # Vendor types
+│   │   │       └── vendor.policy.ts       # Business rules
+│   │   │
+│   │   ├── services/           # Business Logic Services
+│   │   │   ├── product.service.ts        # Product business logic
+│   │   │   ├── order.service.ts          # Order business logic
+│   │   │   ├── auth.service.ts           # Auth business logic
+│   │   │   └── vendor.service.ts         # Vendor business logic
+│   │   │
+│   │   └── ports/              # Interfaces/Contracts (Repository Pattern)
+│   │       ├── product.port.ts           # Product repository interface
+│   │       ├── order.port.ts             # Order repository interface
+│   │       ├── auth.port.ts              # Auth repository interface
+│   │       └── vendor.port.ts             # Vendor repository interface
+│   │
+│   ├── lib/
+│   │   ├── actions/             # 🎯 Server Actions (Next.js 14)
+│   │   │   ├── product.actions.ts        # Product server actions
+│   │   │   ├── order.actions.ts         # Order server actions
+│   │   │   ├── auth.actions.ts          # Auth server actions
+│   │   │   └── vendor.actions.ts        # Vendor server actions
+│   │   │
+│   │   ├── api/                # ⚠️ Public Read-Only Only
+│   │   │   ├── public/        # فقط GET public data
+│   │   │   │   ├── products.ts           # fetch فقط (no Axios)
+│   │   │   │   └── vendors.ts            # fetch فقط (no Axios)
+│   │   │   │
+│   │   │   └── client.ts      # fetch wrapper (no Axios)
+│   │   │
+│   │   ├── auth/               # Authentication utilities
+│   │   │   ├── jwt.ts          # JWT token handling
+│   │   │   ├── cookies.ts      # HttpOnly cookies management
+│   │   │   ├── session.ts      # Session management
+│   │   │   └── permissions.ts  # Role-based permissions (used in middleware + services)
+│   │   │
+│   │   ├── seo/                # SEO utilities
+│   │   │   ├── metadata.ts     # Metadata generators
+│   │   │   └── sitemap.ts      # Sitemap generation
+│   │   │
+│   │   ├── validation/         # Validation utilities
+│   │   │   ├── schemas.ts      # Zod schemas
+│   │   │   └── rules.ts        # Custom validation rules
+│   │   │
+│   │   └── utils/              # General utilities
+│   │       ├── format.ts       # Formatting functions (currency, dates)
+│   │       ├── constants.ts    # Constants
+│   │       └── helpers.ts      # Helper functions
+│   │
+│   ├── hooks/                   # ⚠️ Data Fetching Only
+│   │   ├── useAuth.ts          # ✅ Calls auth.actions.ts
+│   │   ├── useCart.ts          # ✅ Calls order.actions.ts
+│   │   ├── useProducts.ts      # ✅ Calls product.actions.ts
+│   │   ├── useOrders.ts        # ✅ Calls order.actions.ts
+│   │   ├── useVendors.ts       # ✅ Calls vendor.actions.ts
+│   │   └── useDebounce.ts      # Debounce hook
+│   │
+│   ├── components/              # UI Components (No Business Logic)
+│   │   ├── ui/                 # Shadcn/ui components
+│   │   │   ├── button.tsx
+│   │   │   ├── input.tsx
+│   │   │   ├── card.tsx
+│   │   │   ├── modal.tsx
+│   │   │   ├── dropdown-menu.tsx
+│   │   │   ├── toast.tsx
+│   │   │   ├── skeleton.tsx
+│   │   │   ├── badge.tsx
+│   │   │   ├── select.tsx
+│   │   │   └── ...
+│   │   │
+│   │   ├── layout/             # Layout components
+│   │   │   ├── headers/
+│   │   │   │   ├── PublicHeader.tsx
+│   │   │   │   ├── CustomerHeader.tsx
+│   │   │   │   ├── VendorHeader.tsx
+│   │   │   │   └── AdminHeader.tsx
+│   │   │   │
+│   │   │   ├── sidebars/
+│   │   │   │   ├── VendorSidebar.tsx
+│   │   │   │   └── AdminSidebar.tsx
+│   │   │   │
+│   │   │   ├── Footer.tsx
+│   │   │   ├── Navigation.tsx
+│   │   │   └── Breadcrumbs.tsx
+│   │   │
+│   │   ├── product/            # Product components
+│   │   │   ├── ProductCard.tsx
+│   │   │   ├── ProductDetail.tsx
+│   │   │   ├── ProductGallery.tsx
+│   │   │   ├── VariantSelector.tsx
+│   │   │   ├── ProductFilters.tsx
+│   │   │   └── ProductList.tsx
+│   │   │
+│   │   ├── cart/               # Cart components
+│   │   │   ├── CartItem.tsx
+│   │   │   ├── CartSummary.tsx
+│   │   │   └── CartIcon.tsx
+│   │   │
+│   │   ├── order/              # Order components
+│   │   │   ├── OrderCard.tsx
+│   │   │   ├── OrderDetail.tsx
+│   │   │   └── OrderStatus.tsx
+│   │   │
+│   │   ├── auth/               # Auth components
+│   │   │   ├── LoginForm.tsx
+│   │   │   ├── RegisterForm.tsx
+│   │   │   └── EmailVerification.tsx
+│   │   │
+│   │   ├── vendor/             # Vendor components
+│   │   │   ├── VendorCard.tsx
+│   │   │   └── VendorStats.tsx
+│   │   │
+│   │   └── common/             # Common components
+│   │       ├── LoadingSpinner.tsx
+│   │       ├── ErrorMessage.tsx
+│   │       ├── EmptyState.tsx
+│   │       └── SearchBar.tsx
+│   │
+│   ├── store/                   # Zustand (UI State Only)
+│   │   ├── authStore.ts        # Auth state (user, tokens)
+│   │   ├── cartStore.ts        # Cart state (items, totals)
+│   │   └── uiStore.ts           # UI state (theme, language, modals)
+│   │
+│   ├── types/                   # TypeScript type definitions
+│   │   ├── api.ts              # API response types
+│   │   ├── product.ts          # Product types
+│   │   ├── order.ts            # Order types
+│   │   ├── user.ts             # User types
+│   │   ├── vendor.ts           # Vendor types
+│   │   └── common.ts           # Common types
+│   │
+│   ├── styles/                  # Global styles
+│   │   ├── themes.css          # Theme variables (Fifi/Soft)
+│   │   └── animations.css      # Custom animations
+│   │
+│   └── middleware.ts            # Next.js middleware (Auth & Role protection)
+│
+└── README.md                     # Project documentation
+```
+
+### 📊 Data Flow (تدفق البيانات)
+
+```
+Component (UI)
+  ↓
+Server Action (lib/actions/)
+  ↓
+Service (core/services/)
+  ↓
+Policy / Permission (core/domain/*/policy.ts)
+  ↓
+Port / Repository (core/ports/)
+  ↓
+API Call (lib/api/public/ or fetch)
+  ↓
+Backend (Django API)
+```
+
+### 🎯 Key Principles (المبادئ الأساسية)
+
+1. **Separation of Concerns**: UI / Business Logic / Data
+2. **Server Actions First**: Use Server Actions for mutations
+3. **Core Layer**: All business logic in `core/`
+4. **Type Safety**: 100% TypeScript coverage
+5. **Security**: Middleware + Permissions
+6. **SEO**: Clean URLs + Metadata
+
+### ⏸️ Deferred Features (المؤجلة للمستقبل)
+
+1. **Domain Events System** (`core/events/`) - For notifications, analytics, webhooks
+2. **Background Jobs System** (`src/jobs/` + `app/api/cron/`) - For async tasks
+3. **Comprehensive Testing Suite** (`tests/`) - After MVP launch
+
 ## Phase 5: Security & Hardening (Newly Added) 🛡️
 - [/] **Backend Security**
     - [x] User System with Roles (Customer, Vendor, Admin)
