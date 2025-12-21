@@ -22,6 +22,7 @@ from .auth_urls import urlpatterns as auth_urls
 from .users_urls import urlpatterns as users_urls
 from vendors.urls import urlpatterns as vendors_urls
 from products.urls import urlpatterns as products_urls
+from .views import api_v1_home
 
 # ============================================================================
 # API v1 URL Patterns
@@ -29,6 +30,10 @@ from products.urls import urlpatterns as products_urls
 # ============================================================================
 
 urlpatterns = [
+    # API v1 Home - Information about API v1 endpoints
+    # الصفحة الرئيسية لـ API v1 - معلومات عن endpoints
+    path("", api_v1_home, name="api-v1-home"),
+    
     # Authentication endpoints
     # نقاط نهاية المصادقة
     # /api/v1/auth/register/, /api/v1/auth/login/, etc.

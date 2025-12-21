@@ -1,4 +1,7 @@
-version: '3.8'
+# Docker Compose Configuration
+# إعدادات Docker Compose
+# Note: version is obsolete in newer Docker Compose versions
+# ملاحظة: version قديم في إصدارات Docker Compose الأحدث
 
 services:
   # PostgreSQL Database
@@ -54,23 +57,24 @@ services:
     depends_on:
       - db
 
-  # Next.js Frontend
-  frontend:
-    build:
-      context: ../frontend-web
-      dockerfile: Dockerfile.dev
-    container_name: trendyol_frontend
-    command: npm run dev
-    volumes:
-      - ../frontend-web:/app
-      - /app/node_modules
-      - /app/.next
-    ports:
-      - "3000:3000"
-    environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:8000/api
-    depends_on:
-      - backend
+  # Next.js Frontend - Disabled (Frontend not started yet)
+  # Frontend Next.js - معطل (لم نبدأ Frontend بعد)
+  # frontend:
+  #   build:
+  #     context: ../frontend-web
+  #     dockerfile: Dockerfile.dev
+  #   container_name: trendyol_frontend
+  #   command: npm run dev
+  #   volumes:
+  #     - ../frontend-web:/app
+  #     - /app/node_modules
+  #     - /app/.next
+  #   ports:
+  #     - "3000:3000"
+  #   environment:
+  #     - NEXT_PUBLIC_API_URL=http://localhost:8000/api
+  #   depends_on:
+  #     - backend
 
 volumes:
   postgres_data:
