@@ -2,133 +2,211 @@
  * Next.js Middleware
  * Middleware الخاص بـ Next.js
  * 
- * Route protection and authentication
- * حماية المسارات والمصادقة
+ * Enhanced route protection and authentication with comprehensive security
+ * حماية المسارات والمصادقة المحسنة مع أمان شامل
  * 
- * Security:
+ * Security Features:
  * - Protects routes based on authentication
- * - Redirects unauthorized users
- * - Checks user roles for route access
+ * - Smart redirects with context preservation
+ * - Role-based access control (RBAC)
+ * - Token validation and expiration handling
+ * - Comprehensive logging for security events
+ * - Error handling and graceful degradation
  * 
- * الأمان:
+ * ميزات الأمان:
  * - يحمي المسارات بناءً على المصادقة
- * - يعيد توجيه المستخدمين غير المصرح لهم
- * - يتحقق من أدوار المستخدمين للوصول للمسارات
+ * - إعادة توجيه ذكية مع الحفاظ على السياق
+ * - التحكم بالوصول بناءً على الأدوار (RBAC)
+ * - التحقق من الرمز ومعالجة انتهاء الصلاحية
+ * - تسجيل شامل لأحداث الأمان
+ * - معالجة الأخطاء والتدهور التدريجي
+ * 
+ * Architecture:
+ * - Centralized route definitions
+ * - Utility functions for route matching
+ * - Structured logging
+ * - Type-safe permissions
+ * 
+ * البنية المعمارية:
+ * - تعريفات مسارات مركزية
+ * - دوال مساعدة لمطابقة المسارات
+ * - تسجيل منظم
+ * - صلاحيات آمنة من ناحية الأنواع
  */
 
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { getUserFromToken, validateToken } from './lib/auth/jwt'
+import { getUserFromToken, validateToken, isTokenExpired } from './lib/auth/jwt'
 import {
   canAccessCustomerRoutes,
   canAccessVendorRoutes,
   canAccessAdminRoutes,
 } from './lib/auth/permissions'
+import {
+  isPublicRoute,
+  getRouteType,
+  sanitizePathname,
+} from './lib/middleware/utils'
+import {
+  DEFAULT_REDIRECTS,
+  QUERY_PARAMS,
+} from './lib/middleware/constants'
+import {
+  logRouteAccess,
+  logAuthFailure,
+  logTokenValidationFailure,
+  logUnauthorizedAccess,
+  LogLevel,
+  logMiddlewareEvent,
+} from './lib/middleware/logger'
 
 /**
- * Public routes (no authentication required)
- * المسارات العامة (لا تحتاج مصادقة)
+ * Create redirect URL with context
+ * إنشاء URL إعادة توجيه مع السياق
+ * 
+ * @param request - Next.js request object
+ * @param pathname - Original pathname to redirect back to
+ * @param reason - Redirect reason (expired, unauthorized, etc.)
+ * @returns Redirect URL with query parameters
+ * 
+ * Security: Preserves original pathname for post-login redirect
+ * الأمان: يحافظ على pathname الأصلي لإعادة التوجيه بعد تسجيل الدخول
  */
-const PUBLIC_ROUTES = [
-  '/',
-  '/products',
-  '/vendors',
-  '/auth/login',
-  '/auth/register',
-  '/auth/verify-email',
-  '/auth/forgot-password',
-]
-
-/**
- * Check if route is public
- * التحقق من إذا كان المسار عام
- */
-function isPublicRoute(pathname: string): boolean {
-  return PUBLIC_ROUTES.some(route => pathname.startsWith(route))
+function createRedirectUrl(
+  request: NextRequest,
+  pathname: string,
+  reason?: 'expired' | 'unauthorized' | 'error'
+): URL {
+  const redirectUrl = new URL(DEFAULT_REDIRECTS.LOGIN, request.url)
+  
+  // Preserve original pathname for post-login redirect
+  // الحفاظ على pathname الأصلي لإعادة التوجيه بعد تسجيل الدخول
+  redirectUrl.searchParams.set(QUERY_PARAMS.REDIRECT, sanitizePathname(pathname))
+  
+  // Add reason if provided
+  // إضافة السبب إذا تم توفيره
+  if (reason === 'expired') {
+    redirectUrl.searchParams.set(QUERY_PARAMS.EXPIRED, 'true')
+  } else if (reason === 'unauthorized') {
+    redirectUrl.searchParams.set(QUERY_PARAMS.UNAUTHORIZED, 'true')
+  } else if (reason === 'error') {
+    redirectUrl.searchParams.set(QUERY_PARAMS.ERROR, 'true')
+  }
+  
+  return redirectUrl
 }
 
 /**
  * Main middleware function
  * دالة Middleware الرئيسية
+ * 
+ * @param request - Next.js request object
+ * @returns NextResponse with appropriate redirect or next()
+ * 
+ * Security Flow:
+ * 1. Check if route is public → Allow access
+ * 2. Check for access token → Redirect to login if missing
+ * 3. Validate token → Redirect to login if invalid/expired
+ * 4. Extract user from token → Redirect to login if invalid
+ * 5. Check role-based permissions → Redirect if unauthorized
+ * 6. Allow access if all checks pass
+ * 
+ * تدفق الأمان:
+ * 1. التحقق من إذا كان المسار عام → السماح بالوصول
+ * 2. التحقق من رمز الوصول → إعادة توجيه لتسجيل الدخول إذا كان مفقوداً
+ * 3. التحقق من الرمز → إعادة توجيه لتسجيل الدخول إذا كان غير صالح/منتهي
+ * 4. استخراج المستخدم من الرمز → إعادة توجيه لتسجيل الدخول إذا كان غير صالح
+ * 5. التحقق من الصلاحيات بناءً على الأدوار → إعادة توجيه إذا كان غير مصرح
+ * 6. السماح بالوصول إذا نجحت جميع الفحوصات
  */
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
+  const sanitizedPath = sanitizePathname(pathname)
 
-  // Allow public routes
-  // السماح بالمسارات العامة
-  if (isPublicRoute(pathname)) {
+  try {
+    // Step 1: Check if route is public
+    // الخطوة 1: التحقق من إذا كان المسار عام
+    if (isPublicRoute(sanitizedPath)) {
+      logRouteAccess(sanitizedPath, null, true)
+      return NextResponse.next()
+    }
+
+    // Step 2: Get access token from request cookies
+    // الخطوة 2: الحصول على رمز الوصول من كوكيز الطلب
+    const accessToken = request.cookies.get('access_token')?.value
+
+    if (!accessToken) {
+      logAuthFailure(sanitizedPath, 'No access token found')
+      const redirectUrl = createRedirectUrl(request, sanitizedPath)
+      return NextResponse.redirect(redirectUrl)
+    }
+
+    // Step 3: Validate token structure and expiration
+    // الخطوة 3: التحقق من هيكل الرمز وانتهاء الصلاحية
+    if (!validateToken(accessToken, 'access')) {
+      const reason = isTokenExpired(accessToken) ? 'expired' : 'invalid'
+      logTokenValidationFailure(sanitizedPath, `Token ${reason}`)
+      const redirectUrl = createRedirectUrl(request, sanitizedPath, 'expired')
+      return NextResponse.redirect(redirectUrl)
+    }
+
+    // Step 4: Extract user data from token
+    // الخطوة 4: استخراج بيانات المستخدم من الرمز
+    const user = getUserFromToken(accessToken)
+    if (!user || !user.id || !user.role) {
+      logAuthFailure(sanitizedPath, 'Invalid user data in token')
+      const redirectUrl = createRedirectUrl(request, sanitizedPath, 'error')
+      return NextResponse.redirect(redirectUrl)
+    }
+
+    // Step 5: Check route access based on user role
+    // الخطوة 5: التحقق من الوصول للمسار بناءً على دور المستخدم
+    const routeType = getRouteType(sanitizedPath)
+    
+    let hasAccess = false
+    let requiredRole = ''
+
+    switch (routeType) {
+      case 'customer':
+        hasAccess = canAccessCustomerRoutes(user)
+        requiredRole = 'customer'
+        break
+      case 'vendor':
+        hasAccess = canAccessVendorRoutes(user)
+        requiredRole = 'vendor'
+        break
+      case 'admin':
+        hasAccess = canAccessAdminRoutes(user)
+        requiredRole = 'admin'
+        break
+      default:
+        // Unknown route type, allow access (will be handled by page-level checks)
+        // نوع مسار غير معروف، السماح بالوصول (سيتم التعامل معه بواسطة فحوصات مستوى الصفحة)
+        hasAccess = true
+        break
+    }
+
+    if (!hasAccess) {
+      logUnauthorizedAccess(sanitizedPath, user, requiredRole)
+      const redirectUrl = createRedirectUrl(request, sanitizedPath, 'unauthorized')
+      return NextResponse.redirect(redirectUrl)
+    }
+
+    // Step 6: All checks passed, allow access
+    // الخطوة 6: نجحت جميع الفحوصات، السماح بالوصول
+    logRouteAccess(sanitizedPath, user, true)
     return NextResponse.next()
+  } catch (error) {
+    // Error handling - log and redirect to login
+    // معالجة الأخطاء - تسجيل وإعادة توجيه لتسجيل الدخول
+    logMiddlewareEvent(LogLevel.ERROR, 'Middleware error', {
+      pathname: sanitizedPath,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    })
+    
+    const redirectUrl = createRedirectUrl(request, sanitizedPath, 'error')
+    return NextResponse.redirect(redirectUrl)
   }
-
-  // Get access token from request cookies (synchronous in middleware)
-  // الحصول على رمز الوصول من كوكيز الطلب (متزامن في middleware)
-  const accessToken = request.cookies.get('access_token')?.value
-
-  // If no token, redirect to login
-  // إذا لم يكن هناك رمز، إعادة توجيه لتسجيل الدخول
-  if (!accessToken) {
-    const loginUrl = new URL('/auth/login', request.url)
-    loginUrl.searchParams.set('redirect', pathname)
-    return NextResponse.redirect(loginUrl)
-  }
-
-  // Validate token
-  // التحقق من الرمز
-  if (!validateToken(accessToken, 'access')) {
-    // Invalid or expired token, redirect to login
-    // رمز غير صالح أو منتهي الصلاحية، إعادة توجيه لتسجيل الدخول
-    const loginUrl = new URL('/auth/login', request.url)
-    loginUrl.searchParams.set('redirect', pathname)
-    loginUrl.searchParams.set('expired', 'true')
-    return NextResponse.redirect(loginUrl)
-  }
-
-  // Get user from token
-  // الحصول على المستخدم من الرمز
-  const user = getUserFromToken(accessToken)
-  if (!user) {
-    // Invalid user data, redirect to login
-    // بيانات مستخدم غير صالحة، إعادة توجيه لتسجيل الدخول
-    const loginUrl = new URL('/auth/login', request.url)
-    return NextResponse.redirect(loginUrl)
-  }
-
-  // Check route access based on user role
-  // التحقق من الوصول للمسار بناءً على دور المستخدم
-  
-  // Customer routes
-  // مسارات الزبون
-  if (pathname.startsWith('/cart') || pathname.startsWith('/checkout') || pathname.startsWith('/orders') || pathname.startsWith('/profile')) {
-    if (!canAccessCustomerRoutes(user as any)) {
-      const loginUrl = new URL('/auth/login', request.url)
-      loginUrl.searchParams.set('unauthorized', 'true')
-      return NextResponse.redirect(loginUrl)
-    }
-  }
-
-  // Vendor routes
-  // مسارات البائع
-  if (pathname.startsWith('/vendor')) {
-    if (!canAccessVendorRoutes(user as any)) {
-      const loginUrl = new URL('/auth/login', request.url)
-      loginUrl.searchParams.set('unauthorized', 'true')
-      return NextResponse.redirect(loginUrl)
-    }
-  }
-
-  // Admin routes
-  // مسارات المسؤول
-  if (pathname.startsWith('/admin')) {
-    if (!canAccessAdminRoutes(user as any)) {
-      const loginUrl = new URL('/auth/login', request.url)
-      loginUrl.searchParams.set('unauthorized', 'true')
-      return NextResponse.redirect(loginUrl)
-    }
-  }
-
-  // Allow access
-  // السماح بالوصول
-  return NextResponse.next()
 }
 
 /**
