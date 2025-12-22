@@ -4,6 +4,8 @@
 
 @layer base {
   :root {
+    /* Shadcn/ui Compatibility Variables */
+    /* متغيرات متوافقة مع Shadcn/ui */
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;
@@ -23,7 +25,54 @@
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
     --ring: 222.2 84% 4.9%;
-    --radius: 0.5rem;
+    --radius: 0.75rem; /* 12px - Rounded corners for modern feel */
+
+    /* Design System Variables */
+    /* متغيرات نظام التصميم */
+    
+    /* Background Colors */
+    /* ألوان الخلفية */
+    --bg-primary: #FAFAFA; /* Off-white (soft neutral) */
+    --bg-secondary: #FFFFFF; /* Pure white */
+    --bg-tertiary: #F8F9FA; /* Light gray */
+    --bg-muted: #F5F5F5; /* Very light gray */
+
+    /* Text Colors */
+    /* ألوان النص */
+    --text-primary: #111827; /* Almost black (high contrast) */
+    --text-secondary: #374151; /* Dark gray */
+    --text-tertiary: #6B7280; /* Medium gray */
+    --text-muted: #9CA3AF; /* Light gray (disabled) */
+    --text-inverse: #FFFFFF; /* White (for dark backgrounds) */
+
+    /* Accent Color (Muted Orange) */
+    /* اللون المميز (برتقالي خفيف) */
+    --accent-500: #FF8A65; /* Primary accent */
+    --accent-600: #FF7043;
+    --accent-700: #F4511E;
+
+    /* Semantic Colors */
+    /* الألوان الدلالية */
+    --success-500: #22C55E;
+    --warning-500: #F59E0B;
+    --error-500: #EF4444;
+    --info-500: #3B82F6;
+
+    /* Shadows */
+    /* الظلال */
+    --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+    --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.08); /* Default card shadow */
+    --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.1);
+    --shadow-xl: 0 8px 24px rgba(0, 0, 0, 0.12);
+
+    /* Transitions */
+    /* الانتقالات */
+    --transition-fast: 150ms;
+    --transition-normal: 200ms;
+    --transition-slow: 300ms;
+    --transition-slower: 500ms;
+    --transition-default: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   }
 
   .dark {
@@ -55,6 +104,56 @@
   }
   body {
     @apply bg-background text-foreground;
+    /* Design System Defaults */
+    /* إعدادات نظام التصميم الافتراضية */
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Typography Scale */
+  /* مقياس الطباعة */
+  h1, .heading-1 {
+    font-size: 2rem; /* 32px */
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+    font-weight: 700;
+  }
+
+  h2, .heading-2 {
+    font-size: 1.75rem; /* 28px */
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+    font-weight: 700;
+  }
+
+  h3, .heading-3 {
+    font-size: 1.5rem; /* 24px */
+    line-height: 1.4;
+    letter-spacing: 0;
+    font-weight: 600;
+  }
+
+  h4, .heading-4 {
+    font-size: 1.25rem; /* 20px */
+    line-height: 1.4;
+    letter-spacing: 0;
+    font-weight: 600;
+  }
+
+  /* Smooth Scrolling */
+  /* التمرير السلس */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Focus States (Accessibility) */
+  /* حالات التركيز (إمكانية الوصول) */
+  *:focus-visible {
+    outline: 2px solid var(--accent-500);
+    outline-offset: 2px;
   }
 }
 

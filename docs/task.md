@@ -177,7 +177,67 @@
       - [x] Sitemap generation utilities (static, products, vendors, complete sitemap)
       - [x] Security: Sanitization, XSS prevention, URL validation
       - [x] Central export (lib/seo/index.ts)
-    - [ ] Homepage (Dual Brand) - Deferred until design is ready
+    - [ ] **UI/UX Design System** (Enterprise-Grade Marketplace)
+      - [x] Design System Foundation
+        - [x] Color Palette (Soft neutral background, one accent color - muted orange/modern blue/calm green)
+        - [x] Typography Scale (Premium modern sans-serif, high readability)
+        - [x] Spacing Scale (Generous spacing, consistent scale)
+        - [x] Component Tokens (Buttons, badges, cards, modals, shadows, borders)
+        - [x] Design Tokens File (Centralized design system - lib/design/tokens.ts)
+        - [x] Tailwind Config Integration (Extended with design tokens)
+        - [x] CSS Variables (globals.css with design system variables)
+      - [x] Core Components (Shadcn/ui based)
+        - [x] Product Card (Rounded, soft shadow, discount badge, rating, hover effects) - components/product/ProductCard.tsx
+        - [x] Navigation Header (Sticky, centered search, mega-menu, cart preview, user menu) - components/layout/NavigationHeader.tsx
+        - [x] Campaign Slider (Horizontal stories-style, circular cards, brand deals, flash sales) - components/campaign/CampaignSlider.tsx
+        - [x] Category Grid (Featured categories with icons) - components/category/CategoryGrid.tsx
+        - [x] Skeleton Loaders (For all lists and cards) - components/common/Skeleton.tsx
+        - [x] Filter Sidebar (Sticky filters for category pages) - components/filters/FilterSidebar.tsx
+        - [x] Modal Components (Quick view, product details) - components/modal/Modal.tsx, QuickViewModal.tsx
+      - [ ] Layout Components
+        - [ ] Public Layout (Header, Footer, Navigation)
+        - [ ] Customer Layout (Cart icon, account menu, order history)
+        - [ ] Vendor Layout (Dashboard sidebar, vendor-specific navigation)
+        - [ ] Admin Layout (Admin panel UI, full privileges navigation)
+      - [ ] Homepage Implementation
+        - [ ] Hero Section (Dynamic discount banners)
+        - [ ] Campaign Slider (Horizontal stories-style, swipeable on mobile)
+        - [ ] Featured Categories Grid (Icons, modern grid layout)
+        - [ ] Product Grid (Consistent card design, personalized recommendations)
+        - [ ] Vendor Spotlight Section (Featured vendors)
+        - [ ] Trust Signals (Ratings, reviews, secure checkout indicators)
+      - [ ] Product Pages
+        - [ ] Product Listing Page (PLP)
+          - [ ] Sticky Filters Sidebar (Brand, Color, Size, Price Range)
+          - [ ] Product Grid (Responsive, infinite scroll ready)
+          - [ ] Sorting Options (Price, Newest, Rating)
+          - [ ] Pagination (Or infinite scroll)
+        - [ ] Product Detail Page (PDP)
+          - [ ] Image Gallery (Swipeable, zoom, thumbnails)
+          - [ ] Variant Selector (Color, Size, Model - smooth interactions)
+          - [ ] Price Display (Old price strikethrough, new price bold)
+          - [ ] Rating & Reviews Section
+          - [ ] Add to Cart Button (Clear CTA, trust signals)
+          - [ ] Quick View Modal (For product grid)
+      - [ ] Cart & Checkout
+        - [ ] Cart Page (Product list, quantity controls, total calculation)
+        - [ ] Checkout Form (Name, Phone, Address - pre-filled from profile)
+        - [ ] Order Summary (Products, subtotal, delivery fee, total)
+        - [ ] Order Confirmation Page (Order number, details, next steps)
+      - [ ] Mobile Responsive Design
+        - [ ] Mobile-First Approach (All components mobile-optimized)
+        - [ ] Bottom Navigation (Home, Categories, Cart, Orders, Profile)
+        - [ ] Swipeable Campaigns (Stories-style on mobile)
+        - [ ] Thumb-Friendly Product Cards (Large touch targets)
+        - [ ] Mobile Filters (Drawer/modal on mobile)
+      - [ ] UX Enhancements
+        - [ ] Smooth Micro-Interactions (Hover effects, transitions)
+        - [ ] Clear Focus States (Accessibility-friendly)
+        - [ ] Loading States (Skeleton loaders everywhere)
+        - [ ] Error States (User-friendly error messages)
+        - [ ] Empty States (Helpful empty state messages)
+        - [ ] Accessibility (WCAG compliant, keyboard navigation)
+    - [ ] Homepage (Dual Brand) - Implementation following Design System
     - [ ] Product Listing (Filters: Color/Size/Model) - Deferred until design is ready
     - [ ] Product Detail Page - Deferred until design is ready
     - [ ] Cart & Checkout (Manual) - Deferred until design is ready
@@ -500,6 +560,157 @@ frontend-web/
 │
 └── README.md                     # Project documentation
 ```
+
+---
+
+## 🎨 Design System Specifications - Enterprise Marketplace UI
+
+### Core Product Vision
+- **Large-scale "sell anything" marketplace**
+- **Multi-vendor support**
+- **High conversion focus**
+- **Designed for long browsing sessions**
+- **Trust, clarity, and speed are top priorities**
+
+### Visual Style & Mood
+- **Clean, calm, and elegant** (no visual noise)
+- **Soft neutral background** (off-white / light gray: `#F8F9FA` or `#FAFAFA`)
+- **One strong but soft accent color** (muted orange `#FF8A65`, modern blue `#64B5F6`, or calm green `#81C784`)
+- **Rounded cards** (border-radius: `12px` or `16px`)
+- **Subtle shadows** (soft elevation: `0 2px 8px rgba(0,0,0,0.08)`)
+- **Depth without heaviness** (layered but light)
+- **Generous spacing** (consistent scale: 4px, 8px, 16px, 24px, 32px, 48px, 64px)
+- **Clear visual hierarchy** (typography scale, color contrast)
+- **Premium modern sans-serif typography** (Inter, Poppins, or similar - high readability)
+
+### Layout & Navigation Requirements
+- **Sticky top navigation** (always visible, z-index: 100)
+- **Centered global search bar** with autocomplete (prominent, accessible)
+- **Category mega-menu** (Amazon-style but lighter - hover/click to reveal)
+- **Cart icon with preview** (badge count, hover preview of items)
+- **User account menu** with quick actions (dropdown with profile, orders, logout)
+
+### Homepage Structure
+1. **Hero Section**
+   - Dynamic discount banners (rotating, auto-play)
+   - Full-width or contained
+   - Clear CTA buttons
+
+2. **Horizontal Stories-Style Campaign Slider** (Trendyol-inspired)
+   - Circular cards (avatar-style)
+   - Brand deals
+   - Flash sales
+   - Swipeable on mobile
+
+3. **Featured Categories Grid**
+   - Icons or images
+   - Category names
+   - Modern grid layout (responsive)
+
+4. **Modern Product Grid**
+   - Consistent card design
+   - Grid: 4 columns desktop, 2 columns tablet, 1 column mobile
+   - Personalized recommendation section
+
+5. **Vendor Spotlight Section**
+   - Featured vendors
+   - Vendor cards with logo and product preview
+
+### Product Card Design (Critical Component)
+**Visual Elements:**
+- Rounded corners (`border-radius: 12px`)
+- Soft shadow or thin border (`border: 1px solid #E5E7EB` or shadow)
+- Large product image (aspect-ratio: 1:1, object-fit: cover)
+- Discount percentage badge (top-right corner, bright accent color)
+- Old price (strikethrough, gray) + new price (bold, accent color)
+- Rating stars (5-star system, filled/unfilled)
+- Review count (small text, gray)
+
+**Interaction:**
+- "Add to cart" button (primary CTA, clear and prominent)
+- "Quick view" button (secondary, appears on hover)
+- Hover effects (smooth scale `transform: scale(1.02)`, shadow elevation)
+- Smooth transitions (`transition: all 0.2s ease`)
+
+**Layout:**
+```
+┌─────────────────────┐
+│   [Product Image]   │
+│   [Discount Badge]  │
+├─────────────────────┤
+│ Product Name        │
+│ Rating: ⭐⭐⭐⭐⭐ (123)│
+│ ~~Old Price~~       │
+│ New Price (Bold)    │
+│ [Add to Cart]       │
+└─────────────────────┘
+```
+
+### UX & Interaction Details
+- **Skeleton loaders** for all lists (matching card structure)
+- **Smooth micro-interactions** (hover, click, focus states)
+- **Clear focus states** (keyboard navigation, accessibility)
+- **Accessibility-friendly contrast** (WCAG AA compliant)
+- **Sticky filters** on category pages (desktop sidebar, mobile drawer)
+- **Fast scanning UX** (Amazon-level clarity - clear hierarchy, readable text)
+
+### Mobile & Responsive Design
+- **Mobile-first design** (design for mobile, enhance for desktop)
+- **Bottom navigation** (sticky, always visible):
+  - Home
+  - Categories
+  - Cart
+  - Orders
+  - Profile
+- **Swipeable story campaigns** (horizontal scroll, snap points)
+- **Thumb-friendly product cards** (large touch targets, min 44x44px)
+- **Mobile filters** (drawer/modal, easy to open/close)
+
+### Design System Requirements
+1. **Reusable Components**
+   - Buttons (primary, secondary, outline, ghost, sizes: sm, md, lg)
+   - Badges (status, discount, category)
+   - Cards (product, category, vendor, campaign)
+   - Modals (quick view, filters, confirmations)
+   - Inputs (text, search, select, checkbox, radio)
+   - Navigation (header, footer, sidebar, bottom nav)
+
+2. **Consistent Spacing Scale**
+   - 4px, 8px, 12px, 16px, 24px, 32px, 48px, 64px
+   - Use Tailwind spacing scale
+
+3. **Token-Based Colors**
+   - Primary (accent color)
+   - Secondary (neutral grays)
+   - Success, Warning, Error
+   - Background (off-white, light gray)
+   - Text (dark gray, black)
+
+4. **Typography Scale**
+   - Display (large headings)
+   - Heading 1, 2, 3, 4
+   - Body (regular, medium, bold)
+   - Small, Caption
+
+5. **Component Library**
+   - All components in `components/ui/` (Shadcn/ui)
+   - Custom components in `components/` (product, cart, etc.)
+
+### Advanced Requirements
+- **Conversion-optimized layout** (clear CTAs, trust signals, easy navigation)
+- **Trust signals** (ratings, reviews, secure checkout indicators, vendor badges)
+- **Scalable for thousands of products** (pagination, infinite scroll, filters)
+- **Ready for vendor and admin dashboards** (consistent design system)
+
+### Implementation Order
+1. **Design System Foundation** (colors, typography, spacing, tokens)
+2. **Core Components** (Product Card, Navigation, Buttons, Badges)
+3. **Layout Components** (Public, Customer, Vendor, Admin layouts)
+4. **Homepage** (Hero, Campaigns, Categories, Product Grid)
+5. **Product Pages** (Listing, Detail, Filters)
+6. **Cart & Checkout** (Cart page, Checkout form, Confirmation)
+7. **Mobile Optimization** (Bottom nav, responsive adjustments)
+8. **UX Enhancements** (Loading states, error states, accessibility)
 
 ### 📊 Data Flow (تدفق البيانات)
 
