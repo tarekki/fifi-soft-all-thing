@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useState } from 'react'
 import { Heart } from 'lucide-react'
 import { useTranslation } from '@/lib/i18n/use-translation'
+import { useCart } from '@/lib/cart/context'
 
 /**
  * Product Card Props
@@ -64,6 +65,27 @@ export function ProductCard({
   const [isHovered, setIsHovered] = useState(false)
   const [isLiked, setIsLiked] = useState(false)
   const { t, language } = useTranslation();
+  const { addToCart } = useCart();
+
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (onAddToCart) {
+      onAddToCart();
+      return;
+    }
+
+    addToCart({
+      id: id.toString(),
+      slug: slug,
+      name: { ar: name, en: name }, // Fallback to current name for both if not structured
+      price: parseFloat(finalPrice.replace(/[^\d.]/g, '')),
+      image: image,
+      quantity: 1,
+      vendor: { ar: vendorName || '', en: vendorName || '' },
+    });
+  };
 
   const formatPrice = (price: string) => {
     const numericPrice = parseFloat(price.replace(/[^\d.]/g, ''))
@@ -190,7 +212,7 @@ export function ProductCard({
 
         {/* Add to Cart - Minimal Icon Button */}
         <button
-          onClick={onAddToCart}
+          onClick={handleAddToCart}
           disabled={!isAvailable}
           className="w-full bg-[#FAF9F6] text-stone-600 py-3 rounded-2xl font-bold text-sm border border-stone-100 hover:bg-historical-gold hover:text-white hover:border-historical-gold hover:shadow-lg active:scale-95 transition-all duration-300 flex items-center justify-center gap-2 group/btn"
         >

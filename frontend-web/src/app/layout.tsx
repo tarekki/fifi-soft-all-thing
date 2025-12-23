@@ -9,6 +9,9 @@ export const metadata: Metadata = {
   description: 'Multi-vendor e-commerce platform',
 }
 
+import { CartProvider } from '@/lib/cart/context';
+import { CartDrawer } from '@/components/cart/CartDrawer';
+
 export default function RootLayout({
   children,
 }: {
@@ -18,11 +21,14 @@ export default function RootLayout({
     <html lang="ar" dir="rtl">
       <body className="flex flex-row min-h-screen">
         <LanguageProvider>
-          <Sidebar />
-          <main className="flex-1 bg-historical-stone min-h-screen transition-all duration-300 flex flex-col">
-            {children}
-            <Footer />
-          </main>
+          <CartProvider>
+            <Sidebar />
+            <CartDrawer />
+            <main className="flex-1 bg-historical-stone min-h-screen transition-all duration-300 flex flex-col">
+              {children}
+              <Footer />
+            </main>
+          </CartProvider>
         </LanguageProvider>
       </body>
     </html>

@@ -7,27 +7,28 @@ import { ProductCard } from '@/components/product/ProductCard';
 
 import { useTranslation } from '@/lib/i18n/use-translation';
 
-// Temporary Mock Data Generator
+import { MOCK_PRODUCTS, Product } from '@/lib/mock-data';
+
+// Generate products from MOCK_PRODUCTS
 const generateProducts = (count: number) => {
-    return Array.from({ length: count }).map((_, i) => ({
-        id: i + 1,
-        name: {
-            ar: `منتج فاخر رقم ${i + 1}`,
-            en: `Luxury Product #${i + 1}`,
-        },
-        slug: `product-${i + 1}`,
-        image: '',
-        basePrice: `${(150000 + i * 5000)}`,
-        finalPrice: `${(120000 + i * 4000)}`,
-        discountPercentage: 15,
-        rating: 4.5,
-        reviewCount: 12 + i,
-        vendorName: {
-            ar: i % 2 === 0 ? 'فيفي' : 'سوفت',
-            en: i % 2 === 0 ? 'Fifi' : 'Soft',
-        },
-        isAvailable: true,
-    }));
+    return Array.from({ length: count }).map((_, i) => {
+        const baseProduct = MOCK_PRODUCTS[i % MOCK_PRODUCTS.length];
+        return {
+            ...baseProduct,
+            id: i + 1, // distinct IDs for React keys
+            // Keep original slug for routing to work, or maybe append ID if we wanted unique pages per card?
+            // ideally we want to test the page, so let's stick to baseProduct.slug
+            slug: baseProduct.slug,
+            image: baseProduct.images[0],
+            basePrice: baseProduct.originalPrice?.toString() || (baseProduct.price * 1.2).toString(),
+            finalPrice: baseProduct.price.toString(),
+            discountPercentage: baseProduct.originalPrice ? Math.round(((baseProduct.originalPrice - baseProduct.price) / baseProduct.originalPrice) * 100) : 0,
+            vendorName: baseProduct.vendor, // Keep object structure {ar, en}
+            // MOCK_PRODUCTS uses 'vendor' key, ProductCard expects 'vendorName' (string) passed in prop mapping below
+            // Wait, ProductCard mapping below handles language selection.
+            itemVendor: baseProduct.vendor // renaming to avoid confusion in mapping below
+        };
+    });
 };
 
 const allProducts = generateProducts(24);

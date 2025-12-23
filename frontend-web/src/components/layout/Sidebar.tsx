@@ -3,15 +3,17 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { Home, ShoppingBag, Percent, User, ChevronLeft, ChevronRight, Menu } from 'lucide-react';
+import { Home, ShoppingBag, Percent, User, ChevronLeft, ChevronRight, Menu, ShoppingCart } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from '@/lib/i18n/use-translation';
 import { LanguageToggle } from '@/components/common/LanguageToggle';
+import { useCart } from '@/lib/cart/context';
 
 export function Sidebar() {
     const pathname = usePathname();
     const [isCollapsed, setIsCollapsed] = useState(false);
-    const { t, direction } = useTranslation();
+    const { t, direction, language } = useTranslation();
+    const { cartCount, setIsCartOpen } = useCart();
 
     const toggleSidebar = () => setIsCollapsed(!isCollapsed);
 
@@ -19,6 +21,7 @@ export function Sidebar() {
         { name: t.sidebar.home, href: '/', icon: Home },
         { name: t.sidebar.brands, href: '/brands', icon: ShoppingBag },
         { name: t.sidebar.offers, href: '/offers', icon: Percent },
+        { name: language === 'ar' ? 'السلة' : 'Cart', href: '/cart', icon: ShoppingCart, badge: cartCount },
         { name: t.sidebar.profile, href: '/profile', icon: User },
     ];
 
@@ -76,6 +79,12 @@ export function Sidebar() {
                         <Link
                             key={item.href}
                             href={item.href}
+                            onClick={(e) => {
+                                if (item.name === (language === 'ar' ? 'السلة' : 'Cart')) {
+                                    e.preventDefault();
+                                    setIsCartOpen(true);
+                                }
+                            }}
                             className={cn(
                                 "group flex items-center rounded-xl transition-all duration-200 relative",
                                 isCollapsed ? "justify-center px-0 py-3" : "px-4 py-3",
@@ -87,6 +96,16 @@ export function Sidebar() {
                             title={isCollapsed ? item.name : undefined}
                         >
                             <item.icon className={cn("w-6 h-6 min-w-[1.5rem]", isActive ? "text-historical-red" : "text-gray-400 group-hover:text-historical-red")} />
+
+                            {/* Badge */}
+                            {(item as any).badge > 0 && (
+                                <span className={cn(
+                                    "absolute top-2 bg-historical-red text-white text-[10px] font-bold rounded-full flex items-center justify-center border border-white",
+                                    isCollapsed ? "w-4 h-4 right-2" : "w-5 h-5 right-4"
+                                )}>
+                                    {(item as any).badge}
+                                </span>
+                            )}
 
                             {!isCollapsed && (
                                 <span className="ms-3 text-sm truncate">
