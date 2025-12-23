@@ -113,7 +113,7 @@ export function DiscountSlider() {
                             }}
                             className={`absolute inset-0 w-full h-full flex items-center justify-center ${offers[currentIndex].bg}`}
                         >
-                            <div className="absolute inset-0 bg-[url('/patterns/mozaic.png')] opacity-10 mix-blend-overlay" />
+                            <div className="absolute inset-0 bg-damascene-pattern opacity-10 mix-blend-overlay" />
 
                             <div className="relative z-10 flex flex-col md:flex-row items-center justify-between w-full max-w-3xl px-8 gap-6 text-center md:text-start transition-all">
 

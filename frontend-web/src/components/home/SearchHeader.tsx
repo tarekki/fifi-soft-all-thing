@@ -3,10 +3,14 @@
 import { Search, Bell, ShoppingCart } from 'lucide-react';
 import { motion } from 'framer-motion';
 
+import { useCart } from '@/lib/cart/context';
+
 export function SearchHeader() {
+    const { cartCount, setIsCartOpen } = useCart();
+
     return (
-        <div className="sticky top-0 z-40 w-full px-4 py-4 pointer-events-none">
-            <div className="max-w-4xl mx-auto flex items-center gap-3 pointer-events-auto">
+        <div className="sticky top-0 z-40 w-full px-4 lg:px-10 py-4 pointer-events-none">
+            <div className="max-w-5xl mx-auto flex items-center gap-3 pointer-events-auto">
                 {/* Search Bar */}
                 <motion.div
                     initial={{ y: -20, opacity: 0 }}
@@ -29,11 +33,16 @@ export function SearchHeader() {
                     <span className="absolute top-3 right-3 w-2 h-2 bg-red-500 rounded-full border-2 border-white" />
                 </button>
 
-                <button className="w-12 h-12 bg-historical-blue text-white rounded-full flex items-center justify-center shadow-lg hover:bg-historical-red transition-colors relative">
+                <button
+                    onClick={() => setIsCartOpen(true)}
+                    className="w-12 h-12 bg-historical-blue text-white rounded-full flex items-center justify-center shadow-lg hover:bg-historical-red transition-colors relative"
+                >
                     <ShoppingCart className="w-5 h-5" />
-                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-historical-red text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white">
-                        3
-                    </span>
+                    {cartCount > 0 && (
+                        <span className="absolute -top-1 -right-1 w-5 h-5 bg-historical-red text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white">
+                            {cartCount}
+                        </span>
+                    )}
                 </button>
             </div>
         </div>

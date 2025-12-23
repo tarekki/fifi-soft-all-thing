@@ -21,7 +21,7 @@ export function CategoriesGrid() {
         <section className="py-8 px-4">
             <div className="container mx-auto">
                 <h2 className="text-2xl font-bold text-gray-800 mb-6 font-display px-2">{t.categories.title}</h2>
-                <div className="grid grid-cols-3 md:grid-cols-6 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
                     {categories.map((category, index) => (
                         <Link key={category.id} href={category.href}>
                             <motion.div

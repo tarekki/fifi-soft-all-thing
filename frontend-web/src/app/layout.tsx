@@ -19,15 +19,17 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ar" dir="rtl">
-      <body className="flex flex-row min-h-screen">
+      <body className="min-h-screen bg-historical-stone">
         <LanguageProvider>
           <CartProvider>
             <Sidebar />
             <CartDrawer />
-            <main className="flex-1 bg-historical-stone min-h-screen transition-all duration-300 flex flex-col">
-              {children}
+            <div className="flex flex-col min-h-screen relative">
+              <main className="flex-1 transition-all duration-300">
+                {children}
+              </main>
               <Footer />
-            </main>
+            </div>
           </CartProvider>
         </LanguageProvider>
       </body>

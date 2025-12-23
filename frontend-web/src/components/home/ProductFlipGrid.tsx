@@ -49,7 +49,7 @@ export function ProductFlipGrid({ title }: { title?: string }) {
     const currentProducts = allProducts.slice(page * itemsPerPage, (page + 1) * itemsPerPage);
 
     return (
-        <section className="py-12 px-4 lg:px-12 bg-historical-stone relative overflow-hidden group">
+        <section className="py-12 px-2 sm:px-4 lg:px-12 bg-historical-stone relative overflow-hidden group">
             {/* Background Decoration */}
             <div className="absolute top-0 right-0 w-64 h-64 bg-historical-gold/5 rounded-full blur-3xl" />
 
@@ -69,13 +69,12 @@ export function ProductFlipGrid({ title }: { title?: string }) {
             </div>
 
             <div className="relative min-h-[600px] flex items-center">
-                {/* Right Button (Previous/Start) - RTL aware */}
                 <button
                     onClick={() => paginate(direction === 'rtl' ? -1 : 1)}
-                    className="absolute -right-4 lg:-right-6 z-20 w-12 h-12 rounded-full bg-white text-historical-blue shadow-lg border border-historical-gold/20 flex items-center justify-center hover:bg-historical-gold hover:text-white transition-all hover:scale-110 active:scale-95"
+                    className="absolute -right-2 sm:-right-4 lg:-right-6 z-20 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white text-historical-blue shadow-lg border border-historical-gold/20 flex items-center justify-center hover:bg-historical-gold hover:text-white transition-all hover:scale-110 active:scale-95"
                     aria-label="Previous page"
                 >
-                    <ChevronRight className="w-6 h-6" />
+                    <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
                 </button>
 
                 <div className="flex-1 w-full mx-auto">
@@ -101,13 +100,12 @@ export function ProductFlipGrid({ title }: { title?: string }) {
                     </AnimatePresence>
                 </div>
 
-                {/* Left Button (Next/End) - RTL aware */}
                 <button
                     onClick={() => paginate(direction === 'rtl' ? 1 : -1)}
-                    className="absolute -left-4 lg:-left-6 z-20 w-12 h-12 rounded-full bg-white text-historical-blue shadow-lg border border-historical-gold/20 flex items-center justify-center hover:bg-historical-gold hover:text-white transition-all hover:scale-110 active:scale-95"
+                    className="absolute -left-2 sm:-left-4 lg:-left-6 z-20 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white text-historical-blue shadow-lg border border-historical-gold/20 flex items-center justify-center hover:bg-historical-gold hover:text-white transition-all hover:scale-110 active:scale-95"
                     aria-label="Next page"
                 >
-                    <ChevronLeft className="w-6 h-6" />
+                    <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
                 </button>
             </div>
         </section>
