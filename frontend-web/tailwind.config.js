@@ -16,20 +16,18 @@ module.exports = {
     },
     extend: {
       colors: {
-        // Shadcn/ui compatibility colors
-        // ألوان متوافقة مع Shadcn/ui
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
         primary: {
-          DEFAULT: 'hsl(var(--primary))',
-          foreground: 'hsl(var(--primary-foreground))',
+          DEFAULT: '#8D5B4C', // Antique Copper (softer than red)
+          foreground: '#FFFFFF',
         },
         secondary: {
-          DEFAULT: 'hsl(var(--secondary))',
-          foreground: 'hsl(var(--secondary-foreground))',
+          DEFAULT: '#475569', // Slate (Professional neutral)
+          foreground: '#FFFFFF',
         },
         destructive: {
           DEFAULT: 'hsl(var(--destructive))',
@@ -40,8 +38,8 @@ module.exports = {
           foreground: 'hsl(var(--muted-foreground))',
         },
         accent: {
-          DEFAULT: 'hsl(var(--accent))',
-          foreground: 'hsl(var(--accent-foreground))',
+          DEFAULT: '#D4C4A8', // Champagne Gold (Lighter)
+          foreground: '#1A1A1A',
         },
         popover: {
           DEFAULT: 'hsl(var(--popover))',
@@ -51,112 +49,29 @@ module.exports = {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
-        // Design System Colors
-        // ألوان نظام التصميم
-        neutral: {
-          50: '#FAFAFA',
-          100: '#F5F5F5',
-          200: '#E5E7EB',
-          300: '#D1D5DB',
-          400: '#9CA3AF',
-          500: '#6B7280',
-          600: '#4B5563',
-          700: '#374151',
-          800: '#1F2937',
-          900: '#111827',
-        },
-        // Accent Color (Muted Orange)
-        // اللون المميز (برتقالي خفيف)
-        'accent-orange': {
-          50: '#FFF3E0',
-          100: '#FFE0B2',
-          200: '#FFCC80',
-          300: '#FFB74D',
-          400: '#FFA726',
-          500: '#FF8A65', // Primary accent
-          600: '#FF7043',
-          700: '#F4511E',
-          800: '#E64A19',
-          900: '#D84315',
-        },
-        // Alternative Accent Colors
-        // ألوان مميزة بديلة
-        'accent-blue': {
-          50: '#E3F2FD',
-          100: '#BBDEFB',
-          200: '#90CAF9',
-          300: '#64B5F6', // Modern Blue
-          400: '#42A5F5',
-          500: '#2196F3',
-          600: '#1E88E5',
-          700: '#1976D2',
-          800: '#1565C0',
-          900: '#0D47A1',
-        },
-        'accent-green': {
-          50: '#F1F8E9',
-          100: '#DCEDC8',
-          200: '#C5E1A5',
-          300: '#AED581',
-          400: '#9CCC65',
-          500: '#81C784', // Calm Green
-          600: '#66BB6A',
-          700: '#4CAF50',
-          800: '#43A047',
-          900: '#388E3C',
-        },
-        // Semantic Colors
-        // الألوان الدلالية
-        success: {
-          50: '#F0FDF4',
-          100: '#DCFCE7',
-          500: '#22C55E',
-          600: '#16A34A',
-          700: '#15803D',
-        },
-        warning: {
-          50: '#FFFBEB',
-          100: '#FEF3C7',
-          500: '#F59E0B',
-          600: '#D97706',
-          700: '#B45309',
-        },
-        error: {
-          50: '#FEF2F2',
-          100: '#FEE2E2',
-          500: '#EF4444',
-          600: '#DC2626',
-          700: '#B91C1C',
-        },
-        info: {
-          50: '#EFF6FF',
-          100: '#DBEAFE',
-          500: '#3B82F6',
-          600: '#2563EB',
-          700: '#1D4ED8',
+        // Historical Syrian Palette (Light & Professional)
+        'historical': {
+          stone: '#FAFAF9', // Warm White
+          gold: '#C5A065',  // Muted Antique Gold
+          red: '#9E6D64',   // Dusty Clay/Rose (Not bright red)
+          blue: '#556B85',  // Soft Slate Blue
+          charcoal: '#2D2A26', // Warm Black
         },
       },
       fontFamily: {
         sans: [
+          'Tajawal',
           'Inter',
           '-apple-system',
           'BlinkMacSystemFont',
           'Segoe UI',
           'Roboto',
-          'Oxygen',
-          'Ubuntu',
-          'Cantarell',
-          'Fira Sans',
-          'Droid Sans',
-          'Helvetica Neue',
           'sans-serif',
         ],
         display: [
-          'Poppins',
-          'Inter',
-          '-apple-system',
-          'BlinkMacSystemFont',
-          'sans-serif',
+          'Tajawal',
+          'Playfair Display',
+          'serif',
         ],
       },
       fontSize: {

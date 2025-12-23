@@ -179,13 +179,13 @@
       - [x] Central export (lib/seo/index.ts)
     - [ ] **UI/UX Design System** (Enterprise-Grade Marketplace)
       - [x] Design System Foundation
-        - [x] Color Palette (Soft neutral background, one accent color - muted orange/modern blue/calm green)
-        - [x] Typography Scale (Premium modern sans-serif, high readability)
+        - [x] Color Palette (Historical Syrian: Damask Red, Umayyad Blue, Aged Gold, Limestone)
+        - [x] Typography Scale (Tajawal Font + Inter)
         - [x] Spacing Scale (Generous spacing, consistent scale)
         - [x] Component Tokens (Buttons, badges, cards, modals, shadows, borders)
         - [x] Design Tokens File (Centralized design system - lib/design/tokens.ts)
-        - [x] Tailwind Config Integration (Extended with design tokens)
-        - [x] CSS Variables (globals.css with design system variables)
+        - [x] Tailwind Config Integration (Extended with Historical tokens)
+        - [x] CSS Variables (globals.css with texture and theme variables)
       - [x] Core Components (Shadcn/ui based)
         - [x] Product Card (Rounded, soft shadow, discount badge, rating, hover effects) - components/product/ProductCard.tsx
         - [x] Navigation Header (Sticky, centered search, mega-menu, cart preview, user menu) - components/layout/NavigationHeader.tsx
@@ -196,16 +196,17 @@
         - [x] Modal Components (Quick view, product details) - components/modal/Modal.tsx, QuickViewModal.tsx
       - [ ] Layout Components
         - [ ] Public Layout (Header, Footer, Navigation)
-        - [ ] Customer Layout (Cart icon, account menu, order history)
+        - [x] Customer Layout (Cart icon, account menu, order history)
+          - [x] Sidebar (Collapsible, Sticky, Yalla Buy branding)
         - [ ] Vendor Layout (Dashboard sidebar, vendor-specific navigation)
         - [ ] Admin Layout (Admin panel UI, full privileges navigation)
-      - [ ] Homepage Implementation
-        - [ ] Hero Section (Dynamic discount banners)
-        - [ ] Campaign Slider (Horizontal stories-style, swipeable on mobile)
-        - [ ] Featured Categories Grid (Icons, modern grid layout)
-        - [ ] Product Grid (Consistent card design, personalized recommendations)
-        - [ ] Vendor Spotlight Section (Featured vendors)
-        - [ ] Trust Signals (Ratings, reviews, secure checkout indicators)
+      - [x] Homepage Implementation
+        - [x] Hero Section (Dynamic discount banners & Historical Theme)
+        - [x] Campaign Slider / Brands Flow (3D Flip Interaction)
+        - [x] Featured Categories Grid (Integrated in Sidebar)
+        - [x] Product Grid (Flip Grid with "Book" paging experience)
+        - [x] Vendor Spotlight Section (Covered by Brands Flow)
+        - [x] Trust Signals (Secure badges in Footer/Sidebar)
       - [ ] Product Pages
         - [ ] Product Listing Page (PLP)
           - [ ] Sticky Filters Sidebar (Brand, Color, Size, Price Range)

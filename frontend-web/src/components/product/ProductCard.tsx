@@ -1,47 +1,10 @@
-/**
- * Product Card Component
- * مكون بطاقة المنتج
- * 
- * Enterprise-grade product card with premium design
- * بطاقة منتج من الدرجة الأولى بتصميم مميز
- * 
- * Features:
- * - Rounded corners (16px)
- * - Soft shadow with hover elevation
- * - Discount percentage badge
- * - Rating stars + review count
- * - Old price (strikethrough) + new price (bold)
- * - Add to cart button
- * - Quick view button (on hover)
- * - Smooth hover effects
- * 
- * المميزات:
- * - زوايا مستديرة (16px)
- * - ظل ناعم مع ارتفاع عند التمرير
- * - شارة نسبة الخصم
- * - نجوم التقييم + عدد المراجعات
- * - السعر القديم (مشطوب) + السعر الجديد (عريض)
- * - زر إضافة إلى السلة
- * - زر عرض سريع (عند التمرير)
- * - تأثيرات تمرير سلسة
- * 
- * Security:
- * - Sanitizes product data
- * - Prevents XSS in product names
- * - Validates image URLs
- * 
- * الأمان:
- * - ينظف بيانات المنتج
- * - يمنع XSS في أسماء المنتجات
- * - يتحقق من URLs الصور
- */
-
 'use client'
 
 import Image from 'next/image'
 import Link from 'next/link'
 import { useState } from 'react'
-import { productCard } from '@/lib/design'
+import { Heart } from 'lucide-react'
+import { useTranslation } from '@/lib/i18n/use-translation'
 
 /**
  * Product Card Props
@@ -79,91 +42,7 @@ export interface ProductCardProps {
 }
 
 /**
- * Star Rating Component
- * مكون تقييم النجوم
- */
-function StarRating({ rating = 0, reviewCount = 0 }: { rating: number; reviewCount: number }) {
-  const fullStars = Math.floor(rating)
-  const hasHalfStar = rating % 1 >= 0.5
-
-  return (
-    <div className="flex items-center gap-1">
-      <div className="flex items-center">
-        {[...Array(5)].map((_, i) => {
-          if (i < fullStars) {
-            return (
-              <svg
-                key={i}
-                className="w-4 h-4 text-warning-500 fill-current"
-                viewBox="0 0 20 20"
-                aria-hidden="true"
-              >
-                <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
-              </svg>
-            )
-          } else if (i === fullStars && hasHalfStar) {
-            return (
-              <svg
-                key={i}
-                className="w-4 h-4 text-warning-500 fill-current"
-                viewBox="0 0 20 20"
-                aria-hidden="true"
-              >
-                <defs>
-                  <linearGradient id={`half-${i}`}>
-                    <stop offset="50%" stopColor="currentColor" />
-                    <stop offset="50%" stopColor="transparent" />
-                  </linearGradient>
-                </defs>
-                <path
-                  fill={`url(#half-${i})`}
-                  d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"
-                />
-              </svg>
-            )
-          } else {
-            return (
-              <svg
-                key={i}
-                className="w-4 h-4 text-neutral-300 fill-current"
-                viewBox="0 0 20 20"
-                aria-hidden="true"
-              >
-                <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
-              </svg>
-            )
-          }
-        })}
-      </div>
-      {reviewCount > 0 && (
-        <span className="text-body-sm text-text-tertiary ml-1">({reviewCount})</span>
-      )}
-    </div>
-  )
-}
-
-/**
- * Format Price
- * تنسيق السعر
- */
-function formatPrice(price: string): string {
-  // Remove any non-numeric characters except decimal point
-  // إزالة أي أحرف غير رقمية باستثناء النقطة العشرية
-  const numericPrice = parseFloat(price.replace(/[^\d.]/g, ''))
-  if (isNaN(numericPrice)) return price
-
-  // Format with thousand separators
-  // تنسيق مع فواصل الآلاف
-  return new Intl.NumberFormat('ar-SY', {
-    style: 'decimal',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(numericPrice)
-}
-
-/**
- * Product Card Component
- * مكون بطاقة المنتج
+ * Product Card Component - "Sugar Glass" Edition
  */
 export function ProductCard({
   id,
@@ -183,151 +62,144 @@ export function ProductCard({
 }: ProductCardProps) {
   const [imageError, setImageError] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
+  const [isLiked, setIsLiked] = useState(false)
+  const { t, language } = useTranslation();
 
-  // Sanitize product name (prevent XSS)
-  // تنظيف اسم المنتج (منع XSS)
+  const formatPrice = (price: string) => {
+    const numericPrice = parseFloat(price.replace(/[^\d.]/g, ''))
+    if (isNaN(numericPrice)) return price
+
+    return new Intl.NumberFormat(language === 'ar' ? 'ar-SY' : 'en-US', {
+      style: 'decimal',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(numericPrice)
+  }
+
   const sanitizedName = name.replace(/[<>]/g, '').trim()
-
-  // Check if there's a discount
-  // التحقق من وجود خصم
   const hasDiscount = discountPercentage > 0 && parseFloat(basePrice) > parseFloat(finalPrice)
-
-  // Product URL
-  // رابط المنتج
   const productUrl = `/products/${slug}`
 
   return (
     <div
-      className={`group relative bg-white rounded-card border border-neutral-200 overflow-hidden transition-default hover:shadow-soft-lg hover:scale-[1.02] ${className}`}
+      className={`group relative bg-white/70 backdrop-blur-md rounded-[2rem] border border-stone-100 overflow-hidden transition-all duration-500 hover:shadow-[0_20px_40px_-15px_rgba(197,160,101,0.15)] hover:border-historical-gold/30 hover:-translate-y-2 ${className}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      role="article"
-      aria-label={`Product: ${sanitizedName}`}
     >
-      {/* Product Image Container */}
-      {/* حاوية صورة المنتج */}
-      <Link href={productUrl} className="block relative aspect-square bg-neutral-50">
+      {/* Product Image */}
+      <Link href={productUrl} className="block relative aspect-[4/5] bg-[#FDFBF7] overflow-hidden">
+        {/* Soft decorative background circle */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-historical-gold/5 rounded-full blur-2xl group-hover:bg-historical-gold/10 transition-colors duration-500" />
+
         {!imageError && image ? (
           <Image
             src={image}
             alt={sanitizedName}
             fill
-            className="object-cover transition-default group-hover:scale-105"
+            className="object-cover transition-transform duration-700 ease-out group-hover:scale-110 mix-blend-multiply"
             onError={() => setImageError(true)}
             sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-neutral-100">
-            <svg
-              className="w-16 h-16 text-neutral-300"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.5}
-                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-              />
-            </svg>
+          <div className="w-full h-full flex items-center justify-center text-stone-200">
+            <span className="text-5xl drop-shadow-sm">🧺</span>
           </div>
         )}
 
-        {/* Discount Badge */}
-        {/* شارة الخصم */}
+        {/* Discount Badge - Elegant Pill */}
         {hasDiscount && (
-          <div className="absolute top-3 right-3 bg-error-500 text-white text-caption font-semibold px-2 py-1 rounded-full shadow-md z-10">
-            -{discountPercentage}%
+          <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm text-historical-red text-[10px] font-bold px-3 py-1 rounded-full shadow-sm border border-historical-red/10 z-10 tracking-widest uppercase">
+            {t.product.sale} {discountPercentage}%
           </div>
         )}
 
-        {/* Quick View Button (appears on hover) */}
-        {/* زر العرض السريع (يظهر عند التمرير) */}
-        {isHovered && onQuickView && (
-          <button
-            onClick={(e) => {
-              e.preventDefault()
-              e.stopPropagation()
-              onQuickView()
-            }}
-            className="absolute bottom-3 left-1/2 transform -translate-x-1/2 bg-white text-text-primary px-4 py-2 rounded-lg shadow-md text-body-sm font-medium transition-default hover:bg-neutral-50 z-10"
-            aria-label="Quick view"
-          >
-            عرض سريع
-          </button>
-        )}
+        {/* Like Button (Heart) */}
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setIsLiked(!isLiked);
+          }}
+          className={`absolute top-4 left-4 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 z-20 shadow-sm ${isLiked
+            ? 'bg-red-50 text-red-500 scale-110'
+            : 'bg-white/80 text-stone-400 hover:text-red-400 hover:scale-105'
+            }`}
+        >
+          <Heart className={`w-4 h-4 ${isLiked ? 'fill-current' : ''}`} />
+        </button>
 
-        {/* Out of Stock Overlay */}
-        {/* طبقة نفاد المخزون */}
+        {/* Quick View Button - Glassy Slide-up */}
+        <div className={`absolute inset-x-4 bottom-4 z-10 transition-all duration-300 transform ${isHovered ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}>
+          {onQuickView && (
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onQuickView();
+              }}
+              className="w-full bg-white/90 backdrop-blur-md text-historical-blue py-3 rounded-2xl shadow-lg border border-white/50 text-xs font-bold hover:bg-historical-blue hover:text-white transition-all active:scale-95"
+            >
+              {t.product.quickView}
+            </button>
+          )}
+        </div>
+
+        {/* Unavailable Overlay */}
         {!isAvailable && (
-          <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center z-10">
-            <span className="bg-white text-text-primary px-4 py-2 rounded-lg font-semibold">
-              غير متوفر
+          <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] flex items-center justify-center z-10">
+            <span className="bg-stone-800 text-white px-5 py-2 rounded-xl font-bold text-xs tracking-wider shadow-lg">
+              {t.product.soldOut}
             </span>
           </div>
         )}
       </Link>
 
-      {/* Product Info */}
-      {/* معلومات المنتج */}
-      <div className="p-4">
-        {/* Vendor Name (optional) */}
-        {/* اسم البائع (اختياري) */}
+      {/* Product Details - Clean & Minimal */}
+      <div className="p-5 text-center">
         {vendorName && (
-          <p className="text-caption text-text-tertiary mb-1">{vendorName}</p>
+          <p className="text-[10px] font-bold text-historical-gold/80 uppercase tracking-[0.15em] mb-2">{vendorName}</p>
         )}
 
-        {/* Product Name */}
-        {/* اسم المنتج */}
         <Link href={productUrl}>
-          <h3 className="text-body-md font-medium text-text-primary mb-2 line-clamp-2 hover:text-accent-orange-500 transition-colors">
+          <h3 className="text-base font-bold text-stone-700 mb-2 line-clamp-2 leading-relaxed group-hover:text-historical-gold transition-colors font-display">
             {sanitizedName}
           </h3>
         </Link>
 
-        {/* Rating */}
-        {/* التقييم */}
+        {/* Rating - Minimal Dots */}
         {(rating > 0 || reviewCount > 0) && (
-          <div className="mb-3">
-            <StarRating rating={rating} reviewCount={reviewCount} />
+          <div className="flex items-center justify-center gap-1 mb-3 opacity-60 hover:opacity-100 transition-opacity">
+            <div className="flex text-historical-gold text-xs gap-0.5">
+              {'★'.repeat(Math.ceil(rating || 5))}
+            </div>
+            <span className="text-[10px] text-stone-400">({reviewCount})</span>
           </div>
         )}
 
-        {/* Price */}
-        {/* السعر */}
-        <div className="flex items-center gap-2 mb-4">
-          {hasDiscount ? (
-            <>
-              <span className="text-body-sm text-text-tertiary line-through">
-                {formatPrice(basePrice)} ل.س
-              </span>
-              <span className="text-heading-4 font-bold text-accent-orange-500">
-                {formatPrice(finalPrice)} ل.س
-              </span>
-            </>
-          ) : (
-            <span className="text-heading-4 font-bold text-text-primary">
-              {formatPrice(finalPrice)} ل.س
+        {/* Price Section - Vertical Stack for elegance */}
+        <div className="flex flex-col items-center gap-1 mb-4">
+          <span className="text-xl font-display font-bold text-historical-blue">
+            {formatPrice(finalPrice)} <span className="text-xs font-sans font-normal text-stone-400">{t.common.currency}</span>
+          </span>
+          {hasDiscount && (
+            <span className="text-xs text-stone-300 line-through decoration-historical-red/30">
+              {formatPrice(basePrice)}
             </span>
           )}
         </div>
 
-        {/* Add to Cart Button */}
-        {/* زر إضافة إلى السلة */}
+        {/* Add to Cart - Minimal Icon Button */}
         <button
           onClick={onAddToCart}
           disabled={!isAvailable}
-          className="w-full bg-accent-orange-500 text-white py-3 px-4 rounded-lg font-medium text-body-md transition-default hover:bg-accent-orange-600 disabled:bg-neutral-300 disabled:cursor-not-allowed disabled:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-accent-orange-500 focus:ring-offset-2"
-          aria-label={`Add ${sanitizedName} to cart`}
+          className="w-full bg-[#FAF9F6] text-stone-600 py-3 rounded-2xl font-bold text-sm border border-stone-100 hover:bg-historical-gold hover:text-white hover:border-historical-gold hover:shadow-lg active:scale-95 transition-all duration-300 flex items-center justify-center gap-2 group/btn"
         >
-          {isAvailable ? 'أضف إلى السلة' : 'غير متوفر'}
+          <span>{t.product.addToCart}</span>
+          <svg className="w-4 h-4 transition-transform group-hover/btn:-translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+          </svg>
         </button>
       </div>
     </div>
   )
 }
-
-// Product Card Skeleton is exported from @/components/common/Skeleton
-// هيكل بطاقة المنتج يتم تصديره من @/components/common/Skeleton
-

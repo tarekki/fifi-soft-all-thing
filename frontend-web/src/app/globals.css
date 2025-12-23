@@ -1,100 +1,56 @@
+@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@200;300;400;500;700;800;900&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    /* Shadcn/ui Compatibility Variables */
-    /* متغيرات متوافقة مع Shadcn/ui */
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Historical Syrian Palette Variables (Light & Professional) */
+    --background: 60 5% 98%;
+    /* Warm White #FAFAF9 */
+    --foreground: 30 5% 20%;
+    /* Warm Charcoal #2D2A26 */
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 30 5% 20%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --popover-foreground: 30 5% 20%;
+
+    /* Primary: Dusty Clay/Rose #9E6D64 (HSL: 4 23% 51%) */
+    --primary: 4 23% 51%;
+    --primary-foreground: 60 5% 98%;
+
+    /* Secondary: Soft Slate Blue #556B85 (HSL: 213 22% 43%) */
+    --secondary: 213 22% 43%;
+    --secondary-foreground: 60 5% 98%;
+
+    /* Accent: Muted Antique Gold #C5A065 (HSL: 37 46% 58%) */
+    --accent: 37 46% 58%;
+    --accent-foreground: 30 5% 20%;
+
+    /* Neutral Muted */
+    --muted: 30 10% 96%;
+    --muted-foreground: 30 5% 45%;
+
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
-    --radius: 0.75rem; /* 12px - Rounded corners for modern feel */
 
-    /* Design System Variables */
-    /* متغيرات نظام التصميم */
-    
-    /* Background Colors */
-    /* ألوان الخلفية */
-    --bg-primary: #FAFAFA; /* Off-white (soft neutral) */
-    --bg-secondary: #FFFFFF; /* Pure white */
-    --bg-tertiary: #F8F9FA; /* Light gray */
-    --bg-muted: #F5F5F5; /* Very light gray */
+    --border: 30 10% 90%;
+    --input: 30 10% 90%;
+    --ring: 4 23% 51%;
+    --radius: 0.75rem;
 
-    /* Text Colors */
-    /* ألوان النص */
-    --text-primary: #111827; /* Almost black (high contrast) */
-    --text-secondary: #374151; /* Dark gray */
-    --text-tertiary: #6B7280; /* Medium gray */
-    --text-muted: #9CA3AF; /* Light gray (disabled) */
-    --text-inverse: #FFFFFF; /* White (for dark backgrounds) */
-
-    /* Accent Color (Muted Orange) */
-    /* اللون المميز (برتقالي خفيف) */
-    --accent-500: #FF8A65; /* Primary accent */
-    --accent-600: #FF7043;
-    --accent-700: #F4511E;
-
-    /* Semantic Colors */
-    /* الألوان الدلالية */
-    --success-500: #22C55E;
-    --warning-500: #F59E0B;
-    --error-500: #EF4444;
-    --info-500: #3B82F6;
-
-    /* Shadows */
-    /* الظلال */
-    --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
-    --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.08); /* Default card shadow */
-    --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.1);
-    --shadow-xl: 0 8px 24px rgba(0, 0, 0, 0.12);
-
-    /* Transitions */
-    /* الانتقالات */
-    --transition-fast: 150ms;
-    --transition-normal: 200ms;
-    --transition-slow: 300ms;
-    --transition-slower: 500ms;
-    --transition-default: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    /* Custom Design Variables */
+    --bg-primary: #FAFAF9;
+    /* Warm White */
+    --bg-texture-color: rgba(197, 160, 101, 0.08);
+    /* Muted Gold tint */
   }
 
   .dark {
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    /* Dark mode adjustments would go here */
   }
 }
 
@@ -102,58 +58,77 @@
   * {
     @apply border-border;
   }
+
   body {
-    @apply bg-background text-foreground;
-    /* Design System Defaults */
-    /* إعدادات نظام التصميم الافتراضية */
-    background-color: var(--bg-primary);
-    color: var(--text-primary);
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+    @apply bg-historical-stone text-historical-charcoal font-sans;
+    /* Subtle texture pattern */
+    background-image: radial-gradient(var(--bg-texture-color) 1px, transparent 1px);
+    background-size: 24px 24px;
+    font-family: 'Tajawal', sans-serif;
   }
+}
+
+@layer utilities {
+  .bg-texture {
+    background-image:
+      radial-gradient(at 0% 0%, hsla(253, 16%, 7%, 1) 0, transparent 50%),
+      radial-gradient(at 50% 0%, hsla(225, 39%, 30%, 1) 0, transparent 50%),
+      radial-gradient(at 100% 0%, hsla(339, 49%, 30%, 1) 0, transparent 50%);
+  }
+
+  .glass-sidebar {
+    @apply bg-white/80 backdrop-blur-md border-r border-historical-gold/20 shadow-xl;
+  }
+
+  .text-gold-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-historical-gold to-yellow-600;
+  }
+}
+
+@layer base {
 
   /* Typography Scale */
   /* مقياس الطباعة */
-  h1, .heading-1 {
-    font-size: 2rem; /* 32px */
+  h1,
+  .heading-1 {
+    font-size: 2rem;
     line-height: 1.3;
     letter-spacing: -0.01em;
     font-weight: 700;
   }
 
-  h2, .heading-2 {
-    font-size: 1.75rem; /* 28px */
+  h2,
+  .heading-2 {
+    font-size: 1.75rem;
     line-height: 1.3;
     letter-spacing: -0.01em;
     font-weight: 700;
   }
 
-  h3, .heading-3 {
-    font-size: 1.5rem; /* 24px */
+  h3,
+  .heading-3 {
+    font-size: 1.5rem;
     line-height: 1.4;
     letter-spacing: 0;
     font-weight: 600;
   }
 
-  h4, .heading-4 {
-    font-size: 1.25rem; /* 20px */
+  h4,
+  .heading-4 {
+    font-size: 1.25rem;
     line-height: 1.4;
     letter-spacing: 0;
     font-weight: 600;
   }
 
   /* Smooth Scrolling */
-  /* التمرير السلس */
   html {
     scroll-behavior: smooth;
   }
 
   /* Focus States (Accessibility) */
-  /* حالات التركيز (إمكانية الوصول) */
   *:focus-visible {
-    outline: 2px solid var(--accent-500);
+    outline: 2px solid var(--accent);
     outline-offset: 2px;
   }
 }
-
