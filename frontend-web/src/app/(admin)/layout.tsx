@@ -9,22 +9,31 @@
  * - Sticky header with search, notifications, and user menu
  * - Glassmorphism design
  * - RTL support
+ * - Protected routes with authentication
  * 
  * تخطيط لوحة تحكم حديث واحترافي مع:
  * - قائمة جانبية قابلة للطي
  * - شريط علوي ثابت مع بحث وإشعارات وقائمة المستخدم
  * - تصميم زجاجي
  * - دعم RTL
+ * - حماية الطرق مع المصادقة
  */
 
 import { useState, type ReactNode } from 'react'
+import { usePathname } from 'next/navigation'
 import { AdminSidebar, AdminHeader } from '@/components/admin'
+import { AdminAuthProvider, ProtectedRoute } from '@/lib/admin'
 
 interface AdminLayoutProps {
   children: ReactNode
 }
 
-export default function AdminLayout({ children }: AdminLayoutProps) {
+// =============================================================================
+// Layout Content Component
+// مكون محتوى التخطيط
+// =============================================================================
+
+function AdminLayoutContent({ children }: { children: ReactNode }) {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
 
   return (
@@ -56,5 +65,34 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         </footer>
       </div>
     </div>
+  )
+}
+
+// =============================================================================
+// Main Layout Component
+// مكون التخطيط الرئيسي
+// =============================================================================
+
+export default function AdminLayout({ children }: AdminLayoutProps) {
+  const pathname = usePathname()
+  
+  // Check if current page is login page
+  // التحقق إذا كانت الصفحة الحالية هي صفحة الدخول
+  const isLoginPage = pathname === '/admin/login'
+
+  return (
+    <AdminAuthProvider>
+      {isLoginPage ? (
+        // Login page doesn't need layout or protection
+        // صفحة الدخول لا تحتاج تخطيط أو حماية
+        children
+      ) : (
+        // All other pages are protected and use the layout
+        // جميع الصفحات الأخرى محمية وتستخدم التخطيط
+        <ProtectedRoute>
+          <AdminLayoutContent>{children}</AdminLayoutContent>
+        </ProtectedRoute>
+      )}
+    </AdminAuthProvider>
   )
 }

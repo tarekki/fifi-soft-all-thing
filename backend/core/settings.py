@@ -68,6 +68,7 @@ INSTALLED_APPS = [
     "products",       # Product catalog
     "orders",         # Order management
     "settings_app",   # Site settings and configuration
+    "admin_api",      # Admin Dashboard API - إدارة لوحة التحكم
 ]
 
 MIDDLEWARE = [

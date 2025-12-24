@@ -1,4 +1,567 @@
-# Task Checklist: Syrian E-commerce Platform (Fifi & Soft)
+# Task Checklist: Syrian E-commerce Platform (Yalla Buy)
+
+---
+
+# 🎯 المرحلة الحالية: ربط لوحة التحكم بالباك إند (100% Dynamic)
+
+> **الهدف**: إزالة جميع البيانات الوهمية (Mock Data) وربط كل شيء بـ API حقيقي
+> **المبادئ**: مقروئية عالية | موثوقية | أمان | تعليقات واضحة
+
+---
+
+## 📋 جدول المهام الرئيسي
+
+| # | المهمة | Backend | Frontend | API Test | الحالة |
+|---|--------|:-------:|:--------:|:--------:|:------:|
+| 1 | 🔐 Admin Authentication | ✅ | ✅ | ✅ | 🟢 |
+| 2 | ⚙️ Site Settings | ✅ | ✅ | ⬜ | 🟡 |
+| 3 | 📊 Dashboard Stats | ✅ | ✅ | ⬜ | 🟡 |
+| 4 | 📂 Categories CRUD | ⬜ | ✅ | ⬜ | 🔴 |
+| 5 | 📦 Products CRUD | ⬜ | ✅ | ⬜ | 🔴 |
+| 6 | 📋 Orders Management | ⬜ | ✅ | ⬜ | 🔴 |
+| 7 | 🏪 Vendors Management | ⬜ | ✅ | ⬜ | 🔴 |
+| 8 | 👥 Users Management | ⬜ | ✅ | ⬜ | 🔴 |
+| 9 | 🎯 Promotions (Banners/Stories/Coupons) | ⬜ | ✅ | ⬜ | 🔴 |
+| 10 | 📈 Reports & Analytics | ⬜ | ✅ | ⬜ | 🔴 |
+
+**الرموز**: ✅ مكتمل | 🟡 جزئي | ⬜ لم يبدأ | 🔴 أولوية عالية | 🟢 منخفضة
+
+---
+
+## 🔐 المهمة #1: Admin Authentication (الأولوية القصوى)
+
+### 1.1 Backend ✅ مكتمل
+```
+✓ إنشاء AdminUser Model (استخدام User الحالي مع is_staff)
+✓ إنشاء Admin JWT Authentication:
+  - POST /api/v1/admin/auth/login/     → تسجيل الدخول
+  - POST /api/v1/admin/auth/logout/    → تسجيل الخروج
+  - POST /api/v1/admin/auth/refresh/   → تجديد التوكن
+  - GET  /api/v1/admin/auth/me/        → معلومات الأدمن الحالي
+✓ إنشاء Admin Permissions:
+  - IsSuperAdmin (كل الصلاحيات)
+  - IsAdminUser (إدارة المحتوى)
+□ إضافة Rate Limiting للـ Admin endpoints (لاحقاً)
+□ إضافة Activity Logging (تسجيل كل العمليات) (لاحقاً)
+```
+
+### 1.2 Frontend ✅ مكتمل
+```
+✓ إنشاء صفحة تسجيل الدخول للأدمن (/admin/login)
+✓ إنشاء Admin Auth Context & Provider
+✓ إنشاء Admin API Client (مع JWT headers)
+✓ إنشاء Protected Route wrapper
+✓ إضافة Session timeout handling (auto restore)
+✓ إضافة Error handling للـ 401/403
+```
+
+### 1.3 API Endpoints المطلوبة
+```
+POST /api/v1/admin/auth/login/
+  Request:  { email, password }
+  Response: { access, refresh, user: { id, email, name, role, permissions } }
+
+POST /api/v1/admin/auth/refresh/
+  Request:  { refresh }
+  Response: { access }
+
+GET /api/v1/admin/auth/me/
+  Headers:  Authorization: Bearer <token>
+  Response: { id, email, name, role, permissions, last_login }
+```
+
+---
+
+## 📊 المهمة #2: Dashboard Stats API
+
+### 2.1 Backend
+```
+□ إنشاء Dashboard ViewSet في admin_api app
+□ إنشاء APIs:
+  - GET /api/v1/admin/dashboard/overview/      → KPIs
+  - GET /api/v1/admin/dashboard/sales-chart/   → بيانات الرسم البياني
+  - GET /api/v1/admin/dashboard/recent-orders/ → آخر الطلبات
+  - GET /api/v1/admin/dashboard/recent-activity/ → آخر النشاطات
+□ إضافة Caching للـ Dashboard data (5 دقائق)
+□ إضافة Date range filtering
+```
+
+### 2.2 Frontend
+```
+□ إنشاء Dashboard API client
+□ إنشاء useDashboard hook
+□ ربط Stats Cards بالـ API
+□ ربط Charts بالـ API
+□ ربط Recent Orders بالـ API
+□ ربط Activity Log بالـ API
+□ إضافة Loading states
+□ إضافة Error handling
+□ إضافة Auto-refresh (كل 30 ثانية)
+```
+
+### 2.3 Response Schemas
+```typescript
+// GET /api/v1/admin/dashboard/overview/
+interface DashboardOverview {
+  total_revenue: number
+  total_revenue_change: number  // نسبة التغيير
+  total_orders: number
+  total_orders_change: number
+  total_products: number
+  active_products: number
+  total_users: number
+  new_users_today: number
+  total_vendors: number
+  active_vendors: number
+  pending_orders: number
+  low_stock_products: number
+}
+
+// GET /api/v1/admin/dashboard/sales-chart/?period=week|month|year
+interface SalesChartData {
+  labels: string[]           // التواريخ
+  revenue: number[]          // الإيرادات
+  orders: number[]           // عدد الطلبات
+}
+```
+
+---
+
+## ⚙️ المهمة #3: Site Settings CRUD (Admin)
+
+### 3.1 Backend (موجود جزئياً)
+```
+□ تأكد من وجود Admin ViewSet للـ Settings
+□ إضافة PUT/PATCH endpoints:
+  - PUT /api/v1/admin/settings/site/
+  - PUT /api/v1/admin/settings/seo/
+  - PUT /api/v1/admin/settings/contact/
+  - CRUD /api/v1/admin/settings/social-links/
+  - CRUD /api/v1/admin/settings/languages/
+  - CRUD /api/v1/admin/settings/navigation/
+  - CRUD /api/v1/admin/settings/trust-signals/
+  - CRUD /api/v1/admin/settings/payment-methods/
+  - CRUD /api/v1/admin/settings/shipping-methods/
+□ إضافة File upload للشعار والأيقونة
+□ إضافة Validation
+```
+
+### 3.2 Frontend
+```
+□ إنشاء Admin Settings API client
+□ إنشاء useAdminSettings hook
+□ ربط صفحة General Settings بالـ API
+□ ربط صفحة SEO Settings بالـ API
+□ ربط صفحة Contact Settings بالـ API
+□ ربط صفحة Social Links بالـ API (CRUD)
+□ ربط صفحة Languages بالـ API (CRUD)
+□ ربط صفحة Navigation بالـ API (CRUD)
+□ ربط صفحة Trust Signals بالـ API (CRUD)
+□ ربط صفحة Payment Methods بالـ API (CRUD)
+□ ربط صفحة Shipping Methods بالـ API (CRUD)
+□ إضافة Form validation (Zod)
+□ إضافة Success/Error toasts
+□ إضافة Optimistic updates
+```
+
+---
+
+## 📂 المهمة #4: Categories CRUD (Admin)
+
+### 4.1 Backend
+```
+□ إنشاء Category Model (إذا غير موجود):
+  - id, name, name_ar, slug, description, description_ar
+  - parent (ForeignKey to self), icon, image
+  - is_active, is_featured, order, created_at, updated_at
+□ إنشاء CategorySerializer
+□ إنشاء CategoryViewSet (Admin):
+  - GET    /api/v1/admin/categories/           → قائمة شجرية
+  - POST   /api/v1/admin/categories/           → إنشاء
+  - GET    /api/v1/admin/categories/{id}/      → تفاصيل
+  - PUT    /api/v1/admin/categories/{id}/      → تعديل
+  - DELETE /api/v1/admin/categories/{id}/      → حذف
+  - PUT    /api/v1/admin/categories/reorder/   → إعادة الترتيب
+  - POST   /api/v1/admin/categories/{id}/upload-image/ → رفع صورة
+□ إضافة Nested serializer للفئات الفرعية
+□ إضافة Soft delete
+```
+
+### 4.2 Frontend
+```
+□ إنشاء Categories API client
+□ إنشاء useAdminCategories hook
+□ ربط Tree View بالـ API
+□ ربط Add/Edit Modal بالـ API
+□ ربط Delete بالـ API
+□ ربط Reorder بالـ API
+□ ربط Image upload بالـ API
+□ إضافة Optimistic updates
+```
+
+---
+
+## 📦 المهمة #5: Products CRUD (Admin)
+
+### 5.1 Backend
+```
+□ تحسين Product Model:
+  - إضافة category (ForeignKey)
+  - إضافة is_featured, is_new, is_bestseller
+  - إضافة compare_at_price (السعر قبل الخصم)
+  - إضافة badge_text, badge_color
+  - إضافة view_count, order_count
+□ إنشاء ProductImage Model (متعدد الصور)
+□ إنشاء ProductViewSet (Admin):
+  - GET    /api/v1/admin/products/             → قائمة + فلترة + بحث
+  - POST   /api/v1/admin/products/             → إنشاء
+  - GET    /api/v1/admin/products/{id}/        → تفاصيل
+  - PUT    /api/v1/admin/products/{id}/        → تعديل
+  - DELETE /api/v1/admin/products/{id}/        → حذف
+  - POST   /api/v1/admin/products/bulk-action/ → عمليات جماعية
+  - POST   /api/v1/admin/products/{id}/images/ → رفع صور
+  - CRUD   /api/v1/admin/products/{id}/variants/ → المتغيرات
+□ إضافة Filters (vendor, category, status, stock)
+□ إضافة Search (name, SKU, description)
+□ إضافة Ordering (price, stock, created_at)
+```
+
+### 5.2 Frontend
+```
+□ إنشاء Products API client
+□ إنشاء useAdminProducts hook
+□ ربط Products Table بالـ API
+□ ربط Filters بالـ API
+□ ربط Search بالـ API
+□ ربط Bulk Actions بالـ API
+□ إنشاء صفحة Add/Edit Product
+□ ربط Image upload بالـ API
+□ ربط Variants management بالـ API
+```
+
+---
+
+## 📋 المهمة #6: Orders Management (Admin)
+
+### 6.1 Backend
+```
+□ تحسين Order ViewSet (Admin):
+  - GET    /api/v1/admin/orders/               → قائمة + فلترة
+  - GET    /api/v1/admin/orders/{id}/          → تفاصيل كاملة
+  - PUT    /api/v1/admin/orders/{id}/status/   → تحديث الحالة
+  - POST   /api/v1/admin/orders/{id}/refund/   → إرجاع
+  - POST   /api/v1/admin/orders/{id}/note/     → إضافة ملاحظة
+  - GET    /api/v1/admin/orders/{id}/history/  → تاريخ الطلب
+□ إضافة Filters (status, date_range, vendor)
+□ إضافة OrderHistory Model (تسجيل كل التغييرات)
+□ إضافة OrderNote Model
+```
+
+### 6.2 Frontend
+```
+□ إنشاء Orders API client
+□ إنشاء useAdminOrders hook
+□ ربط Orders Table بالـ API
+□ ربط Status update بالـ API
+□ ربط Order Details Modal بالـ API
+□ إضافة Real-time updates (WebSocket أو Polling)
+```
+
+---
+
+## 🏪 المهمة #7: Vendors Management (Admin)
+
+### 7.1 Backend
+```
+□ تحسين Vendor ViewSet (Admin):
+  - GET    /api/v1/admin/vendors/              → قائمة
+  - GET    /api/v1/admin/vendors/{id}/         → تفاصيل
+  - PUT    /api/v1/admin/vendors/{id}/         → تعديل
+  - PUT    /api/v1/admin/vendors/{id}/status/  → تغيير الحالة
+  - PUT    /api/v1/admin/vendors/{id}/approve/ → موافقة
+  - PUT    /api/v1/admin/vendors/{id}/reject/  → رفض
+  - PUT    /api/v1/admin/vendors/{id}/feature/ → تمييز
+  - PUT    /api/v1/admin/vendors/{id}/commission/ → تعديل العمولة
+  - GET    /api/v1/admin/vendors/{id}/stats/   → إحصائيات
+  - GET    /api/v1/admin/vendors/{id}/products/ → منتجات البائع
+  - GET    /api/v1/admin/vendors/{id}/orders/  → طلبات البائع
+□ إضافة VendorApplication Model (طلبات الانضمام)
+□ إضافة Filters (status, featured, commission)
+```
+
+### 7.2 Frontend
+```
+□ إنشاء Vendors API client
+□ إنشاء useAdminVendors hook
+□ ربط Vendors Cards بالـ API
+□ ربط Approve/Reject بالـ API
+□ ربط Feature toggle بالـ API
+□ إنشاء صفحة Vendor Details
+□ ربط Commission update بالـ API
+```
+
+---
+
+## 👥 المهمة #8: Users Management (Admin)
+
+### 8.1 Backend
+```
+□ إنشاء User ViewSet (Admin):
+  - GET    /api/v1/admin/users/                → قائمة + فلترة
+  - GET    /api/v1/admin/users/{id}/           → تفاصيل
+  - PUT    /api/v1/admin/users/{id}/           → تعديل
+  - PUT    /api/v1/admin/users/{id}/role/      → تغيير الدور
+  - PUT    /api/v1/admin/users/{id}/block/     → حظر/إلغاء حظر
+  - GET    /api/v1/admin/users/{id}/orders/    → طلبات المستخدم
+  - GET    /api/v1/admin/users/{id}/activity/  → نشاط المستخدم
+□ إضافة Filters (role, status, verified)
+□ إضافة UserActivity Model
+```
+
+### 8.2 Frontend
+```
+□ إنشاء Users API client
+□ إنشاء useAdminUsers hook
+□ ربط Users Table بالـ API
+□ ربط Block/Unblock بالـ API
+□ ربط Role change بالـ API
+□ إنشاء صفحة User Details
+```
+
+---
+
+## 🎯 المهمة #9: Promotions (Admin)
+
+### 9.1 Backend
+```
+□ إنشاء Banner Model:
+  - title, title_ar, subtitle, subtitle_ar
+  - image, link, location (hero/sidebar/popup/category)
+  - start_date, end_date, is_active, order
+  - clicks, views
+□ إنشاء Story Model:
+  - title, title_ar, image, link, link_type
+  - expires_at, is_active, order, views
+□ إنشاء Coupon Model:
+  - code, description, description_ar
+  - discount_type (percentage/fixed), discount_value
+  - min_order, max_discount, usage_limit, used_count
+  - start_date, end_date, is_active
+  - applicable_to (all/category/product/user)
+□ إنشاء ViewSets لكل موديل
+```
+
+### 9.2 Frontend
+```
+□ إنشاء Promotions API client
+□ إنشاء useAdminBanners, useAdminStories, useAdminCoupons hooks
+□ ربط صفحة Banners بالـ API
+□ ربط صفحة Stories بالـ API
+□ ربط صفحة Coupons بالـ API
+```
+
+---
+
+## 📈 المهمة #10: Reports & Analytics (Admin)
+
+### 10.1 Backend
+```
+□ إنشاء Reports ViewSet:
+  - GET /api/v1/admin/reports/sales/       → تقرير المبيعات
+  - GET /api/v1/admin/reports/commissions/ → تقرير العمولات
+  - GET /api/v1/admin/reports/products/    → تقرير المنتجات
+  - GET /api/v1/admin/reports/users/       → تقرير المستخدمين
+  - GET /api/v1/admin/reports/export/      → تصدير (CSV/Excel)
+□ إضافة Date range filtering
+□ إضافة Aggregation queries
+□ إضافة Export functionality
+```
+
+### 10.2 Frontend
+```
+□ إنشاء Reports API client
+□ إنشاء useReports hook
+□ ربط Reports Charts بالـ API
+□ ربط Export buttons بالـ API
+```
+
+---
+
+## 🏗️ البنية التقنية المطلوبة
+
+### Backend Structure
+```
+backend/
+├── admin_api/                    # ✨ جديد - Admin APIs
+│   ├── __init__.py
+│   ├── apps.py
+│   ├── urls.py
+│   ├── permissions.py            # Admin permissions
+│   ├── serializers/
+│   │   ├── auth.py
+│   │   ├── dashboard.py
+│   │   ├── categories.py
+│   │   ├── products.py
+│   │   ├── orders.py
+│   │   ├── vendors.py
+│   │   ├── users.py
+│   │   ├── promotions.py
+│   │   └── reports.py
+│   ├── views/
+│   │   ├── auth.py
+│   │   ├── dashboard.py
+│   │   ├── categories.py
+│   │   ├── products.py
+│   │   ├── orders.py
+│   │   ├── vendors.py
+│   │   ├── users.py
+│   │   ├── promotions.py
+│   │   └── reports.py
+│   └── utils/
+│       ├── activity_logger.py    # تسجيل النشاطات
+│       └── export.py             # تصدير التقارير
+```
+
+### Frontend Structure
+```
+frontend-web/src/
+├── lib/
+│   ├── api/
+│   │   ├── admin/               # ✨ جديد - Admin API clients
+│   │   │   ├── client.ts        # Base admin client (with JWT)
+│   │   │   ├── auth.ts
+│   │   │   ├── dashboard.ts
+│   │   │   ├── categories.ts
+│   │   │   ├── products.ts
+│   │   │   ├── orders.ts
+│   │   │   ├── vendors.ts
+│   │   │   ├── users.ts
+│   │   │   ├── promotions.ts
+│   │   │   ├── settings.ts
+│   │   │   └── reports.ts
+│   │   └── index.ts
+│   │
+│   ├── admin/                   # ✨ جديد - Admin utilities
+│   │   ├── context.tsx          # Admin Auth Context
+│   │   ├── hooks/
+│   │   │   ├── useAdminAuth.ts
+│   │   │   ├── useDashboard.ts
+│   │   │   ├── useAdminCategories.ts
+│   │   │   ├── useAdminProducts.ts
+│   │   │   ├── useAdminOrders.ts
+│   │   │   ├── useAdminVendors.ts
+│   │   │   ├── useAdminUsers.ts
+│   │   │   ├── useAdminPromotions.ts
+│   │   │   ├── useAdminSettings.ts
+│   │   │   └── useReports.ts
+│   │   └── index.ts
+│   │
+│   └── validation/
+│       └── admin-schemas.ts     # Zod schemas for forms
+│
+├── types/
+│   └── admin.ts                 # Admin-specific types
+```
+
+---
+
+## ✅ قواعد الكتابة (Code Standards)
+
+### 1. التعليقات (Comments)
+```typescript
+/**
+ * جلب قائمة الفئات مع الفئات الفرعية
+ * Fetches categories with nested subcategories
+ * 
+ * @param params - معاملات الفلترة
+ * @returns Promise<Category[]> - قائمة الفئات
+ * @throws ApiError - في حالة فشل الطلب
+ */
+export async function getCategories(params?: CategoryFilters): Promise<Category[]> {
+  // التحقق من الصلاحيات | Check permissions
+  await requireAdminAuth();
+  
+  // جلب البيانات | Fetch data
+  const response = await adminClient.get('/categories/', { params });
+  
+  return response.data;
+}
+```
+
+### 2. Error Handling
+```typescript
+try {
+  const result = await createCategory(data);
+  toast.success('تم إنشاء الفئة بنجاح');
+  return result;
+} catch (error) {
+  if (error instanceof ApiError) {
+    if (error.status === 401) {
+      // إعادة التوجيه لصفحة الدخول
+      redirectToLogin();
+    } else if (error.status === 403) {
+      toast.error('ليس لديك صلاحية لهذه العملية');
+    } else {
+      toast.error(error.message);
+    }
+  }
+  throw error;
+}
+```
+
+### 3. Type Safety
+```typescript
+// ✅ صحيح - Types واضحة
+interface CreateCategoryInput {
+  name: string;
+  name_ar: string;
+  slug: string;
+  parent_id?: number;
+  is_active: boolean;
+  is_featured: boolean;
+}
+
+// ❌ خطأ - تجنب any
+function createCategory(data: any) { ... }
+```
+
+---
+
+## 🚀 خطة التنفيذ
+
+### الأسبوع 1: الأساسيات
+- [ ] يوم 1-2: Admin Authentication (Backend + Frontend)
+- [ ] يوم 3-4: Dashboard Stats API
+- [ ] يوم 5-6: Site Settings ربط كامل
+- [ ] يوم 7: Testing & Bug fixes
+
+### الأسبوع 2: إدارة المحتوى
+- [ ] يوم 1-2: Categories CRUD
+- [ ] يوم 3-4: Products CRUD (الأساسيات)
+- [ ] يوم 5-6: Products (الصور والمتغيرات)
+- [ ] يوم 7: Testing & Bug fixes
+
+### الأسبوع 3: إدارة العمليات
+- [ ] يوم 1-2: Orders Management
+- [ ] يوم 3-4: Vendors Management
+- [ ] يوم 5-6: Users Management
+- [ ] يوم 7: Testing & Bug fixes
+
+### الأسبوع 4: العروض والتقارير
+- [ ] يوم 1-2: Promotions (Banners, Stories, Coupons)
+- [ ] يوم 3-4: Reports & Analytics
+- [ ] يوم 5-6: File uploads & Export
+- [ ] يوم 7: Final Testing & Documentation
+
+---
+
+**هل نبدأ بالمهمة #1 (Admin Authentication)؟**
+
+---
+---
+---
+
+# 📚 التوثيق القديم (للمرجعية)
 
 ## Phase 0: Planning & Requirements ✅
 - [x] **Requirements Gathering**

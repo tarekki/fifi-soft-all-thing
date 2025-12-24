@@ -1,0 +1,161 @@
+"""
+Admin API URL Configuration
+إعدادات URLs لـ API الإدارة
+
+هذا الملف يحدد جميع مسارات URLs لـ API الإدارة.
+This file defines all URL routes for the Admin API.
+
+URL Structure:
+    /api/v1/admin/auth/         - Authentication endpoints
+    /api/v1/admin/dashboard/    - Dashboard endpoints
+    /api/v1/admin/categories/   - Categories management (Coming soon)
+    /api/v1/admin/products/     - Products management (Coming soon)
+    /api/v1/admin/orders/       - Orders management (Coming soon)
+    /api/v1/admin/vendors/      - Vendors management (Coming soon)
+    /api/v1/admin/users/        - Users management (Coming soon)
+    /api/v1/admin/promotions/   - Promotions management (Coming soon)
+    /api/v1/admin/settings/     - Settings management (Coming soon)
+    /api/v1/admin/reports/      - Reports (Coming soon)
+"""
+
+from django.urls import path, include
+from admin_api.views import (
+    # Auth
+    AdminLoginView,
+    AdminLogoutView,
+    AdminMeView,
+    AdminTokenRefreshView,
+    # Dashboard
+    DashboardOverviewView,
+    DashboardSalesChartView,
+    DashboardRecentOrdersView,
+    DashboardRecentActivityView,
+)
+
+
+# =============================================================================
+# App Namespace
+# مساحة الاسم للتطبيق
+# =============================================================================
+app_name = 'admin_api'
+
+
+# =============================================================================
+# Auth URL Patterns
+# أنماط URLs للمصادقة
+# =============================================================================
+auth_urlpatterns = [
+    # POST /api/v1/admin/auth/login/
+    # تسجيل الدخول
+    path(
+        'login/',
+        AdminLoginView.as_view(),
+        name='login'
+    ),
+    
+    # POST /api/v1/admin/auth/logout/
+    # تسجيل الخروج
+    path(
+        'logout/',
+        AdminLogoutView.as_view(),
+        name='logout'
+    ),
+    
+    # POST /api/v1/admin/auth/refresh/
+    # تجديد التوكن
+    path(
+        'refresh/',
+        AdminTokenRefreshView.as_view(),
+        name='refresh'
+    ),
+    
+    # GET /api/v1/admin/auth/me/
+    # معلومات الأدمن الحالي
+    path(
+        'me/',
+        AdminMeView.as_view(),
+        name='me'
+    ),
+]
+
+
+# =============================================================================
+# Dashboard URL Patterns
+# أنماط URLs للوحة التحكم
+# =============================================================================
+dashboard_urlpatterns = [
+    # GET /api/v1/admin/dashboard/overview/
+    # نظرة عامة (KPIs)
+    path(
+        'overview/',
+        DashboardOverviewView.as_view(),
+        name='overview'
+    ),
+    
+    # GET /api/v1/admin/dashboard/sales-chart/
+    # بيانات رسم بياني المبيعات
+    path(
+        'sales-chart/',
+        DashboardSalesChartView.as_view(),
+        name='sales-chart'
+    ),
+    
+    # GET /api/v1/admin/dashboard/recent-orders/
+    # الطلبات الأخيرة
+    path(
+        'recent-orders/',
+        DashboardRecentOrdersView.as_view(),
+        name='recent-orders'
+    ),
+    
+    # GET /api/v1/admin/dashboard/recent-activity/
+    # النشاطات الأخيرة
+    path(
+        'recent-activity/',
+        DashboardRecentActivityView.as_view(),
+        name='recent-activity'
+    ),
+]
+
+
+# =============================================================================
+# Main URL Patterns
+# أنماط URLs الرئيسية
+# =============================================================================
+urlpatterns = [
+    # Authentication endpoints
+    # نقاط نهاية المصادقة
+    path('auth/', include((auth_urlpatterns, 'auth'))),
+    
+    # Dashboard endpoints
+    # نقاط نهاية لوحة التحكم
+    path('dashboard/', include((dashboard_urlpatterns, 'dashboard'))),
+    
+    # TODO: Add more endpoints as they are implemented
+    # سيتم إضافة المزيد من النقاط عند تنفيذها
+    
+    # Categories Management
+    # path('categories/', include('admin_api.urls.categories')),
+    
+    # Products Management
+    # path('products/', include('admin_api.urls.products')),
+    
+    # Orders Management
+    # path('orders/', include('admin_api.urls.orders')),
+    
+    # Vendors Management
+    # path('vendors/', include('admin_api.urls.vendors')),
+    
+    # Users Management
+    # path('users/', include('admin_api.urls.users')),
+    
+    # Promotions Management
+    # path('promotions/', include('admin_api.urls.promotions')),
+    
+    # Settings Management
+    # path('settings/', include('admin_api.urls.settings')),
+    
+    # Reports
+    # path('reports/', include('admin_api.urls.reports')),
+]
+

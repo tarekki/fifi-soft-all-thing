@@ -144,6 +144,27 @@ urlpatterns = [
     # Public endpoints for site configuration (no authentication required)
     # نقاط عامة لتكوين الموقع (لا تتطلب مصادقة)
     path("api/v1/settings/", include("settings_app.urls", namespace="settings")),
+    
+    # ========================================================================
+    # Admin API
+    # API الإدارة (لوحة التحكم)
+    # ========================================================================
+    # Secure endpoints for admin dashboard (authentication required)
+    # نقاط آمنة للوحة التحكم (تتطلب مصادقة)
+    # 
+    # Endpoints:
+    #   Authentication:
+    #     POST /api/v1/admin/auth/login/       - Admin login
+    #     POST /api/v1/admin/auth/logout/      - Admin logout
+    #     POST /api/v1/admin/auth/refresh/     - Refresh token
+    #     GET  /api/v1/admin/auth/me/          - Current admin info
+    #   
+    #   Dashboard:
+    #     GET /api/v1/admin/dashboard/overview/        - KPIs
+    #     GET /api/v1/admin/dashboard/sales-chart/     - Sales chart data
+    #     GET /api/v1/admin/dashboard/recent-orders/   - Recent orders
+    #     GET /api/v1/admin/dashboard/recent-activity/ - Activity log
+    path("api/v1/admin/", include("admin_api.urls", namespace="admin_api")),
 ]
 
 # Media Files Configuration (Development Only)
