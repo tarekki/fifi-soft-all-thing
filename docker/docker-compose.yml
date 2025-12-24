@@ -1,13 +1,32 @@
-# Docker Compose Configuration
-# إعدادات Docker Compose
-# Note: version is obsolete in newer Docker Compose versions
-# ملاحظة: version قديم في إصدارات Docker Compose الأحدث
+# =============================================================================
+# Docker Compose Configuration - Yalla Buy
+# إعدادات Docker Compose - يلا باي
+# =============================================================================
+#
+# Usage / الاستخدام:
+#   تشغيل كل شيء:     docker-compose up -d
+#   إيقاف كل شيء:     docker-compose down
+#   مشاهدة اللوجات:   docker-compose logs -f
+#   إعادة البناء:     docker-compose up -d --build
+#
+# URLs after startup / الروابط بعد التشغيل:
+#   Frontend:  http://localhost:3000
+#   Backend:   http://localhost:8000
+#   API Docs:  http://localhost:8000/api/schema/swagger-ui/
+#   Admin:     http://localhost:8000/admin/
+#   pgAdmin:   http://localhost:5050
+#
+# =============================================================================
 
 services:
+  # ===========================================================================
   # PostgreSQL Database
+  # قاعدة البيانات PostgreSQL
+  # ===========================================================================
   db:
     image: postgres:15-alpine
-    container_name: trendyol_db
+    container_name: yallabuy_db
+    restart: unless-stopped
     environment:
       POSTGRES_DB: trendyol_syria
       POSTGRES_USER: postgres
@@ -17,53 +36,61 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d trendyol_syria"]
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - yallabuy_network
 
-  # Django Backend
+  # ===========================================================================
+  # Django Backend API
+  # واجهة برمجة التطبيقات Django
+  # ===========================================================================
   backend:
     build:
       context: ../backend
       dockerfile: Dockerfile
-    container_name: trendyol_backend
-    command: python manage.py runserver 0.0.0.0:8000
+    container_name: yallabuy_backend
+    restart: unless-stopped
+    # تشغيل migrations ثم السيرفر
+    command: >
+      sh -c "python manage.py migrate --noinput &&
+             python manage.py runserver 0.0.0.0:8000"
     volumes:
       - ../backend:/app
+      - backend_static:/app/staticfiles
+      - backend_media:/app/media
     ports:
       - "8000:8000"
     environment:
       - DEBUG=1
       - DATABASE_URL=postgresql://postgres:postgres123@db:5432/trendyol_syria
-      - ALLOWED_HOSTS=localhost,127.0.0.1
+      - ALLOWED_HOSTS=localhost,127.0.0.1,backend
+      - SECRET_KEY=django-insecure-dev-key-change-in-production
+      - CORS_ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000,http://frontend:3000
     depends_on:
       db:
         condition: service_healthy
+    networks:
+      - yallabuy_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
-  # pgAdmin - PostgreSQL Web Interface
-  # واجهة الويب لـ PostgreSQL
-  pgadmin:
-    image: dpage/pgadmin4:latest
-    container_name: trendyol_pgadmin
-    environment:
-      PGADMIN_DEFAULT_EMAIL: admin@trendyol.sy
-      PGADMIN_DEFAULT_PASSWORD: admin123
-      PGADMIN_CONFIG_SERVER_MODE: 'False'
-    ports:
-      - "5050:80"
-    volumes:
-      - pgadmin_data:/var/lib/pgadmin
-    depends_on:
-      - db
-
+  # ===========================================================================
   # Next.js Frontend
-  # Frontend Next.js
+  # واجهة المستخدم Next.js
+  # ===========================================================================
   frontend:
     build:
       context: ../frontend-web
       dockerfile: Dockerfile
-    container_name: trendyol_frontend
+    container_name: yallabuy_frontend
+    restart: unless-stopped
     command: npm run dev
     volumes:
       - ../frontend-web:/app
@@ -74,9 +101,53 @@ services:
     environment:
       - NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
       - NEXT_PUBLIC_FRONTEND_URL=http://localhost:3000
+      - WATCHPACK_POLLING=true
     depends_on:
       - backend
+    networks:
+      - yallabuy_network
 
+  # ===========================================================================
+  # pgAdmin - PostgreSQL Web Interface (Optional)
+  # واجهة الويب لـ PostgreSQL (اختياري)
+  # ===========================================================================
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: yallabuy_pgadmin
+    restart: unless-stopped
+    profiles:
+      - tools
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@yallabuy.sy
+      PGADMIN_DEFAULT_PASSWORD: admin123
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - db
+    networks:
+      - yallabuy_network
+
+# =============================================================================
+# Networks
+# الشبكات
+# =============================================================================
+networks:
+  yallabuy_network:
+    driver: bridge
+
+# =============================================================================
+# Volumes
+# وحدات التخزين
+# =============================================================================
 volumes:
   postgres_data:
+    name: yallabuy_postgres_data
   pgadmin_data:
+    name: yallabuy_pgadmin_data
+  backend_static:
+    name: yallabuy_backend_static
+  backend_media:
+    name: yallabuy_backend_media

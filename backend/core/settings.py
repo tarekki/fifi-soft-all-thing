@@ -63,10 +63,11 @@ INSTALLED_APPS = [
     "django_filters",
     "drf_spectacular",
     # Local apps
-    "users",      # User management app - must be before other apps that reference User
-    "vendors",
-    "products",
-    "orders",
+    "users",          # User management app - must be before other apps that reference User
+    "vendors",        # Vendor management
+    "products",       # Product catalog
+    "orders",         # Order management
+    "settings_app",   # Site settings and configuration
 ]
 
 MIDDLEWARE = [
@@ -281,6 +282,8 @@ REST_FRAMEWORK = {
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",      # Next.js development server
     "http://127.0.0.1:3000",      # Alternative localhost
+    "http://localhost:3001",      # Next.js fallback port
+    "http://127.0.0.1:3001",      # Alternative fallback
 ]
 
 

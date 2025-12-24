@@ -125,11 +125,25 @@ urlpatterns = [
     #     GET /api/v1/products/?max_price=500000 - Filter by max price
     #     GET /api/v1/products/?search=sneaker - Search products
     #     GET /api/v1/products/?ordering=-base_price - Order by price
+    #
+    #   Settings:
+    #     GET /api/v1/settings/site/           - Site settings (name, logo, contact)
+    #     GET /api/v1/settings/social/         - Social media links
+    #     GET /api/v1/settings/languages/      - Available languages
+    #     GET /api/v1/settings/navigation/     - Navigation menus
+    #     GET /api/v1/settings/trust-signals/  - Trust signals
+    #     GET /api/v1/settings/payment-methods/ - Payment methods
+    #     GET /api/v1/settings/shipping-methods/ - Shipping methods
+    #     GET /api/v1/settings/all/            - All settings combined
     path("api/v1/", include("core.api.v1.urls"), name="api-v1"),
     
-    # Order API - سيتم إضافتها لاحقاً
-    # API الطلبات - سيتم إضافتها لاحقاً
-    # path("api/", include("orders.urls")),
+    # ========================================================================
+    # Settings API
+    # API الإعدادات
+    # ========================================================================
+    # Public endpoints for site configuration (no authentication required)
+    # نقاط عامة لتكوين الموقع (لا تتطلب مصادقة)
+    path("api/v1/settings/", include("settings_app.urls", namespace="settings")),
 ]
 
 # Media Files Configuration (Development Only)

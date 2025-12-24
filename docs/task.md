@@ -239,6 +239,14 @@
         - [ ] Empty States (Helpful empty state messages)
         - [ ] Accessibility (WCAG compliant, keyboard navigation)
     - [ ] Homepage (Dual Brand) - Implementation following Design System
+    - [ ] **Dynamic Homepage Integration** (For long-term professionalism)
+        - [ ] Backend: Setup `promotions` app (Banners, Campaigns)
+        - [ ] Backend: Convert `PRODUCT_TYPES` to `Category` model
+        - [ ] Backend: Add `is_featured` flags and localization fields
+        - [ ] Frontend: Integrate Banners API in `HeroSection`
+        - [ ] Frontend: Integrate Campaigns API in `DiscountSlider`
+        - [ ] Frontend: Integrate dynamic Categories in `CategoriesGrid`
+        - [ ] Frontend: Dynamic Brands in `BrandsFlow`
     - [ ] Product Listing (Filters: Color/Size/Model) - Deferred until design is ready
     - [ ] Product Detail Page - Deferred until design is ready
     - [ ] Cart & Checkout (Manual) - Deferred until design is ready
@@ -261,6 +269,276 @@
 - [ ] Yalla Go Integration
 - [ ] Payment Gateway
 - [ ] Barcode System
+
+## Phase 4.5: Admin Dashboard (لوحة تحكم الأدمن) 🎛️
+> **الهدف**: بناء واجهة إدارة مخصصة لـ Yalla Buy بدلاً من Django Admin
+
+### 🎨 Admin Layout & Theme
+- [ ] **Layout Components**:
+  - [ ] Admin Sidebar (قائمة جانبية قابلة للطي)
+  - [ ] Admin Header (شريط علوي مع البحث والإشعارات)
+  - [ ] Admin Footer
+  - [ ] Breadcrumbs Component
+- [ ] **Theme**:
+  - [ ] Dark/Light Mode Toggle
+  - [ ] RTL Support (عربي/إنجليزي)
+  - [ ] Responsive Design (Desktop + Tablet + Mobile)
+  - [ ] تصميم عصري يطابق هوية Yalla Buy
+
+### 📊 Dashboard الرئيسي
+- [ ] **إحصائيات سريعة (Stats Cards)**:
+  - [ ] إجمالي الطلبات اليوم
+  - [ ] إجمالي الإيرادات اليوم
+  - [ ] عدد المنتجات النشطة
+  - [ ] عدد البائعين النشطين
+  - [ ] عدد المستخدمين الجدد
+- [ ] **رسوم بيانية (Charts)**:
+  - [ ] مبيعات الأسبوع (Line Chart)
+  - [ ] مبيعات الشهر (Bar Chart)
+  - [ ] توزيع الطلبات حسب الحالة (Pie Chart)
+  - [ ] أكثر المنتجات مبيعاً (Horizontal Bar)
+- [ ] **آخر النشاطات**:
+  - [ ] آخر 5 طلبات
+  - [ ] آخر 5 مستخدمين مسجلين
+  - [ ] آخر 5 منتجات مضافة
+
+### ⚙️ إعدادات الموقع (Settings) - ✅ Backend جاهز
+- [ ] **صفحة إعدادات الموقع**:
+  - [ ] تعديل اسم الموقع والشعار
+  - [ ] تعديل معلومات الاتصال
+  - [ ] إعدادات SEO
+  - [ ] إعدادات العملة
+  - [ ] وضع الصيانة
+- [ ] **صفحة روابط السوشيال**:
+  - [ ] إضافة/تعديل/حذف روابط
+  - [ ] ترتيب الروابط (Drag & Drop)
+- [ ] **صفحة اللغات**:
+  - [ ] إدارة اللغات المدعومة
+  - [ ] تعيين اللغة الافتراضية
+- [ ] **صفحة قوائم التنقل**:
+  - [ ] إدارة عناصر Header
+  - [ ] إدارة عناصر Footer
+  - [ ] قوائم فرعية (Nested)
+- [ ] **صفحة مؤشرات الثقة**:
+  - [ ] إضافة/تعديل/حذف مؤشرات
+- [ ] **صفحة طرق الدفع**:
+  - [ ] إدارة طرق الدفع
+  - [ ] تفعيل/تعطيل
+  - [ ] إعدادات الرسوم
+- [ ] **صفحة طرق الشحن**:
+  - [ ] إدارة طرق الشحن
+  - [ ] إعدادات التسعير
+  - [ ] حد الشحن المجاني
+
+### 📂 إدارة الفئات (Categories)
+- [ ] **صفحة الفئات**:
+  - [ ] عرض شجرة الفئات
+  - [ ] إضافة فئة جديدة
+  - [ ] تعديل فئة
+  - [ ] حذف فئة
+  - [ ] ترتيب الفئات (Drag & Drop)
+  - [ ] تعيين فئات مميزة
+
+### 📦 إدارة المنتجات (Products)
+- [ ] **صفحة قائمة المنتجات**:
+  - [ ] جدول المنتجات مع Pagination
+  - [ ] فلترة (بائع، فئة، حالة، سعر)
+  - [ ] بحث
+  - [ ] تصدير CSV/Excel
+  - [ ] حذف متعدد
+- [ ] **صفحة إضافة/تعديل منتج**:
+  - [ ] معلومات المنتج الأساسية
+  - [ ] الصور (رفع متعدد + Drag & Drop)
+  - [ ] المتغيرات (ألوان، مقاسات، موديلات)
+  - [ ] التسعير والخصومات
+  - [ ] إعدادات SEO
+  - [ ] حالة النشر
+
+### 🏪 إدارة البائعين (Vendors)
+- [ ] **صفحة قائمة البائعين**:
+  - [ ] جدول البائعين
+  - [ ] فلترة (حالة، تقييم)
+  - [ ] بحث
+- [ ] **صفحة تفاصيل البائع**:
+  - [ ] معلومات البائع
+  - [ ] إحصائيات البائع
+  - [ ] منتجات البائع
+  - [ ] طلبات البائع
+  - [ ] تعديل العمولة
+- [ ] **طلبات الانضمام**:
+  - [ ] قائمة الطلبات المعلقة
+  - [ ] مراجعة وموافقة/رفض
+
+### 📋 إدارة الطلبات (Orders)
+- [ ] **صفحة قائمة الطلبات**:
+  - [ ] جدول الطلبات
+  - [ ] فلترة (حالة، تاريخ، بائع)
+  - [ ] بحث برقم الطلب
+- [ ] **صفحة تفاصيل الطلب**:
+  - [ ] معلومات الطلب
+  - [ ] منتجات الطلب
+  - [ ] معلومات العميل
+  - [ ] تحديث الحالة
+  - [ ] ملاحظات داخلية
+  - [ ] طباعة الفاتورة
+
+### 👥 إدارة المستخدمين (Users)
+- [ ] **صفحة قائمة المستخدمين**:
+  - [ ] جدول المستخدمين
+  - [ ] فلترة (نوع، حالة)
+  - [ ] بحث
+- [ ] **صفحة تفاصيل المستخدم**:
+  - [ ] معلومات المستخدم
+  - [ ] طلبات المستخدم
+  - [ ] تعديل الصلاحيات
+  - [ ] تفعيل/تعطيل الحساب
+
+### 🎯 إدارة العروض والحملات (Promotions)
+- [ ] **صفحة البانرات**:
+  - [ ] إضافة/تعديل/حذف بانر
+  - [ ] تحديد الموقع (Hero, Sidebar, Popup)
+  - [ ] جدولة العرض (تاريخ البداية/النهاية)
+- [ ] **صفحة القصص/العروض**:
+  - [ ] إدارة القصص
+  - [ ] ربط بمنتج أو حملة
+- [ ] **صفحة أكواد الخصم**:
+  - [ ] إنشاء كود خصم
+  - [ ] إعدادات (نسبة، حد أدنى، صلاحية)
+  - [ ] تتبع الاستخدام
+
+### 📊 التقارير والإحصائيات (Reports)
+- [ ] **تقرير المبيعات**:
+  - [ ] مبيعات حسب الفترة
+  - [ ] مبيعات حسب البائع
+  - [ ] مبيعات حسب الفئة
+- [ ] **تقرير العمولات**:
+  - [ ] عمولات مستحقة
+  - [ ] عمولات مدفوعة
+- [ ] **تقرير المنتجات**:
+  - [ ] أكثر المنتجات مبيعاً
+  - [ ] منتجات بدون مخزون
+- [ ] **تصدير التقارير**:
+  - [ ] PDF
+  - [ ] Excel
+  - [ ] CSV
+
+### 🔔 نظام الإشعارات (Notifications)
+- [ ] **إشعارات داخلية**:
+  - [ ] طلب جديد
+  - [ ] طلب انضمام بائع
+  - [ ] مخزون منخفض
+- [ ] **مركز الإشعارات**:
+  - [ ] قائمة الإشعارات
+  - [ ] تحديد كمقروء
+
+---
+
+## Phase 4.6: Dynamic Homepage Integration (Current Sprint) 🏠
+> **الهدف**: ربط واجهة Yalla Buy الرئيسية بالـ Backend بشكل كامل (100% Dynamic)
+
+### ✅ Feature #1: Site Settings (اكتمل)
+- [x] **Backend**:
+  - [x] `SiteSettings` Model (Singleton - اسم الموقع، الشعار، العملة، SEO، الصيانة)
+  - [x] `SocialLink` Model (روابط السوشيال ميديا)
+  - [x] `Language` Model (اللغات المدعومة - AR/EN)
+  - [x] `NavigationItem` Model (قوائم Header/Footer/Sidebar)
+  - [x] `TrustSignal` Model (مؤشرات الثقة - شحن مجاني، دفع آمن)
+  - [x] `PaymentMethod` Model (طرق الدفع - COD، سيريتل كاش، MTN)
+  - [x] `ShippingMethod` Model (طرق الشحن - عادي، سريع، استلام)
+  - [x] Serializers (Public + Full)
+  - [x] Views مع Caching
+  - [x] URLs مربوطة (`/api/v1/settings/...`)
+  - [x] Admin Panel (مع Fieldsets منظمة)
+  - [x] Initial Data Migration (بيانات افتراضية)
+- [x] **Frontend**:
+  - [x] Types (`src/types/settings.ts`)
+  - [x] API Client (`src/lib/api/public/settings.ts`)
+  - [x] Context & Provider (`src/lib/settings/context.tsx`)
+  - [x] Hooks: `useSettings`, `useSiteInfo`, `useNavigation`, `useLanguage`, `useSocialLinks`, `useTrustSignals`, `usePaymentMethods`, `useShippingMethods`
+  - [x] Layout Integration (`SettingsProvider` في `layout.tsx`)
+- [x] **API Endpoints**:
+  - `GET /api/v1/settings/site/` - إعدادات الموقع
+  - `GET /api/v1/settings/social/` - روابط السوشيال
+  - `GET /api/v1/settings/languages/` - اللغات
+  - `GET /api/v1/settings/navigation/` - قوائم التنقل
+  - `GET /api/v1/settings/trust-signals/` - مؤشرات الثقة
+  - `GET /api/v1/settings/payment-methods/` - طرق الدفع
+  - `GET /api/v1/settings/shipping-methods/` - طرق الشحن
+  - `GET /api/v1/settings/all/` - جميع الإعدادات مجمعة
+
+### 🔄 Feature #2: Categories (قيد العمل)
+- [ ] **Backend**:
+  - [ ] `Category` Model (parent, name, slug, icon, image, is_featured)
+  - [ ] CategorySerializer
+  - [ ] CategoryViewSet
+  - [ ] URLs (`/api/v1/categories/`)
+  - [ ] Admin Panel
+  - [ ] Initial Data Migration
+- [ ] **Frontend**:
+  - [ ] Types (`src/types/category.ts`)
+  - [ ] API Client (`src/lib/api/public/categories.ts`)
+  - [ ] Hook: `useCategories`
+  - [ ] تحديث Categories Grid في الصفحة الرئيسية
+
+### ⏳ Feature #3: Products Update (في الانتظار)
+- [ ] **Backend**:
+  - [ ] إضافة `is_featured`, `is_new`, `is_bestseller` للـ Product
+  - [ ] إضافة `compare_at_price` (السعر قبل الخصم)
+  - [ ] إضافة `badge_text`, `badge_color`
+  - [ ] إضافة `view_count`, `order_count`, `wishlist_count`
+  - [ ] ربط Product بـ Category
+  - [ ] تحسين الـ API Response
+- [ ] **Frontend**:
+  - [ ] تحديث Types
+  - [ ] تحديث Product Cards
+
+### ⏳ Feature #4: Vendors Update (في الانتظار)
+- [ ] **Backend**:
+  - [ ] إضافة `is_featured`, `is_verified`
+  - [ ] إضافة `rating_average`, `rating_count`
+  - [ ] إضافة `followers_count`
+  - [ ] إضافة `response_time`, `shipping_speed`
+- [ ] **Frontend**:
+  - [ ] تحديث Types
+  - [ ] تحديث Vendor Cards
+
+### ⏳ Feature #5: Banners (في الانتظار)
+- [ ] **Backend**:
+  - [ ] `Banner` Model (hero, sidebar, popup)
+  - [ ] BannerSerializer
+  - [ ] BannerViewSet
+  - [ ] Admin Panel
+- [ ] **Frontend**:
+  - [ ] Hook: `useBanners`
+  - [ ] تحديث Hero Section
+
+### ⏳ Feature #6: Reviews & Ratings (في الانتظار)
+- [ ] **Backend**:
+  - [ ] `Review` Model
+  - [ ] ReviewSerializer
+  - [ ] ReviewViewSet
+  - [ ] Admin Panel
+- [ ] **Frontend**:
+  - [ ] Hook: `useReviews`
+  - [ ] Review Components
+
+### ⏳ Feature #7: Wishlist (في الانتظار)
+- [ ] **Backend**:
+  - [ ] `Wishlist` Model
+  - [ ] WishlistSerializer
+  - [ ] WishlistViewSet
+- [ ] **Frontend**:
+  - [ ] Hook: `useWishlist`
+  - [ ] Wishlist Toggle Button
+
+### ⏳ Feature #8: Cart (Server-side) (في الانتظار)
+- [ ] **Backend**:
+  - [ ] `Cart` Model (للـ guest و authenticated)
+  - [ ] `CartItem` Model
+  - [ ] CartSerializer
+  - [ ] CartViewSet
+- [ ] **Frontend**:
+  - [ ] تحديث `useCart` للعمل مع الـ API
 
 ## Phase 6: Frontend Architecture Enhancements (Deferred - Future) 🏗️
 - [⏸️] **Domain Events System** (Deferred - For future notifications, analytics, webhooks)
