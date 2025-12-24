@@ -57,3 +57,7 @@ export {
   hasAllPermissions,
 } from './api'
 
+// Hooks
+// الهوكات
+export { useDashboard } from './hooks/useDashboard'
+

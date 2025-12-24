@@ -4,20 +4,22 @@
  * Admin Dashboard Page
  * صفحة لوحة التحكم الرئيسية
  * 
- * Overview dashboard with:
+ * Overview dashboard with REAL DATA from API:
  * - KPI cards (Sales, Orders, Users, Revenue)
  * - Sales trend chart
  * - Recent orders table
  * - Recent activity log
  * 
- * لوحة تحكم شاملة مع:
- * - بطاقات المؤشرات الرئيسية (المبيعات، الطلبات، المستخدمين، الإيرادات)
+ * لوحة تحكم شاملة مع بيانات حقيقية من الـ API:
+ * - بطاقات المؤشرات الرئيسية
  * - رسم بياني لاتجاهات المبيعات
  * - جدول آخر الطلبات
  * - سجل النشاط الأخير
  */
 
 import { motion } from 'framer-motion'
+import { useDashboard } from '@/lib/admin'
+import type { RecentOrder, RecentActivity } from '@/lib/admin'
 
 // =============================================================================
 // Types
@@ -31,22 +33,6 @@ interface KPICard {
   changeLabel: string
   icon: React.ReactNode
   color: 'gold' | 'blue' | 'green' | 'red'
-}
-
-interface RecentOrder {
-  id: string
-  orderNumber: string
-  customer: string
-  total: string
-  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled'
-  date: string
-}
-
-interface Activity {
-  id: string
-  type: 'order' | 'user' | 'vendor' | 'product'
-  message: string
-  time: string
 }
 
 // =============================================================================
@@ -90,104 +76,96 @@ const Icons = {
       <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
     </svg>
   ),
+  refresh: (
+    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+    </svg>
+  ),
 }
-
-// =============================================================================
-// Mock Data (TODO: Replace with real API data)
-// =============================================================================
-
-const kpiCards: KPICard[] = [
-  {
-    id: 'revenue',
-    title: 'إجمالي الإيرادات',
-    value: '$45,678',
-    change: 12.5,
-    changeLabel: 'من الشهر الماضي',
-    icon: Icons.revenue,
-    color: 'gold',
-  },
-  {
-    id: 'orders',
-    title: 'الطلبات الجديدة',
-    value: '1,234',
-    change: 8.2,
-    changeLabel: 'من الأسبوع الماضي',
-    icon: Icons.orders,
-    color: 'blue',
-  },
-  {
-    id: 'users',
-    title: 'المستخدمين الجدد',
-    value: '456',
-    change: -3.1,
-    changeLabel: 'من الأسبوع الماضي',
-    icon: Icons.users,
-    color: 'green',
-  },
-  {
-    id: 'vendors',
-    title: 'البائعين النشطين',
-    value: '89',
-    change: 5.4,
-    changeLabel: 'من الشهر الماضي',
-    icon: Icons.vendors,
-    color: 'red',
-  },
-]
-
-const recentOrders: RecentOrder[] = [
-  { id: '1', orderNumber: '#ORD-1234', customer: 'أحمد محمد', total: '$125.00', status: 'pending', date: 'اليوم، 10:30 ص' },
-  { id: '2', orderNumber: '#ORD-1233', customer: 'سارة علي', total: '$89.50', status: 'processing', date: 'اليوم، 09:15 ص' },
-  { id: '3', orderNumber: '#ORD-1232', customer: 'محمد خالد', total: '$234.00', status: 'shipped', date: 'أمس، 04:20 م' },
-  { id: '4', orderNumber: '#ORD-1231', customer: 'فاطمة أحمد', total: '$67.00', status: 'delivered', date: 'أمس، 02:10 م' },
-  { id: '5', orderNumber: '#ORD-1230', customer: 'علي حسن', total: '$156.00', status: 'cancelled', date: '22 ديسمبر' },
-]
-
-const recentActivities: Activity[] = [
-  { id: '1', type: 'order', message: 'طلب جديد #ORD-1234 من أحمد محمد', time: 'منذ 5 دقائق' },
-  { id: '2', type: 'vendor', message: 'تم الموافقة على البائع "متجر الأناقة"', time: 'منذ 15 دقيقة' },
-  { id: '3', type: 'user', message: 'تسجيل مستخدم جديد: سارة علي', time: 'منذ 30 دقيقة' },
-  { id: '4', type: 'product', message: 'تم إضافة 12 منتج جديد من "متجر الموضة"', time: 'منذ ساعة' },
-  { id: '5', type: 'order', message: 'تم تسليم الطلب #ORD-1200 بنجاح', time: 'منذ ساعتين' },
-]
-
-const salesData = [
-  { day: 'السبت', value: 4500 },
-  { day: 'الأحد', value: 5200 },
-  { day: 'الاثنين', value: 4800 },
-  { day: 'الثلاثاء', value: 6100 },
-  { day: 'الأربعاء', value: 5600 },
-  { day: 'الخميس', value: 7200 },
-  { day: 'الجمعة', value: 8500 },
-]
 
 // =============================================================================
 // Helper Functions
 // =============================================================================
 
-const getStatusStyle = (status: RecentOrder['status']) => {
-  const styles = {
+/**
+ * Format number as currency
+ * تنسيق الرقم كعملة
+ */
+function formatCurrency(value: number): string {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(value)
+}
+
+/**
+ * Format number with commas
+ * تنسيق الرقم بالفواصل
+ */
+function formatNumber(value: number): string {
+  return new Intl.NumberFormat('en-US').format(value)
+}
+
+/**
+ * Get status style classes
+ * الحصول على classes حسب الحالة
+ */
+function getStatusStyle(status: string): string {
+  const styles: Record<string, string> = {
     pending: 'bg-yellow-100 text-yellow-700',
     processing: 'bg-blue-100 text-blue-700',
     shipped: 'bg-purple-100 text-purple-700',
     delivered: 'bg-green-100 text-green-700',
     cancelled: 'bg-red-100 text-red-700',
+    completed: 'bg-green-100 text-green-700',
   }
-  return styles[status]
+  return styles[status] || 'bg-gray-100 text-gray-700'
 }
 
-const getStatusLabel = (status: RecentOrder['status']) => {
-  const labels = {
+/**
+ * Get status label in Arabic
+ * الحصول على اسم الحالة بالعربي
+ */
+function getStatusLabel(status: string): string {
+  const labels: Record<string, string> = {
     pending: 'قيد الانتظار',
     processing: 'قيد المعالجة',
     shipped: 'تم الشحن',
     delivered: 'تم التسليم',
     cancelled: 'ملغي',
+    completed: 'مكتمل',
   }
-  return labels[status]
+  return labels[status] || status
 }
 
-const getKPIColorClasses = (color: KPICard['color']) => {
+/**
+ * Format date relative to now
+ * تنسيق التاريخ نسبة للآن
+ */
+function formatRelativeDate(dateStr: string): string {
+  const date = new Date(dateStr)
+  const now = new Date()
+  const diffMs = now.getTime() - date.getTime()
+  const diffMins = Math.floor(diffMs / 60000)
+  const diffHours = Math.floor(diffMs / 3600000)
+  const diffDays = Math.floor(diffMs / 86400000)
+  
+  if (diffMins < 1) return 'الآن'
+  if (diffMins < 60) return `منذ ${diffMins} دقيقة`
+  if (diffHours < 24) return `منذ ${diffHours} ساعة`
+  if (diffDays === 1) return 'أمس'
+  if (diffDays < 7) return `منذ ${diffDays} أيام`
+  
+  return date.toLocaleDateString('ar-SA')
+}
+
+/**
+ * Get KPI color classes
+ * الحصول على ألوان مؤشرات الأداء
+ */
+function getKPIColorClasses(color: KPICard['color']) {
   const colors = {
     gold: {
       bg: 'bg-gradient-to-br from-historical-gold/20 to-historical-gold/5',
@@ -213,8 +191,12 @@ const getKPIColorClasses = (color: KPICard['color']) => {
   return colors[color]
 }
 
-const getActivityIcon = (type: Activity['type']) => {
-  const icons = {
+/**
+ * Get activity icon based on type
+ * الحصول على أيقونة النشاط حسب النوع
+ */
+function getActivityIcon(type: string) {
+  const icons: Record<string, React.ReactNode> = {
     order: (
       <div className="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-600 flex items-center justify-center">
         {Icons.orders}
@@ -238,7 +220,7 @@ const getActivityIcon = (type: Activity['type']) => {
       </div>
     ),
   }
-  return icons[type]
+  return icons[type] || icons.order
 }
 
 // =============================================================================
@@ -268,9 +250,31 @@ const itemVariants = {
 // Sub-Components
 // =============================================================================
 
-function KPICardComponent({ card }: { card: KPICard }) {
+/**
+ * KPI Card Component
+ * مكون بطاقة مؤشر الأداء
+ */
+function KPICardComponent({ card, isLoading }: { card: KPICard; isLoading?: boolean }) {
   const colors = getKPIColorClasses(card.color)
   const isPositive = card.change >= 0
+
+  if (isLoading) {
+    return (
+      <motion.div
+        variants={itemVariants}
+        className="relative overflow-hidden rounded-2xl p-6 bg-white/80 backdrop-blur-sm border border-historical-gold/10 shadow-soft"
+      >
+        <div className="animate-pulse">
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-12 h-12 rounded-xl bg-gray-200" />
+            <div className="w-16 h-5 rounded bg-gray-200" />
+          </div>
+          <div className="w-24 h-8 rounded bg-gray-200 mb-2" />
+          <div className="w-20 h-4 rounded bg-gray-200" />
+        </div>
+      </motion.div>
+    )
+  }
 
   return (
     <motion.div
@@ -312,8 +316,34 @@ function KPICardComponent({ card }: { card: KPICard }) {
   )
 }
 
-function SalesChart() {
-  const maxValue = Math.max(...salesData.map(d => d.value))
+/**
+ * Sales Chart Component
+ * مكون رسم المبيعات
+ */
+function SalesChart({
+  data,
+  period,
+  onPeriodChange,
+  isLoading,
+}: {
+  data: { labels: string[]; revenue: number[] } | null
+  period: 'week' | 'month' | 'year'
+  onPeriodChange: (period: 'week' | 'month' | 'year') => void
+  isLoading?: boolean
+}) {
+  // Use real data or empty arrays
+  const chartData = data?.labels.map((label, index) => ({
+    label,
+    value: data.revenue[index] || 0,
+  })) || []
+  
+  const maxValue = Math.max(...chartData.map(d => d.value), 1)
+
+  const periodLabels = {
+    week: 'أسبوعي',
+    month: 'شهري',
+    year: 'سنوي',
+  }
 
   return (
     <motion.div
@@ -323,41 +353,77 @@ function SalesChart() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h3 className="text-lg font-bold text-historical-charcoal">اتجاه المبيعات</h3>
-          <p className="text-sm text-historical-charcoal/50">آخر 7 أيام</p>
+          <p className="text-sm text-historical-charcoal/50">
+            {period === 'week' ? 'آخر 7 أيام' : period === 'month' ? 'آخر 30 يوم' : 'آخر 12 شهر'}
+          </p>
         </div>
-        <select className="text-sm bg-historical-stone/50 border border-historical-gold/10 rounded-lg px-3 py-2 text-historical-charcoal">
-          <option>أسبوعي</option>
-          <option>شهري</option>
-          <option>سنوي</option>
+        <select
+          value={period}
+          onChange={(e) => onPeriodChange(e.target.value as 'week' | 'month' | 'year')}
+          className="text-sm bg-historical-stone/50 border border-historical-gold/10 rounded-lg px-3 py-2 text-historical-charcoal"
+        >
+          <option value="week">{periodLabels.week}</option>
+          <option value="month">{periodLabels.month}</option>
+          <option value="year">{periodLabels.year}</option>
         </select>
       </div>
 
-      {/* Simple Bar Chart */}
-      <div className="flex items-end justify-between gap-2 h-48">
-        {salesData.map((data, index) => (
-          <div key={data.day} className="flex-1 flex flex-col items-center gap-2">
-            <motion.div
-              initial={{ height: 0 }}
-              animate={{ height: `${(data.value / maxValue) * 100}%` }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-              className="w-full bg-gradient-to-t from-historical-gold to-historical-gold/50 rounded-t-lg relative group"
-            >
-              {/* Tooltip */}
-              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                <div className="bg-historical-charcoal text-white text-xs px-2 py-1 rounded-lg whitespace-nowrap">
-                  ${data.value.toLocaleString()}
+      {/* Chart */}
+      {isLoading ? (
+        <div className="flex items-end justify-between gap-2 h-48 animate-pulse">
+          {Array.from({ length: 7 }).map((_, i) => (
+            <div key={i} className="flex-1 flex flex-col items-center gap-2">
+              <div 
+                className="w-full bg-gray-200 rounded-t-lg"
+                style={{ height: `${Math.random() * 80 + 20}%` }}
+              />
+              <div className="w-8 h-3 bg-gray-200 rounded" />
+            </div>
+          ))}
+        </div>
+      ) : chartData.length === 0 ? (
+        <div className="flex items-center justify-center h-48 text-historical-charcoal/40">
+          لا توجد بيانات متاحة
+        </div>
+      ) : (
+        <div className="flex items-end justify-between gap-2 h-48">
+          {chartData.map((item, index) => (
+            <div key={item.label} className="flex-1 flex flex-col items-center gap-2">
+              <motion.div
+                initial={{ height: 0 }}
+                animate={{ height: `${(item.value / maxValue) * 100}%` }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                className="w-full bg-gradient-to-t from-historical-gold to-historical-gold/50 rounded-t-lg relative group min-h-[4px]"
+              >
+                {/* Tooltip */}
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                  <div className="bg-historical-charcoal text-white text-xs px-2 py-1 rounded-lg whitespace-nowrap">
+                    {formatCurrency(item.value)}
+                  </div>
                 </div>
-              </div>
-            </motion.div>
-            <span className="text-xs text-historical-charcoal/50">{data.day}</span>
-          </div>
-        ))}
-      </div>
+              </motion.div>
+              <span className="text-xs text-historical-charcoal/50 truncate max-w-full">
+                {item.label.split('-').pop()}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
     </motion.div>
   )
 }
 
-function RecentOrdersTable() {
+/**
+ * Recent Orders Table Component
+ * مكون جدول الطلبات الأخيرة
+ */
+function RecentOrdersTable({ 
+  orders, 
+  isLoading 
+}: { 
+  orders: RecentOrder[]
+  isLoading?: boolean 
+}) {
   return (
     <motion.div
       variants={itemVariants}
@@ -366,7 +432,9 @@ function RecentOrdersTable() {
       <div className="flex items-center justify-between p-6 border-b border-historical-gold/10">
         <div>
           <h3 className="text-lg font-bold text-historical-charcoal">آخر الطلبات</h3>
-          <p className="text-sm text-historical-charcoal/50">آخر 5 طلبات</p>
+          <p className="text-sm text-historical-charcoal/50">
+            {isLoading ? 'جاري التحميل...' : `${orders.length} طلب`}
+          </p>
         </div>
         <button className="text-sm text-historical-gold hover:text-historical-red transition-colors font-medium">
           عرض الكل
@@ -386,26 +454,49 @@ function RecentOrdersTable() {
             </tr>
           </thead>
           <tbody className="divide-y divide-historical-gold/5">
-            {recentOrders.map((order) => (
-              <tr key={order.id} className="hover:bg-historical-gold/5 transition-colors">
-                <td className="px-6 py-4">
-                  <span className="font-medium text-historical-charcoal">{order.orderNumber}</span>
-                </td>
-                <td className="px-6 py-4 text-sm text-historical-charcoal/70">{order.customer}</td>
-                <td className="px-6 py-4 text-sm font-medium text-historical-charcoal">{order.total}</td>
-                <td className="px-6 py-4">
-                  <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${getStatusStyle(order.status)}`}>
-                    {getStatusLabel(order.status)}
-                  </span>
-                </td>
-                <td className="px-6 py-4 text-sm text-historical-charcoal/50">{order.date}</td>
-                <td className="px-6 py-4">
-                  <button className="p-2 rounded-lg text-historical-charcoal/40 hover:text-historical-charcoal hover:bg-historical-gold/10 transition-colors">
-                    {Icons.eye}
-                  </button>
+            {isLoading ? (
+              Array.from({ length: 5 }).map((_, i) => (
+                <tr key={i} className="animate-pulse">
+                  <td className="px-6 py-4"><div className="w-20 h-4 bg-gray-200 rounded" /></td>
+                  <td className="px-6 py-4"><div className="w-24 h-4 bg-gray-200 rounded" /></td>
+                  <td className="px-6 py-4"><div className="w-16 h-4 bg-gray-200 rounded" /></td>
+                  <td className="px-6 py-4"><div className="w-20 h-6 bg-gray-200 rounded-full" /></td>
+                  <td className="px-6 py-4"><div className="w-24 h-4 bg-gray-200 rounded" /></td>
+                  <td className="px-6 py-4"><div className="w-8 h-8 bg-gray-200 rounded-lg" /></td>
+                </tr>
+              ))
+            ) : orders.length === 0 ? (
+              <tr>
+                <td colSpan={6} className="px-6 py-12 text-center text-historical-charcoal/40">
+                  لا توجد طلبات حتى الآن
                 </td>
               </tr>
-            ))}
+            ) : (
+              orders.map((order) => (
+                <tr key={order.id} className="hover:bg-historical-gold/5 transition-colors">
+                  <td className="px-6 py-4">
+                    <span className="font-medium text-historical-charcoal">{order.order_number}</span>
+                  </td>
+                  <td className="px-6 py-4 text-sm text-historical-charcoal/70">{order.customer_name}</td>
+                  <td className="px-6 py-4 text-sm font-medium text-historical-charcoal">
+                    {formatCurrency(order.total)}
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${getStatusStyle(order.status)}`}>
+                      {getStatusLabel(order.status)}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 text-sm text-historical-charcoal/50">
+                    {formatRelativeDate(order.created_at)}
+                  </td>
+                  <td className="px-6 py-4">
+                    <button className="p-2 rounded-lg text-historical-charcoal/40 hover:text-historical-charcoal hover:bg-historical-gold/10 transition-colors">
+                      {Icons.eye}
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
@@ -413,7 +504,17 @@ function RecentOrdersTable() {
   )
 }
 
-function RecentActivityList() {
+/**
+ * Recent Activity List Component
+ * مكون قائمة النشاطات الأخيرة
+ */
+function RecentActivityList({ 
+  activities, 
+  isLoading 
+}: { 
+  activities: RecentActivity[]
+  isLoading?: boolean 
+}) {
   return (
     <motion.div
       variants={itemVariants}
@@ -427,15 +528,38 @@ function RecentActivityList() {
       </div>
 
       <div className="space-y-4">
-        {recentActivities.map((activity) => (
-          <div key={activity.id} className="flex items-start gap-3">
-            {getActivityIcon(activity.type)}
-            <div className="flex-1 min-w-0">
-              <p className="text-sm text-historical-charcoal">{activity.message}</p>
-              <p className="text-xs text-historical-charcoal/40 mt-0.5">{activity.time}</p>
+        {isLoading ? (
+          Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="flex items-start gap-3 animate-pulse">
+              <div className="w-8 h-8 bg-gray-200 rounded-lg" />
+              <div className="flex-1">
+                <div className="w-full h-4 bg-gray-200 rounded mb-2" />
+                <div className="w-20 h-3 bg-gray-200 rounded" />
+              </div>
             </div>
+          ))
+        ) : activities.length === 0 ? (
+          <div className="text-center text-historical-charcoal/40 py-8">
+            لا توجد نشاطات حتى الآن
           </div>
-        ))}
+        ) : (
+          activities.map((activity) => (
+            <div key={activity.id} className="flex items-start gap-3">
+              {getActivityIcon(activity.target_type)}
+              <div className="flex-1 min-w-0">
+                <p className="text-sm text-historical-charcoal">
+                  {activity.action_display}
+                  {activity.target_name && (
+                    <span className="font-medium"> - {activity.target_name}</span>
+                  )}
+                </p>
+                <p className="text-xs text-historical-charcoal/40 mt-0.5">
+                  {formatRelativeDate(activity.timestamp)}
+                </p>
+              </div>
+            </div>
+          ))
+        )}
       </div>
 
       <button className="w-full mt-6 text-center text-sm text-historical-gold hover:text-historical-red transition-colors font-medium">
@@ -450,6 +574,62 @@ function RecentActivityList() {
 // =============================================================================
 
 export default function AdminDashboardPage() {
+  // Use the dashboard hook with 30 seconds auto-refresh
+  // استخدام هوك لوحة التحكم مع تحديث تلقائي كل 30 ثانية
+  const {
+    overview,
+    salesChart,
+    recentOrders,
+    recentActivity,
+    isLoading,
+    isRefreshing,
+    error,
+    chartPeriod,
+    refresh,
+    setChartPeriod,
+  } = useDashboard(30000)
+
+  // Build KPI cards from real data
+  // بناء بطاقات مؤشرات الأداء من البيانات الحقيقية
+  const kpiCards: KPICard[] = [
+    {
+      id: 'revenue',
+      title: 'إجمالي الإيرادات',
+      value: overview ? formatCurrency(overview.total_revenue) : '$0',
+      change: overview?.total_revenue_change || 0,
+      changeLabel: 'من الشهر الماضي',
+      icon: Icons.revenue,
+      color: 'gold',
+    },
+    {
+      id: 'orders',
+      title: 'إجمالي الطلبات',
+      value: overview ? formatNumber(overview.total_orders) : '0',
+      change: overview?.total_orders_change || 0,
+      changeLabel: 'من الشهر الماضي',
+      icon: Icons.orders,
+      color: 'blue',
+    },
+    {
+      id: 'users',
+      title: 'المستخدمين',
+      value: overview ? formatNumber(overview.total_users) : '0',
+      change: overview?.new_users_week || 0,
+      changeLabel: 'جديد هذا الأسبوع',
+      icon: Icons.users,
+      color: 'green',
+    },
+    {
+      id: 'vendors',
+      title: 'البائعين النشطين',
+      value: overview ? formatNumber(overview.active_vendors) : '0',
+      change: overview?.pending_vendors || 0,
+      changeLabel: 'قيد الانتظار',
+      icon: Icons.vendors,
+      color: 'red',
+    },
+  ]
+
   return (
     <motion.div
       variants={containerVariants}
@@ -458,31 +638,68 @@ export default function AdminDashboardPage() {
       className="space-y-6"
     >
       {/* Page Header */}
-      <motion.div variants={itemVariants}>
-        <h1 className="text-2xl font-bold text-historical-charcoal">لوحة التحكم</h1>
-        <p className="text-historical-charcoal/50 mt-1">مرحباً بك في لوحة التحكم، هذه نظرة عامة على نشاط الموقع</p>
+      <motion.div variants={itemVariants} className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-historical-charcoal">لوحة التحكم</h1>
+          <p className="text-historical-charcoal/50 mt-1">
+            مرحباً بك في لوحة التحكم، هذه نظرة عامة على نشاط الموقع
+          </p>
+        </div>
+        
+        {/* Refresh Button */}
+        <button
+          onClick={refresh}
+          disabled={isRefreshing}
+          className={`
+            flex items-center gap-2 px-4 py-2 rounded-xl
+            bg-historical-gold/10 text-historical-gold
+            hover:bg-historical-gold/20 transition-colors
+            disabled:opacity-50
+          `}
+        >
+          <span className={isRefreshing ? 'animate-spin' : ''}>
+            {Icons.refresh}
+          </span>
+          <span className="text-sm font-medium">
+            {isRefreshing ? 'جاري التحديث...' : 'تحديث'}
+          </span>
+        </button>
       </motion.div>
+
+      {/* Error Message */}
+      {error && (
+        <motion.div
+          variants={itemVariants}
+          className="bg-red-50 border border-red-200 rounded-xl p-4 text-red-700 text-sm"
+        >
+          {error}
+        </motion.div>
+      )}
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {kpiCards.map((card) => (
-          <KPICardComponent key={card.id} card={card} />
+          <KPICardComponent key={card.id} card={card} isLoading={isLoading} />
         ))}
       </div>
 
       {/* Charts & Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
-          <SalesChart />
+          <SalesChart
+            data={salesChart}
+            period={chartPeriod}
+            onPeriodChange={setChartPeriod}
+            isLoading={isLoading}
+          />
         </div>
         <div>
-          <RecentActivityList />
+          <RecentActivityList activities={recentActivity} isLoading={isLoading} />
         </div>
       </div>
 
       {/* Recent Orders */}
-      <RecentOrdersTable />
+      <RecentOrdersTable orders={recentOrders} isLoading={isLoading} />
     </motion.div>
   )
 }
-
