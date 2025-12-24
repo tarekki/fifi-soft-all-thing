@@ -7,30 +7,13 @@
  * Features:
  * - Tree view of categories
  * - Add/Edit/Delete categories
- * - Drag & drop reordering
  * - Featured toggle
+ * - Real-time API integration
  */
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-
-// =============================================================================
-// Types
-// =============================================================================
-
-interface Category {
-  id: string
-  name: string
-  nameAr: string
-  slug: string
-  icon: string
-  image: string
-  parentId: string | null
-  isFeatured: boolean
-  productCount: number
-  order: number
-  children?: Category[]
-}
+import { useCategories, type Category, type CategoryFormData } from '@/lib/admin'
 
 // =============================================================================
 // Icons
@@ -55,11 +38,6 @@ const Icons = {
   chevronDown: (
     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-    </svg>
-  ),
-  chevronLeft: (
-    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
     </svg>
   ),
   folder: (
@@ -92,143 +70,18 @@ const Icons = {
       <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
     </svg>
   ),
-  drag: (
-    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+  refresh: (
+    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+    </svg>
+  ),
+  loading: (
+    <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
     </svg>
   ),
 }
-
-// =============================================================================
-// Mock Data
-// =============================================================================
-
-const mockCategories: Category[] = [
-  {
-    id: '1',
-    name: 'Electronics',
-    nameAr: 'إلكترونيات',
-    slug: 'electronics',
-    icon: '📱',
-    image: '',
-    parentId: null,
-    isFeatured: true,
-    productCount: 156,
-    order: 1,
-    children: [
-      {
-        id: '1-1',
-        name: 'Phones',
-        nameAr: 'هواتف',
-        slug: 'phones',
-        icon: '📞',
-        image: '',
-        parentId: '1',
-        isFeatured: true,
-        productCount: 89,
-        order: 1,
-      },
-      {
-        id: '1-2',
-        name: 'Laptops',
-        nameAr: 'لابتوبات',
-        slug: 'laptops',
-        icon: '💻',
-        image: '',
-        parentId: '1',
-        isFeatured: false,
-        productCount: 45,
-        order: 2,
-      },
-      {
-        id: '1-3',
-        name: 'Accessories',
-        nameAr: 'إكسسوارات',
-        slug: 'accessories',
-        icon: '🎧',
-        image: '',
-        parentId: '1',
-        isFeatured: false,
-        productCount: 22,
-        order: 3,
-      },
-    ],
-  },
-  {
-    id: '2',
-    name: 'Fashion',
-    nameAr: 'أزياء',
-    slug: 'fashion',
-    icon: '👗',
-    image: '',
-    parentId: null,
-    isFeatured: true,
-    productCount: 234,
-    order: 2,
-    children: [
-      {
-        id: '2-1',
-        name: 'Women',
-        nameAr: 'نسائي',
-        slug: 'women',
-        icon: '👠',
-        image: '',
-        parentId: '2',
-        isFeatured: true,
-        productCount: 120,
-        order: 1,
-      },
-      {
-        id: '2-2',
-        name: 'Men',
-        nameAr: 'رجالي',
-        slug: 'men',
-        icon: '👔',
-        image: '',
-        parentId: '2',
-        isFeatured: false,
-        productCount: 78,
-        order: 2,
-      },
-      {
-        id: '2-3',
-        name: 'Kids',
-        nameAr: 'أطفال',
-        slug: 'kids',
-        icon: '👶',
-        image: '',
-        parentId: '2',
-        isFeatured: false,
-        productCount: 36,
-        order: 3,
-      },
-    ],
-  },
-  {
-    id: '3',
-    name: 'Home & Garden',
-    nameAr: 'المنزل والحديقة',
-    slug: 'home-garden',
-    icon: '🏠',
-    image: '',
-    parentId: null,
-    isFeatured: false,
-    productCount: 89,
-    order: 3,
-  },
-  {
-    id: '4',
-    name: 'Sports',
-    nameAr: 'رياضة',
-    slug: 'sports',
-    icon: '⚽',
-    image: '',
-    parentId: null,
-    isFeatured: false,
-    productCount: 67,
-    order: 4,
-  },
-]
 
 // =============================================================================
 // Animation Variants
@@ -252,7 +105,7 @@ const itemVariants = {
 }
 
 // =============================================================================
-// Sub-Components
+// Category Item Component
 // =============================================================================
 
 interface CategoryItemProps {
@@ -260,12 +113,22 @@ interface CategoryItemProps {
   level: number
   onEdit: (category: Category) => void
   onDelete: (category: Category) => void
-  onToggleFeatured: (category: Category) => void
+  onToggleFeatured: (id: number, isFeatured: boolean) => void
+  onToggleActive: (id: number, isActive: boolean) => void
+  isDeleting?: boolean
 }
 
-function CategoryItem({ category, level, onEdit, onDelete, onToggleFeatured }: CategoryItemProps) {
+function CategoryItem({ 
+  category, 
+  level, 
+  onEdit, 
+  onDelete, 
+  onToggleFeatured,
+  onToggleActive,
+  isDeleting 
+}: CategoryItemProps) {
   const [isExpanded, setIsExpanded] = useState(true)
-  const hasChildren = category.children && category.children.length > 0
+  const hasChildren = category.is_parent
 
   return (
     <div>
@@ -276,6 +139,7 @@ function CategoryItem({ category, level, onEdit, onDelete, onToggleFeatured }: C
           group flex items-center gap-3 px-4 py-3 rounded-xl
           hover:bg-historical-gold/5 transition-colors
           ${level > 0 ? 'mr-6 border-r-2 border-historical-gold/10' : ''}
+          ${!category.is_active ? 'opacity-50' : ''}
         `}
       >
         {/* Expand/Collapse Button */}
@@ -295,13 +159,8 @@ function CategoryItem({ category, level, onEdit, onDelete, onToggleFeatured }: C
           <div className="w-6" />
         )}
 
-        {/* Drag Handle */}
-        <button className="p-1 rounded cursor-grab text-historical-charcoal/30 hover:text-historical-charcoal/60 opacity-0 group-hover:opacity-100 transition-opacity">
-          {Icons.drag}
-        </button>
-
         {/* Icon */}
-        <span className="text-xl">{category.icon}</span>
+        <span className="text-xl">{category.icon || '📁'}</span>
 
         {/* Folder Icon */}
         <span className="text-historical-gold">
@@ -310,21 +169,36 @@ function CategoryItem({ category, level, onEdit, onDelete, onToggleFeatured }: C
 
         {/* Name */}
         <div className="flex-1 min-w-0">
-          <p className="font-medium text-historical-charcoal truncate">{category.nameAr}</p>
-          <p className="text-xs text-historical-charcoal/50">{category.name} • {category.productCount} منتج</p>
+          <p className="font-medium text-historical-charcoal truncate">{category.name_ar}</p>
+          <p className="text-xs text-historical-charcoal/50">
+            {category.name} • {category.products_count} منتج
+            {!category.is_active && <span className="text-red-500 mr-2">(معطل)</span>}
+          </p>
         </div>
 
         {/* Featured Star */}
         <button
-          onClick={() => onToggleFeatured(category)}
+          onClick={() => onToggleFeatured(category.id, !category.is_featured)}
           className={`p-1.5 rounded-lg transition-colors ${
-            category.isFeatured
+            category.is_featured
               ? 'text-yellow-500 hover:bg-yellow-50'
               : 'text-historical-charcoal/20 hover:text-yellow-500 hover:bg-yellow-50'
           }`}
-          title={category.isFeatured ? 'إلغاء التمييز' : 'تمييز الفئة'}
+          title={category.is_featured ? 'إلغاء التمييز' : 'تمييز الفئة'}
         >
-          {category.isFeatured ? Icons.star : Icons.starOutline}
+          {category.is_featured ? Icons.star : Icons.starOutline}
+        </button>
+
+        {/* Active Toggle */}
+        <button
+          onClick={() => onToggleActive(category.id, !category.is_active)}
+          className={`px-2 py-1 text-xs rounded-lg transition-colors ${
+            category.is_active
+              ? 'bg-green-100 text-green-700 hover:bg-green-200'
+              : 'bg-red-100 text-red-700 hover:bg-red-200'
+          }`}
+        >
+          {category.is_active ? 'مفعل' : 'معطل'}
         </button>
 
         {/* Actions */}
@@ -338,62 +212,88 @@ function CategoryItem({ category, level, onEdit, onDelete, onToggleFeatured }: C
           </button>
           <button
             onClick={() => onDelete(category)}
-            className="p-2 rounded-lg text-historical-charcoal/50 hover:text-red-500 hover:bg-red-50 transition-colors"
+            disabled={isDeleting}
+            className="p-2 rounded-lg text-historical-charcoal/50 hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-50"
             title="حذف"
           >
-            {Icons.delete}
+            {isDeleting ? Icons.loading : Icons.delete}
           </button>
         </div>
       </motion.div>
-
-      {/* Children */}
-      <AnimatePresence>
-        {isExpanded && hasChildren && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.2 }}
-          >
-            {category.children!.map(child => (
-              <CategoryItem
-                key={child.id}
-                category={child}
-                level={level + 1}
-                onEdit={onEdit}
-                onDelete={onDelete}
-                onToggleFeatured={onToggleFeatured}
-              />
-            ))}
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   )
 }
+
+// =============================================================================
+// Category Modal Component
+// =============================================================================
 
 interface CategoryModalProps {
   isOpen: boolean
   onClose: () => void
   category: Category | null
   categories: Category[]
-  onSave: (data: Partial<Category>) => void
+  onSave: (data: CategoryFormData) => Promise<void>
+  isLoading: boolean
 }
 
-function CategoryModal({ isOpen, onClose, category, categories, onSave }: CategoryModalProps) {
-  const [formData, setFormData] = useState({
-    name: category?.name || '',
-    nameAr: category?.nameAr || '',
-    slug: category?.slug || '',
-    icon: category?.icon || '📁',
-    parentId: category?.parentId || '',
-    isFeatured: category?.isFeatured || false,
+function CategoryModal({ isOpen, onClose, category, categories, onSave, isLoading }: CategoryModalProps) {
+  const [formData, setFormData] = useState<CategoryFormData>({
+    name: '',
+    name_ar: '',
+    slug: '',
+    description: '',
+    description_ar: '',
+    icon: '📁',
+    parent: null,
+    display_order: 0,
+    is_active: true,
+    is_featured: false,
   })
+  const [error, setError] = useState<string | null>(null)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Reset form when category changes
+  useEffect(() => {
+    if (category) {
+      setFormData({
+        name: category.name,
+        name_ar: category.name_ar,
+        slug: category.slug,
+        description: category.description || '',
+        description_ar: category.description_ar || '',
+        icon: category.icon || '📁',
+        parent: category.parent,
+        display_order: category.display_order,
+        is_active: category.is_active,
+        is_featured: category.is_featured,
+      })
+    } else {
+      setFormData({
+        name: '',
+        name_ar: '',
+        slug: '',
+        description: '',
+        description_ar: '',
+        icon: '📁',
+        parent: null,
+        display_order: 0,
+        is_active: true,
+        is_featured: false,
+      })
+    }
+    setError(null)
+  }, [category, isOpen])
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    onSave(formData)
-    onClose()
+    setError(null)
+    
+    try {
+      await onSave(formData)
+      onClose()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'حدث خطأ غير متوقع')
+    }
   }
 
   if (!isOpen) return null
@@ -411,7 +311,7 @@ function CategoryModal({ isOpen, onClose, category, categories, onSave }: Catego
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          className="w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden"
+          className="w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
@@ -421,31 +321,39 @@ function CategoryModal({ isOpen, onClose, category, categories, onSave }: Catego
             </h2>
             <button
               onClick={onClose}
-              className="p-2 rounded-lg text-historical-charcoal/50 hover:text-historical-charcoal hover:bg-historical-gold/10 transition-colors"
+              disabled={isLoading}
+              className="p-2 rounded-lg text-historical-charcoal/50 hover:text-historical-charcoal hover:bg-historical-gold/10 transition-colors disabled:opacity-50"
             >
               {Icons.close}
             </button>
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto">
+            {error && (
+              <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm">
+                {error}
+              </div>
+            )}
+
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-historical-charcoal mb-2">
-                  الاسم (عربي)
+                  الاسم (عربي) <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
-                  value={formData.nameAr}
-                  onChange={(e) => setFormData({ ...formData, nameAr: e.target.value })}
+                  value={formData.name_ar}
+                  onChange={(e) => setFormData({ ...formData, name_ar: e.target.value })}
                   className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 bg-white/50 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
                   placeholder="مثال: إلكترونيات"
                   required
+                  disabled={isLoading}
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-historical-charcoal mb-2">
-                  Name (English)
+                  Name (English) <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -455,6 +363,7 @@ function CategoryModal({ isOpen, onClose, category, categories, onSave }: Catego
                   placeholder="e.g. Electronics"
                   dir="ltr"
                   required
+                  disabled={isLoading}
                 />
               </div>
             </div>
@@ -469,9 +378,9 @@ function CategoryModal({ isOpen, onClose, category, categories, onSave }: Catego
                   value={formData.slug}
                   onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
                   className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 bg-white/50 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
-                  placeholder="electronics"
+                  placeholder="electronics (تلقائي)"
                   dir="ltr"
-                  required
+                  disabled={isLoading}
                 />
               </div>
               <div>
@@ -484,6 +393,7 @@ function CategoryModal({ isOpen, onClose, category, categories, onSave }: Catego
                   onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
                   className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 bg-white/50 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 text-center text-2xl"
                   placeholder="📁"
+                  disabled={isLoading}
                 />
               </div>
             </div>
@@ -493,28 +403,63 @@ function CategoryModal({ isOpen, onClose, category, categories, onSave }: Catego
                 الفئة الأم
               </label>
               <select
-                value={formData.parentId}
-                onChange={(e) => setFormData({ ...formData, parentId: e.target.value })}
+                value={formData.parent || ''}
+                onChange={(e) => setFormData({ ...formData, parent: e.target.value ? Number(e.target.value) : null })}
                 className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 bg-white/50 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+                disabled={isLoading}
               >
                 <option value="">بدون (فئة رئيسية)</option>
-                {categories.filter(c => c.id !== category?.id).map(c => (
-                  <option key={c.id} value={c.id}>{c.nameAr}</option>
-                ))}
+                {categories
+                  .filter(c => c.id !== category?.id)
+                  .map(c => (
+                    <option key={c.id} value={c.id}>{c.name_ar} - {c.name}</option>
+                  ))
+                }
               </select>
             </div>
 
-            <div className="flex items-center gap-3 p-4 rounded-xl border border-historical-gold/10 bg-historical-stone/30">
-              <input
-                type="checkbox"
-                id="isFeatured"
-                checked={formData.isFeatured}
-                onChange={(e) => setFormData({ ...formData, isFeatured: e.target.checked })}
-                className="w-5 h-5 rounded border-historical-gold/30 text-historical-gold focus:ring-historical-gold"
-              />
-              <label htmlFor="isFeatured" className="text-sm text-historical-charcoal">
-                تمييز هذه الفئة (ستظهر في الصفحة الرئيسية)
+            <div>
+              <label className="block text-sm font-medium text-historical-charcoal mb-2">
+                ترتيب العرض
               </label>
+              <input
+                type="number"
+                value={formData.display_order}
+                onChange={(e) => setFormData({ ...formData, display_order: Number(e.target.value) })}
+                className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 bg-white/50 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+                min={0}
+                disabled={isLoading}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex items-center gap-3 p-4 rounded-xl border border-historical-gold/10 bg-historical-stone/30">
+                <input
+                  type="checkbox"
+                  id="is_active"
+                  checked={formData.is_active}
+                  onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
+                  className="w-5 h-5 rounded border-historical-gold/30 text-historical-gold focus:ring-historical-gold"
+                  disabled={isLoading}
+                />
+                <label htmlFor="is_active" className="text-sm text-historical-charcoal">
+                  فئة مفعلة
+                </label>
+              </div>
+              
+              <div className="flex items-center gap-3 p-4 rounded-xl border border-historical-gold/10 bg-historical-stone/30">
+                <input
+                  type="checkbox"
+                  id="is_featured"
+                  checked={formData.is_featured}
+                  onChange={(e) => setFormData({ ...formData, is_featured: e.target.checked })}
+                  className="w-5 h-5 rounded border-historical-gold/30 text-historical-gold focus:ring-historical-gold"
+                  disabled={isLoading}
+                />
+                <label htmlFor="is_featured" className="text-sm text-historical-charcoal">
+                  فئة مميزة
+                </label>
+              </div>
             </div>
 
             {/* Actions */}
@@ -522,14 +467,17 @@ function CategoryModal({ isOpen, onClose, category, categories, onSave }: Catego
               <button
                 type="button"
                 onClick={onClose}
-                className="px-6 py-2.5 rounded-xl text-historical-charcoal/70 hover:bg-historical-gold/10 transition-colors"
+                disabled={isLoading}
+                className="px-6 py-2.5 rounded-xl text-historical-charcoal/70 hover:bg-historical-gold/10 transition-colors disabled:opacity-50"
               >
                 إلغاء
               </button>
               <button
                 type="submit"
-                className="px-6 py-2.5 rounded-xl bg-gradient-to-l from-historical-gold to-historical-red text-white font-medium shadow-lg hover:shadow-xl transition-shadow"
+                disabled={isLoading}
+                className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-l from-historical-gold to-historical-red text-white font-medium shadow-lg hover:shadow-xl transition-shadow disabled:opacity-50"
               >
+                {isLoading && Icons.loading}
                 {category ? 'حفظ التغييرات' : 'إضافة الفئة'}
               </button>
             </div>
@@ -541,49 +489,169 @@ function CategoryModal({ isOpen, onClose, category, categories, onSave }: Catego
 }
 
 // =============================================================================
+// Delete Confirmation Modal
+// =============================================================================
+
+interface DeleteModalProps {
+  isOpen: boolean
+  onClose: () => void
+  onConfirm: () => void
+  categoryName: string
+  isLoading: boolean
+}
+
+function DeleteModal({ isOpen, onClose, onConfirm, categoryName, isLoading }: DeleteModalProps) {
+  if (!isOpen) return null
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+        onClick={onClose}
+      >
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.95 }}
+          className="w-full max-w-md bg-white rounded-2xl shadow-2xl p-6"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <h3 className="text-lg font-bold text-historical-charcoal mb-2">تأكيد الحذف</h3>
+          <p className="text-historical-charcoal/70 mb-6">
+            هل أنت متأكد من حذف الفئة &quot;{categoryName}&quot;؟ لا يمكن التراجع عن هذا الإجراء.
+          </p>
+          <div className="flex items-center justify-end gap-3">
+            <button
+              onClick={onClose}
+              disabled={isLoading}
+              className="px-6 py-2.5 rounded-xl text-historical-charcoal/70 hover:bg-historical-gold/10 transition-colors disabled:opacity-50"
+            >
+              إلغاء
+            </button>
+            <button
+              onClick={onConfirm}
+              disabled={isLoading}
+              className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-red-600 text-white font-medium hover:bg-red-700 transition-colors disabled:opacity-50"
+            >
+              {isLoading && Icons.loading}
+              حذف
+            </button>
+          </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
+  )
+}
+
+// =============================================================================
+// Loading Skeleton
+// =============================================================================
+
+function LoadingSkeleton() {
+  return (
+    <div className="space-y-2 p-4">
+      {[1, 2, 3, 4, 5].map((i) => (
+        <div key={i} className="flex items-center gap-3 px-4 py-3 rounded-xl animate-pulse">
+          <div className="w-6 h-6 bg-historical-gold/10 rounded" />
+          <div className="w-8 h-8 bg-historical-gold/10 rounded-full" />
+          <div className="w-5 h-5 bg-historical-gold/10 rounded" />
+          <div className="flex-1 space-y-2">
+            <div className="h-4 bg-historical-gold/10 rounded w-32" />
+            <div className="h-3 bg-historical-gold/10 rounded w-24" />
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+// =============================================================================
 // Main Component
 // =============================================================================
 
 export default function CategoriesPage() {
-  const [categories, setCategories] = useState(mockCategories)
+  // Categories hook
+  const {
+    categories,
+    totalCount,
+    isLoading,
+    isCreating,
+    isUpdating,
+    isDeleting,
+    error,
+    fetchCategories,
+    addCategory,
+    editCategory,
+    removeCategory,
+    toggleActive,
+    toggleFeatured,
+    refresh,
+    clearError,
+  } = useCategories()
+
+  // Local state
   const [searchQuery, setSearchQuery] = useState('')
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingCategory, setEditingCategory] = useState<Category | null>(null)
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
+  const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(null)
 
+  // Handle search
+  useEffect(() => {
+    const debounce = setTimeout(() => {
+      fetchCategories({ search: searchQuery || undefined })
+    }, 300)
+    return () => clearTimeout(debounce)
+  }, [searchQuery]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Handlers
   const handleEdit = useCallback((category: Category) => {
     setEditingCategory(category)
     setIsModalOpen(true)
   }, [])
 
   const handleDelete = useCallback((category: Category) => {
-    if (confirm(`هل أنت متأكد من حذف الفئة "${category.nameAr}"؟`)) {
-      // TODO: Call API
-      setCategories(prev => prev.filter(c => c.id !== category.id))
+    setCategoryToDelete(category)
+    setDeleteModalOpen(true)
+  }, [])
+
+  const confirmDelete = useCallback(async () => {
+    if (!categoryToDelete) return
+    
+    const success = await removeCategory(categoryToDelete.id)
+    if (success) {
+      setDeleteModalOpen(false)
+      setCategoryToDelete(null)
     }
-  }, [])
+  }, [categoryToDelete, removeCategory])
 
-  const handleToggleFeatured = useCallback((category: Category) => {
-    // TODO: Call API
-    setCategories(prev => prev.map(c => 
-      c.id === category.id ? { ...c, isFeatured: !c.isFeatured } : c
-    ))
-  }, [])
+  const handleToggleFeatured = useCallback(async (id: number, isFeatured: boolean) => {
+    await toggleFeatured(id, isFeatured)
+  }, [toggleFeatured])
 
-  const handleSave = useCallback((data: Partial<Category>) => {
-    // TODO: Call API
-    console.log('Saving category:', data)
-  }, [])
+  const handleToggleActive = useCallback(async (id: number, isActive: boolean) => {
+    await toggleActive(id, isActive)
+  }, [toggleActive])
+
+  const handleSave = useCallback(async (data: CategoryFormData) => {
+    if (editingCategory) {
+      await editCategory(editingCategory.id, data)
+    } else {
+      await addCategory(data)
+    }
+  }, [editingCategory, editCategory, addCategory])
 
   const handleAddNew = useCallback(() => {
     setEditingCategory(null)
     setIsModalOpen(true)
   }, [])
 
-  // Filter categories based on search
-  const filteredCategories = categories.filter(c => 
-    c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    c.nameAr.includes(searchQuery)
-  )
+  // Count stats
+  const mainCategoriesCount = categories.filter(c => !c.parent).length
+  const subCategoriesCount = categories.filter(c => c.parent).length
 
   return (
     <motion.div
@@ -592,19 +660,46 @@ export default function CategoriesPage() {
       animate="visible"
       className="space-y-6"
     >
+      {/* Error Toast */}
+      <AnimatePresence>
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="fixed top-4 left-1/2 -translate-x-1/2 z-50 px-6 py-3 rounded-xl bg-red-600 text-white shadow-lg flex items-center gap-3"
+          >
+            <span>{error}</span>
+            <button onClick={clearError} className="p-1 hover:bg-red-700 rounded">
+              {Icons.close}
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Page Header */}
       <motion.div variants={itemVariants} className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-historical-charcoal">إدارة الفئات</h1>
           <p className="text-historical-charcoal/50 mt-1">تنظيم وإدارة فئات المنتجات</p>
         </div>
-        <button
-          onClick={handleAddNew}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-l from-historical-gold to-historical-red text-white font-medium shadow-lg hover:shadow-xl transition-shadow"
-        >
-          {Icons.add}
-          <span>إضافة فئة</span>
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={refresh}
+            disabled={isLoading}
+            className="p-2.5 rounded-xl border border-historical-gold/20 text-historical-charcoal/50 hover:text-historical-charcoal hover:bg-historical-gold/10 transition-colors disabled:opacity-50"
+            title="تحديث"
+          >
+            {isLoading ? Icons.loading : Icons.refresh}
+          </button>
+          <button
+            onClick={handleAddNew}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-l from-historical-gold to-historical-red text-white font-medium shadow-lg hover:shadow-xl transition-shadow"
+          >
+            {Icons.add}
+            <span>إضافة فئة</span>
+          </button>
+        </div>
       </motion.div>
 
       {/* Search & Stats */}
@@ -623,53 +718,76 @@ export default function CategoriesPage() {
         </div>
         <div className="flex items-center gap-4 px-4 py-3 rounded-xl bg-white/80 backdrop-blur-sm border border-historical-gold/10">
           <div className="text-center">
-            <p className="text-2xl font-bold text-historical-charcoal">{categories.length}</p>
-            <p className="text-xs text-historical-charcoal/50">فئة رئيسية</p>
+            <p className="text-2xl font-bold text-historical-charcoal">{totalCount}</p>
+            <p className="text-xs text-historical-charcoal/50">إجمالي الفئات</p>
           </div>
           <div className="w-px h-10 bg-historical-gold/20" />
           <div className="text-center">
-            <p className="text-2xl font-bold text-historical-gold">
-              {categories.reduce((acc, c) => acc + (c.children?.length || 0), 0)}
-            </p>
-            <p className="text-xs text-historical-charcoal/50">فئة فرعية</p>
+            <p className="text-2xl font-bold text-historical-charcoal">{mainCategoriesCount}</p>
+            <p className="text-xs text-historical-charcoal/50">رئيسية</p>
+          </div>
+          <div className="w-px h-10 bg-historical-gold/20" />
+          <div className="text-center">
+            <p className="text-2xl font-bold text-historical-gold">{subCategoriesCount}</p>
+            <p className="text-xs text-historical-charcoal/50">فرعية</p>
           </div>
         </div>
       </motion.div>
 
-      {/* Categories Tree */}
+      {/* Categories List */}
       <motion.div
         variants={itemVariants}
         className="bg-white/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 shadow-soft overflow-hidden"
       >
-        <div className="p-2">
-          {filteredCategories.length === 0 ? (
-            <div className="text-center py-12 text-historical-charcoal/50">
-              <p>لا توجد فئات مطابقة للبحث</p>
-            </div>
-          ) : (
-            filteredCategories.map(category => (
+        {isLoading && categories.length === 0 ? (
+          <LoadingSkeleton />
+        ) : categories.length === 0 ? (
+          <div className="text-center py-12 text-historical-charcoal/50">
+            <p className="text-lg mb-2">لا توجد فئات</p>
+            <p className="text-sm">ابدأ بإضافة فئة جديدة</p>
+          </div>
+        ) : (
+          <div className="p-2">
+            {categories.map(category => (
               <CategoryItem
                 key={category.id}
                 category={category}
-                level={0}
+                level={category.depth}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
                 onToggleFeatured={handleToggleFeatured}
+                onToggleActive={handleToggleActive}
+                isDeleting={isDeleting}
               />
-            ))
-          )}
-        </div>
+            ))}
+          </div>
+        )}
       </motion.div>
 
-      {/* Modal */}
+      {/* Add/Edit Modal */}
       <CategoryModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => {
+          setIsModalOpen(false)
+          setEditingCategory(null)
+        }}
         category={editingCategory}
         categories={categories}
         onSave={handleSave}
+        isLoading={isCreating || isUpdating}
+      />
+
+      {/* Delete Confirmation Modal */}
+      <DeleteModal
+        isOpen={deleteModalOpen}
+        onClose={() => {
+          setDeleteModalOpen(false)
+          setCategoryToDelete(null)
+        }}
+        onConfirm={confirmDelete}
+        categoryName={categoryToDelete?.name_ar || ''}
+        isLoading={isDeleting}
       />
     </motion.div>
   )
 }
-

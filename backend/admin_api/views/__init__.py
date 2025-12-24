@@ -18,6 +18,12 @@ from .dashboard import (
     DashboardRecentOrdersView,
     DashboardRecentActivityView,
 )
+from .categories import (
+    AdminCategoryListCreateView,
+    AdminCategoryDetailView,
+    AdminCategoryTreeView,
+    AdminCategoryBulkActionView,
+)
 
 __all__ = [
     # Auth
@@ -30,5 +36,10 @@ __all__ = [
     'DashboardSalesChartView',
     'DashboardRecentOrdersView',
     'DashboardRecentActivityView',
+    # Categories
+    'AdminCategoryListCreateView',
+    'AdminCategoryDetailView',
+    'AdminCategoryTreeView',
+    'AdminCategoryBulkActionView',
 ]
 

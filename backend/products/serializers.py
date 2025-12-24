@@ -2,13 +2,197 @@
 Product Serializers
 مسلسلات المنتجات
 
-This module contains serializers for Product and ProductVariant models.
-هذا الملف يحتوي على مسلسلات لنماذج Product و ProductVariant
+This module contains serializers for Category, Product and ProductVariant models.
+هذا الملف يحتوي على مسلسلات لنماذج Category و Product و ProductVariant
 """
 
 from rest_framework import serializers
 from vendors.serializers import VendorSerializer
-from .models import Product, ProductVariant
+from .models import Category, Product, ProductVariant
+
+
+# =============================================================================
+# Category Serializers
+# مسلسلات الفئات
+# =============================================================================
+
+class CategorySerializer(serializers.ModelSerializer):
+    """
+    Category Serializer (List View)
+    مسلسل الفئة (عرض القائمة)
+    
+    Used for listing categories.
+    يُستخدم لعرض قائمة الفئات.
+    """
+    
+    # Computed fields
+    # الحقول المحسوبة
+    products_count = serializers.ReadOnlyField()
+    is_parent = serializers.ReadOnlyField()
+    depth = serializers.ReadOnlyField()
+    full_path = serializers.ReadOnlyField()
+    
+    # Parent name for display
+    # اسم الأب للعرض
+    parent_name = serializers.SerializerMethodField()
+    
+    # Image URL
+    # رابط الصورة
+    image_url = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = Category
+        fields = [
+            'id',
+            'name',
+            'name_ar',
+            'slug',
+            'description',
+            'description_ar',
+            'image_url',
+            'icon',
+            'parent',
+            'parent_name',
+            'display_order',
+            'is_active',
+            'is_featured',
+            'products_count',
+            'is_parent',
+            'depth',
+            'full_path',
+            'created_at',
+            'updated_at',
+        ]
+        read_only_fields = [
+            'id',
+            'slug',
+            'products_count',
+            'is_parent',
+            'depth',
+            'full_path',
+            'created_at',
+            'updated_at',
+        ]
+    
+    def get_parent_name(self, obj):
+        """Get parent category name"""
+        if obj.parent:
+            return obj.parent.name
+        return None
+    
+    def get_image_url(self, obj):
+        """Get full image URL"""
+        if obj.image and hasattr(obj.image, 'url'):
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.image.url)
+            return obj.image.url
+        return None
+
+
+class CategoryCreateUpdateSerializer(serializers.ModelSerializer):
+    """
+    Category Create/Update Serializer
+    مسلسل إنشاء/تحديث الفئة
+    
+    Used for creating and updating categories.
+    يُستخدم لإنشاء وتحديث الفئات.
+    """
+    
+    class Meta:
+        model = Category
+        fields = [
+            'name',
+            'name_ar',
+            'slug',
+            'description',
+            'description_ar',
+            'image',
+            'icon',
+            'parent',
+            'display_order',
+            'is_active',
+            'is_featured',
+        ]
+    
+    def validate_parent(self, value):
+        """
+        Validate parent category
+        التحقق من الفئة الأم
+        
+        Prevents circular references.
+        يمنع المراجع الدائرية.
+        """
+        if value:
+            # Check if parent is the same as current (on update)
+            # التحقق من أن الأب ليس نفس الفئة الحالية
+            if self.instance and value.pk == self.instance.pk:
+                raise serializers.ValidationError(
+                    "A category cannot be its own parent."
+                )
+            
+            # Check for circular reference
+            # التحقق من المرجع الدائري
+            if self.instance:
+                parent = value
+                while parent:
+                    if parent.pk == self.instance.pk:
+                        raise serializers.ValidationError(
+                            "Circular reference detected. This would create an infinite loop."
+                        )
+                    parent = parent.parent
+        
+        return value
+
+
+class CategoryTreeSerializer(serializers.ModelSerializer):
+    """
+    Category Tree Serializer (Hierarchical)
+    مسلسل شجرة الفئات (هرمي)
+    
+    Used for displaying categories as a tree structure.
+    يُستخدم لعرض الفئات كهيكل شجري.
+    """
+    
+    children = serializers.SerializerMethodField()
+    products_count = serializers.ReadOnlyField()
+    image_url = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = Category
+        fields = [
+            'id',
+            'name',
+            'name_ar',
+            'slug',
+            'icon',
+            'image_url',
+            'is_active',
+            'is_featured',
+            'display_order',
+            'products_count',
+            'children',
+        ]
+    
+    def get_children(self, obj):
+        """Get child categories recursively"""
+        children = obj.children.filter(is_active=True).order_by('display_order', 'name')
+        return CategoryTreeSerializer(children, many=True, context=self.context).data
+    
+    def get_image_url(self, obj):
+        """Get full image URL"""
+        if obj.image and hasattr(obj.image, 'url'):
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.image.url)
+            return obj.image.url
+        return None
+
+
+# =============================================================================
+# Product Variant Serializers
+# مسلسلات متغيرات المنتجات
+# =============================================================================
 
 
 class ProductVariantSerializer(serializers.ModelSerializer):
@@ -100,50 +284,50 @@ class ProductSerializer(serializers.ModelSerializer):
     Serializes Product model data for list views.
     يسلسل بيانات نموذج Product لعروض القائمة
     
-    Includes basic product info and vendor summary.
-    يتضمن معلومات المنتج الأساسية وملخص البائع.
-    
-    Fields:
-    - id: Product unique identifier
-    - name: Product name
-    - slug: URL-friendly identifier
-    - description: Product description
-    - base_price: Base price in Syrian Pounds
-    - product_type: Type (shoes/bags)
-    - vendor: Vendor information (nested)
-    - is_active: Whether product is active
-    - created_at: Creation timestamp
+    Includes basic product info, vendor summary, and category.
+    يتضمن معلومات المنتج الأساسية وملخص البائع والفئة.
     """
     
     # Vendor information (nested serializer)
     # معلومات البائع (مسلسل متداخل)
     vendor = VendorSerializer(read_only=True)
     
+    # Category information (nested serializer)
+    # معلومات الفئة (مسلسل متداخل)
+    category = CategorySerializer(read_only=True)
+    
     # Vendor ID for filtering (write-only)
     # معرف البائع للفلترة (للكتابة فقط)
     vendor_id = serializers.IntegerField(write_only=True, required=False)
     
+    # Category ID for filtering (write-only)
+    # معرف الفئة للفلترة (للكتابة فقط)
+    category_id = serializers.IntegerField(write_only=True, required=False, allow_null=True)
+    
     class Meta:
         model = Product
         fields = [
-            'id',                    # معرف المنتج الفريد
-            'name',                   # اسم المنتج
-            'slug',                   # المعرف المستخدم في URLs
-            'description',            # وصف المنتج
-            'base_price',             # السعر الأساسي (بالليرة السورية)
-            'product_type',          # نوع المنتج (أحذية/حقائب)
-            'vendor',                # معلومات البائع (متداخل)
-            'vendor_id',             # معرف البائع (للكتابة)
-            'is_active',             # حالة المنتج (نشط/غير نشط)
-            'created_at',            # تاريخ الإنشاء
-            'updated_at',            # تاريخ آخر تحديث
+            'id',
+            'name',
+            'slug',
+            'description',
+            'base_price',
+            'product_type',
+            'vendor',
+            'vendor_id',
+            'category',
+            'category_id',
+            'is_active',
+            'created_at',
+            'updated_at',
         ]
         read_only_fields = [
-            'id',                    # لا يمكن تعديله
-            'slug',                  # يُولد تلقائياً
-            'vendor',                # للقراءة فقط (يُملأ تلقائياً)
-            'created_at',           # يُضاف تلقائياً
-            'updated_at',            # يُحدث تلقائياً
+            'id',
+            'slug',
+            'vendor',
+            'category',
+            'created_at',
+            'updated_at',
         ]
 
 
@@ -155,18 +339,20 @@ class ProductDetailSerializer(serializers.ModelSerializer):
     Serializes Product with all variants for detail views.
     يسلسل المنتج مع جميع المتغيرات لعروض التفاصيل
     
-    Used when retrieving a single product.
-    يُستخدم عند استرجاع منتج واحد.
-    
     Includes:
     - Full product information
     - Vendor details
+    - Category details
     - All product variants (colors, sizes, models)
     """
     
     # Vendor information (nested)
     # معلومات البائع (متداخل)
     vendor = VendorSerializer(read_only=True)
+    
+    # Category information (nested)
+    # معلومات الفئة (متداخل)
+    category = CategorySerializer(read_only=True)
     
     # All variants for this product (nested)
     # جميع المتغيرات لهذا المنتج (متداخلة)
@@ -175,22 +361,24 @@ class ProductDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = [
-            'id',                    # معرف المنتج الفريد
-            'name',                   # اسم المنتج
-            'slug',                   # المعرف المستخدم في URLs
-            'description',            # وصف المنتج
-            'base_price',             # السعر الأساسي
-            'product_type',          # نوع المنتج
-            'vendor',                # معلومات البائع
-            'variants',               # جميع المتغيرات
-            'is_active',             # حالة المنتج
-            'created_at',            # تاريخ الإنشاء
-            'updated_at',             # تاريخ آخر تحديث
+            'id',
+            'name',
+            'slug',
+            'description',
+            'base_price',
+            'product_type',
+            'vendor',
+            'category',
+            'variants',
+            'is_active',
+            'created_at',
+            'updated_at',
         ]
         read_only_fields = [
             'id',
             'slug',
             'vendor',
+            'category',
             'variants',
             'created_at',
             'updated_at',

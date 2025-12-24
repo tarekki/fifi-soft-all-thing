@@ -60,4 +60,32 @@ export {
 // Hooks
 // الهوكات
 export { useDashboard } from './hooks/useDashboard'
+export { useCategories } from './hooks/useCategories'
+
+// Category Types
+// أنواع الفئات
+export type {
+  Category,
+  CategoryDetail,
+  CategoryTreeNode,
+  CategoryFormData,
+  CategoryListParams,
+  PaginatedCategories,
+  CategoryBulkAction,
+  CategoryBulkActionResponse,
+} from './types/categories'
+
+// Category API Functions
+// دوال API الفئات
+export {
+  getCategories,
+  getCategory,
+  createCategory,
+  updateCategory,
+  deleteCategory,
+  getCategoryTree,
+  bulkCategoryAction,
+  toggleCategoryActive,
+  toggleCategoryFeatured,
+} from './api/categories'
 

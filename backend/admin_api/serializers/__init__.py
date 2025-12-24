@@ -17,6 +17,13 @@ from .dashboard import (
     RecentOrderSerializer,
     RecentActivitySerializer,
 )
+from .categories import (
+    AdminCategoryListSerializer,
+    AdminCategoryDetailSerializer,
+    AdminCategoryCreateSerializer,
+    AdminCategoryUpdateSerializer,
+    AdminCategoryTreeSerializer,
+)
 
 __all__ = [
     # Auth
@@ -28,5 +35,11 @@ __all__ = [
     'SalesChartSerializer',
     'RecentOrderSerializer',
     'RecentActivitySerializer',
+    # Categories
+    'AdminCategoryListSerializer',
+    'AdminCategoryDetailSerializer',
+    'AdminCategoryCreateSerializer',
+    'AdminCategoryUpdateSerializer',
+    'AdminCategoryTreeSerializer',
 ]
 

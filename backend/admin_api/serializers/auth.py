@@ -84,16 +84,14 @@ class AdminLoginSerializer(serializers.Serializer):
         
         # Authenticate user
         # مصادقة المستخدم
-        authenticated_user = authenticate(
-            request=self.context.get('request'),
-            username=email,
-            password=password
-        )
-        
-        if not authenticated_user:
+        # Check password directly since authenticate may not work with custom User model
+        # التحقق من كلمة المرور مباشرة
+        if not user.check_password(password):
             raise serializers.ValidationError(
                 _('بيانات الاعتماد غير صحيحة. / Invalid credentials.')
             )
+        
+        authenticated_user = user
         
         attrs['user'] = authenticated_user
         return attrs

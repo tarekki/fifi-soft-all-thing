@@ -15,7 +15,121 @@ from django.contrib import messages
 from django.http import HttpResponse
 import csv
 
-from .models import Product, ProductVariant
+from .models import Category, Product, ProductVariant
+
+
+# ============================================================================
+# Category Admin
+# إدارة الفئات
+# ============================================================================
+
+@admin.register(Category)
+class CategoryAdmin(admin.ModelAdmin):
+    """
+    Enhanced Category Admin Interface
+    واجهة إدارة محسّنة للفئات
+    """
+    
+    # List Display
+    list_display = [
+        'name',
+        'name_ar',
+        'parent',
+        'display_order',
+        'products_count_display',
+        'status_badge',
+        'is_featured_badge',
+        'created_at',
+    ]
+    
+    # List Filter
+    list_filter = [
+        'is_active',
+        'is_featured',
+        'parent',
+        'created_at',
+    ]
+    
+    # Search Fields
+    search_fields = [
+        'name',
+        'name_ar',
+        'slug',
+        'description',
+        'description_ar',
+    ]
+    
+    # Prepopulated Fields
+    prepopulated_fields = {'slug': ('name',)}
+    
+    # Readonly Fields
+    readonly_fields = [
+        'created_at',
+        'updated_at',
+        'image_preview',
+    ]
+    
+    # Fieldsets
+    fieldsets = (
+        ('Basic Information / المعلومات الأساسية', {
+            'fields': ('name', 'name_ar', 'slug', 'parent')
+        }),
+        ('Description / الوصف', {
+            'fields': ('description', 'description_ar'),
+            'classes': ('collapse',)
+        }),
+        ('Visual / العناصر المرئية', {
+            'fields': ('image', 'image_preview', 'icon')
+        }),
+        ('Display & Status / العرض والحالة', {
+            'fields': ('display_order', 'is_active', 'is_featured')
+        }),
+        ('Timestamps / الطوابع الزمنية', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    # Ordering
+    ordering = ['display_order', 'name']
+    
+    def products_count_display(self, obj):
+        """Display products count"""
+        count = obj.products_count
+        if count == 0:
+            return format_html('<span style="color: #999;">0</span>')
+        return format_html('<span style="color: #007bff; font-weight: bold;">{}</span>', count)
+    products_count_display.short_description = 'Products'
+    
+    def status_badge(self, obj):
+        """Display status badge"""
+        if obj.is_active:
+            return format_html(
+                '<span style="background-color: #28a745; color: white; padding: 3px 8px; border-radius: 3px; font-size: 11px;">Active</span>'
+            )
+        return format_html(
+            '<span style="background-color: #dc3545; color: white; padding: 3px 8px; border-radius: 3px; font-size: 11px;">Inactive</span>'
+        )
+    status_badge.short_description = 'Status'
+    
+    def is_featured_badge(self, obj):
+        """Display featured badge"""
+        if obj.is_featured:
+            return format_html(
+                '<span style="background-color: #ffc107; color: #000; padding: 3px 8px; border-radius: 3px; font-size: 11px;">⭐ Featured</span>'
+            )
+        return '-'
+    is_featured_badge.short_description = 'Featured'
+    
+    def image_preview(self, obj):
+        """Display image preview"""
+        if obj.image:
+            return format_html(
+                '<img src="{}" style="max-width: 200px; max-height: 200px; border-radius: 8px;" />',
+                obj.image.url
+            )
+        return format_html('<span style="color: #999;">No image</span>')
+    image_preview.short_description = 'Image Preview'
 
 
 # ============================================================================

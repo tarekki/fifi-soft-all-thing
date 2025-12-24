@@ -92,14 +92,14 @@ class DashboardOverviewView(APIView):
         # إجمالي الإيرادات (كل الأوقات)
         total_revenue = Order.objects.filter(
             status__in=['delivered', 'completed']
-        ).aggregate(total=Sum('total_price'))['total'] or Decimal('0.00')
+        ).aggregate(total=Sum('total'))['total'] or Decimal('0.00')
         
         # This month's revenue
         # إيرادات هذا الشهر
         this_month_revenue = Order.objects.filter(
             status__in=['delivered', 'completed'],
             created_at__gte=month_start
-        ).aggregate(total=Sum('total_price'))['total'] or Decimal('0.00')
+        ).aggregate(total=Sum('total'))['total'] or Decimal('0.00')
         
         # Last month's revenue
         # إيرادات الشهر الماضي
@@ -107,7 +107,7 @@ class DashboardOverviewView(APIView):
             status__in=['delivered', 'completed'],
             created_at__gte=last_month_start,
             created_at__lt=month_start
-        ).aggregate(total=Sum('total_price'))['total'] or Decimal('0.00')
+        ).aggregate(total=Sum('total'))['total'] or Decimal('0.00')
         
         # Revenue change percentage
         # نسبة التغيير في الإيرادات
@@ -123,7 +123,7 @@ class DashboardOverviewView(APIView):
         today_revenue = Order.objects.filter(
             status__in=['delivered', 'completed', 'processing', 'pending'],
             created_at__gte=today_start
-        ).aggregate(total=Sum('total_price'))['total'] or Decimal('0.00')
+        ).aggregate(total=Sum('total'))['total'] or Decimal('0.00')
         
         # =================================================================
         # Order Statistics
@@ -301,7 +301,7 @@ class DashboardSalesChartView(APIView):
         ).annotate(
             date=trunc_func('created_at')
         ).values('date').annotate(
-            revenue=Sum('total_price'),
+            revenue=Sum('total'),
             count=Count('id')
         ).order_by('date')
         
@@ -408,7 +408,7 @@ class DashboardRecentOrdersView(APIView):
                 'order_number': f"ORD-{order.id:06d}",
                 'customer_name': customer_name,
                 'customer_email': customer_email,
-                'total': order.total_price,
+                'total': order.total,
                 'status': order.status,
                 'status_display': status_display_map.get(order.status, order.status),
                 'items_count': order.items.count() if hasattr(order, 'items') else 0,

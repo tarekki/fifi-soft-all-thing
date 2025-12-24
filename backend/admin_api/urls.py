@@ -30,6 +30,11 @@ from admin_api.views import (
     DashboardSalesChartView,
     DashboardRecentOrdersView,
     DashboardRecentActivityView,
+    # Categories
+    AdminCategoryListCreateView,
+    AdminCategoryDetailView,
+    AdminCategoryTreeView,
+    AdminCategoryBulkActionView,
 )
 
 
@@ -119,6 +124,45 @@ dashboard_urlpatterns = [
 
 
 # =============================================================================
+# Categories URL Patterns
+# أنماط URLs للفئات
+# =============================================================================
+categories_urlpatterns = [
+    # GET, POST /api/v1/admin/categories/
+    # عرض القائمة وإنشاء فئة جديدة
+    path(
+        '',
+        AdminCategoryListCreateView.as_view(),
+        name='list-create'
+    ),
+    
+    # GET /api/v1/admin/categories/tree/
+    # شجرة الفئات
+    path(
+        'tree/',
+        AdminCategoryTreeView.as_view(),
+        name='tree'
+    ),
+    
+    # POST /api/v1/admin/categories/bulk-action/
+    # عمليات مجمعة
+    path(
+        'bulk-action/',
+        AdminCategoryBulkActionView.as_view(),
+        name='bulk-action'
+    ),
+    
+    # GET, PUT, DELETE /api/v1/admin/categories/{id}/
+    # تفاصيل، تحديث، حذف
+    path(
+        '<int:pk>/',
+        AdminCategoryDetailView.as_view(),
+        name='detail'
+    ),
+]
+
+
+# =============================================================================
 # Main URL Patterns
 # أنماط URLs الرئيسية
 # =============================================================================
@@ -131,11 +175,12 @@ urlpatterns = [
     # نقاط نهاية لوحة التحكم
     path('dashboard/', include((dashboard_urlpatterns, 'dashboard'))),
     
+    # Categories endpoints
+    # نقاط نهاية الفئات
+    path('categories/', include((categories_urlpatterns, 'categories'))),
+    
     # TODO: Add more endpoints as they are implemented
     # سيتم إضافة المزيد من النقاط عند تنفيذها
-    
-    # Categories Management
-    # path('categories/', include('admin_api.urls.categories')),
     
     # Products Management
     # path('products/', include('admin_api.urls.products')),
