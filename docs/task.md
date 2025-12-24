@@ -16,7 +16,7 @@
 | 1 | 🔐 Admin Authentication | ✅ | ✅ | ✅ | 🟢 |
 | 2 | ⚙️ Site Settings | ✅ | ✅ | ⬜ | 🟡 |
 | 3 | 📊 Dashboard Stats | ✅ | ✅ | ✅ | 🟢 |
-| 4 | 📂 Categories CRUD | ⬜ | ✅ | ⬜ | 🔴 |
+| 4 | 📂 Categories CRUD | ✅ | ✅ | ✅ | 🟢 |
 | 5 | 📦 Products CRUD | ⬜ | ✅ | ⬜ | 🔴 |
 | 6 | 📋 Orders Management | ⬜ | ✅ | ⬜ | 🔴 |
 | 7 | 🏪 Vendors Management | ⬜ | ✅ | ⬜ | 🔴 |
