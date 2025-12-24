@@ -90,7 +90,7 @@ const settingsSections: SettingsSection[] = [
     description: 'العنوان، الوصف، الكلمات المفتاحية',
     icon: Icons.seo,
     href: '/admin/settings/seo',
-    status: 'coming',
+    status: 'ready',
   },
   {
     id: 'contact',
@@ -98,7 +98,7 @@ const settingsSections: SettingsSection[] = [
     description: 'البريد، الهاتف، العنوان، ساعات العمل',
     icon: Icons.contact,
     href: '/admin/settings/contact',
-    status: 'coming',
+    status: 'ready',
   },
   {
     id: 'social',
@@ -106,7 +106,7 @@ const settingsSections: SettingsSection[] = [
     description: 'فيسبوك، انستغرام، تويتر، واتساب',
     icon: Icons.social,
     href: '/admin/settings/social',
-    status: 'coming',
+    status: 'ready',
   },
   {
     id: 'languages',
@@ -114,7 +114,7 @@ const settingsSections: SettingsSection[] = [
     description: 'إدارة اللغات المدعومة واللغة الافتراضية',
     icon: Icons.languages,
     href: '/admin/settings/languages',
-    status: 'coming',
+    status: 'ready',
   },
   {
     id: 'navigation',
@@ -122,7 +122,7 @@ const settingsSections: SettingsSection[] = [
     description: 'الهيدر، الفوتر، القوائم الفرعية',
     icon: Icons.navigation,
     href: '/admin/settings/navigation',
-    status: 'coming',
+    status: 'ready',
   },
   {
     id: 'payments',
@@ -130,7 +130,7 @@ const settingsSections: SettingsSection[] = [
     description: 'إعداد طرق الدفع المتاحة',
     icon: Icons.payments,
     href: '/admin/settings/payments',
-    status: 'coming',
+    status: 'ready',
   },
   {
     id: 'shipping',
@@ -138,7 +138,7 @@ const settingsSections: SettingsSection[] = [
     description: 'إعداد مناطق ورسوم الشحن',
     icon: Icons.shipping,
     href: '/admin/settings/shipping',
-    status: 'coming',
+    status: 'ready',
   },
 ]
 
