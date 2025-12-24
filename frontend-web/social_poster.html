@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yalla Buy - Harmonious Social Poster</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --royal-black: #0A0A0B;
+            --antique-gold: #C5A065;
+            --soft-stone: #F9F7F2;
+            --muted-red: #8B1A1A;
+            --white: #FFFFFF;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #D1D5DB;
+            font-family: 'Tajawal', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 40px;
+        }
+
+        /* HARMONIOUS POSTER CONTAINER */
+        .poster {
+            width: 1080px;
+            background: var(--white);
+            color: var(--royal-black);
+            padding: 100px 80px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #E5E7EB;
+            box-shadow: 0 50px 100px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Sophisticated Background Pattern */
+        .poster::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: linear-gradient(var(--soft-stone) 1.5px, transparent 1.5px),
+                linear-gradient(90deg, var(--soft-stone) 1.5px, transparent 1.5px);
+            background-size: 60px 60px;
+            z-index: 1;
+        }
+
+        /* Corner Gold Ornament */
+        .corner-ornament {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            width: 150px;
+            height: 150px;
+            border-top: 5px solid var(--antique-gold);
+            border-left: 5px solid var(--antique-gold);
+            opacity: 0.3;
+            z-index: 2;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+            margin-bottom: 80px;
+        }
+
+        .logo-box svg {
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.05));
+        }
+
+        .main-hero {
+            z-index: 10;
+            text-align: center;
+            margin-bottom: 70px;
+        }
+
+        .main-hero h1 {
+            font-size: 110px;
+            font-weight: 900;
+            line-height: 0.9;
+            color: var(--royal-black);
+            letter-spacing: -2px;
+        }
+
+        .main-hero .red-span {
+            color: var(--muted-red);
+            display: block;
+            font-size: 130px;
+            margin-bottom: 10px;
+        }
+
+        .main-hero .gold-slogan {
+            font-size: 28px;
+            color: var(--antique-gold);
+            letter-spacing: 15px;
+            text-transform: uppercase;
+            font-weight: 300;
+            margin-top: 30px;
+            display: block;
+        }
+
+        /* THE "EVERYTHING" GRID - CLEAN HARMONY */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+            z-index: 10;
+        }
+
+        .grid-item {
+            background: var(--soft-stone);
+            border: 1px solid rgba(197, 160, 101, 0.2);
+            border-radius: 20px;
+            padding: 35px 20px;
+            text-align: center;
+            transition: all 0.4s;
+        }
+
+        .grid-item i {
+            font-size: 40px;
+            color: var(--antique-gold);
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .grid-item span {
+            font-weight: 700;
+            font-size: 22px;
+            color: var(--royal-black);
+        }
+
+        /* COMPACT FOOTER */
+        .footer-cta {
+            margin-top: 60px;
+            padding: 20px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+            border-top: 2px solid var(--royal-black);
+            color: var(--royal-black);
+        }
+
+        .footer-cta h2 {
+            font-size: 36px;
+            font-weight: 900;
+            margin: 0;
+            color: var(--royal-black);
+        }
+
+        .footer-cta .site {
+            font-weight: 400;
+            font-size: 18px;
+            opacity: 0.7;
+            letter-spacing: 2px;
+        }
+
+        .floating-badge {
+            position: absolute;
+            top: 60px;
+            right: -60px;
+            background: var(--antique-gold);
+            color: var(--royal-black);
+            padding: 15px 120px;
+            transform: rotate(45deg);
+            font-weight: 900;
+            font-size: 22px;
+            z-index: 20;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="poster">
+        <div class="corner-ornament"></div>
+        <div class="floating-badge">إطلاق قريب جداً</div>
+
+        <div class="header">
+            <div class="logo-box" style="direction: ltr;">
+                <svg width="240" height="70" viewBox="0 0 320 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <text x="10" y="55" font-family="Tajawal, sans-serif" font-weight="900" font-size="52" fill="black"
+                        letter-spacing="0">Yalla</text>
+                    <text x="145" y="55" font-family="Tajawal, sans-serif" font-weight="900" font-size="52"
+                        fill="#C5A065" letter-spacing="0">Buy</text>
+                </svg>
+            </div>
+            <div style="text-align: left; font-weight: 700; font-size: 16px; color: var(--royal-black); opacity: 0.5;">
+                QUALITY • SPEED • TRUST<br>
+                @YALLABUY_SY
+            </div>
+        </div>
+
+        <div class="main-hero">
+            <span class="red-span">كل شيء حرفياً</span>
+            <h1>في مكان واحد</h1>
+            <span class="gold-slogan">Luxurious Lifestyle Market</span>
+        </div>
+
+        <div class="grid">
+            <div class="grid-item"><i class="fas fa-mobile-alt"></i><span>جوالات</span></div>
+            <div class="grid-item"><i class="fas fa-tshirt"></i><span>أزياء</span></div>
+            <div class="grid-item"><i class="fas fa-home"></i><span>أدوات منزلية</span></div>
+            <div class="grid-item"><i class="fas fa-magic"></i><span>تجميل</span></div>
+            <div class="grid-item"><i class="fas fa-tools"></i><span>معدات</span></div>
+            <div class="grid-item"><i class="fas fa-baby"></i><span>أطفال</span></div>
+            <div class="grid-item"><i class="fas fa-gem"></i><span>إكسسوارات</span></div>
+            <div class="grid-item"><i class="fas fa-shopping-basket"></i><span>سوبر ماركت</span></div>
+        </div>
+
+        <div class="footer-cta">
+            <h2>سوقك الشامل الأول في سوريا</h2>
+            <div class="site">YALLABUY.SHOP</div>
+        </div>
+    </div>
+
+</body>
+
+</html>

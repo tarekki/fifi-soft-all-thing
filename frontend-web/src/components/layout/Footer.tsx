@@ -1,11 +1,18 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Facebook, Instagram, Twitter, Send, Mail, Phone, MapPin } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n/use-translation';
 
 export function Footer() {
     const { t } = useTranslation();
+    const pathname = usePathname();
+
+    // Don't show public footer on vendor or admin pages
+    if (pathname.startsWith('/vendor') || pathname.startsWith('/admin')) {
+        return null;
+    }
 
     return (
         <footer className="bg-white border-t border-stone-100 pt-16 pb-8 text-stone-600 font-sans mt-auto">

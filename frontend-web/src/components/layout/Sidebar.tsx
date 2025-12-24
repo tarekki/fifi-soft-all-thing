@@ -23,6 +23,11 @@ export function Sidebar() {
         setIsOpen(false);
     }, [pathname]);
 
+    // Don't show public sidebar on vendor or admin pages
+    if (pathname.startsWith('/vendor') || pathname.startsWith('/admin')) {
+        return null;
+    }
+
     // Close on escape key
     useEffect(() => {
         const handleEsc = (e: KeyboardEvent) => {

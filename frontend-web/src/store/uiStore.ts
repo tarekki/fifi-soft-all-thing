@@ -46,6 +46,7 @@ interface UIState {
   sidebar: {
     isOpen: boolean
   }
+  isVendorSidebarCollapsed: boolean
 }
 
 interface UIActions {
@@ -59,6 +60,7 @@ interface UIActions {
   clearToasts: () => void
   toggleSidebar: () => void
   setSidebarOpen: (isOpen: boolean) => void
+  toggleVendorSidebar: () => void
 }
 
 type UIStore = UIState & UIActions
@@ -75,114 +77,121 @@ type UIStore = UIState & UIActions
 // If persist is not available, use: create<UIStore>((set) => ({
 // إذا لم يكن persist متاحاً، استخدم: create<UIStore>((set) => ({
 export const useUIStore = create<UIStore>((set) => ({
-      // State
-      // الحالة
-      theme: 'system',
-      language: 'ar',
-      modals: {},
-      toasts: [],
+  // State
+  // الحالة
+  theme: 'system',
+  language: 'ar',
+  modals: {},
+  toasts: [],
+  sidebar: {
+    isOpen: false,
+  },
+  isVendorSidebarCollapsed: false,
+
+  // Actions
+  // الإجراءات
+  setTheme: (theme) => {
+    set({ theme })
+    // Apply theme to document
+    // تطبيق المظهر على المستند
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark')
+    } else if (theme === 'light') {
+      document.documentElement.classList.remove('dark')
+    } else {
+      // System theme
+      // مظهر النظام
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+      if (prefersDark) {
+        document.documentElement.classList.add('dark')
+      } else {
+        document.documentElement.classList.remove('dark')
+      }
+    }
+  },
+
+  setLanguage: (language) => {
+    set({ language })
+    // Apply language to document
+    // تطبيق اللغة على المستند
+    document.documentElement.lang = language
+    document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr'
+  },
+
+  openModal: (modalId) => {
+    set((state) => ({
+      modals: {
+        ...state.modals,
+        [modalId]: true,
+      },
+    }))
+  },
+
+  closeModal: (modalId) => {
+    set((state) => {
+      const newModals = { ...state.modals }
+      delete newModals[modalId]
+      return { modals: newModals }
+    })
+  },
+
+  closeAllModals: () => {
+    set({ modals: {} })
+  },
+
+  addToast: (toast) => {
+    const id = `toast-${Date.now()}-${Math.random()}`
+    const newToast: Toast = {
+      ...toast,
+      id,
+      duration: toast.duration || 5000,
+    }
+
+    set((state) => ({
+      toasts: [...state.toasts, newToast],
+    }))
+
+    // Auto-remove toast after duration
+    // إزالة Toast تلقائياً بعد المدة
+    if (newToast.duration && newToast.duration > 0) {
+      setTimeout(() => {
+        useUIStore.getState().removeToast(id)
+      }, newToast.duration)
+    }
+  },
+
+  removeToast: (toastId) => {
+    set((state) => ({
+      toasts: state.toasts.filter((toast) => toast.id !== toastId),
+    }))
+  },
+
+  clearToasts: () => {
+    set({ toasts: [] })
+  },
+
+  toggleSidebar: () => {
+    set((state) => ({
       sidebar: {
-        isOpen: false,
+        isOpen: !state.sidebar.isOpen,
       },
+    }))
+  },
 
-      // Actions
-      // الإجراءات
-      setTheme: (theme) => {
-        set({ theme })
-        // Apply theme to document
-        // تطبيق المظهر على المستند
-        if (theme === 'dark') {
-          document.documentElement.classList.add('dark')
-        } else if (theme === 'light') {
-          document.documentElement.classList.remove('dark')
-        } else {
-          // System theme
-          // مظهر النظام
-          const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-          if (prefersDark) {
-            document.documentElement.classList.add('dark')
-          } else {
-            document.documentElement.classList.remove('dark')
-          }
-        }
-      },
-
-      setLanguage: (language) => {
-        set({ language })
-        // Apply language to document
-        // تطبيق اللغة على المستند
-        document.documentElement.lang = language
-        document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr'
-      },
-
-      openModal: (modalId) => {
-        set((state) => ({
-          modals: {
-            ...state.modals,
-            [modalId]: true,
-          },
-        }))
-      },
-
-      closeModal: (modalId) => {
-        set((state) => {
-          const newModals = { ...state.modals }
-          delete newModals[modalId]
-          return { modals: newModals }
-        })
-      },
-
-      closeAllModals: () => {
-        set({ modals: {} })
-      },
-
-      addToast: (toast) => {
-        const id = `toast-${Date.now()}-${Math.random()}`
-        const newToast: Toast = {
-          ...toast,
-          id,
-          duration: toast.duration || 5000,
-        }
-
-        set((state) => ({
-          toasts: [...state.toasts, newToast],
-        }))
-
-        // Auto-remove toast after duration
-        // إزالة Toast تلقائياً بعد المدة
-        if (newToast.duration && newToast.duration > 0) {
-          setTimeout(() => {
-            useUIStore.getState().removeToast(id)
-          }, newToast.duration)
-        }
-      },
-
-      removeToast: (toastId) => {
-        set((state) => ({
-          toasts: state.toasts.filter((toast) => toast.id !== toastId),
-        }))
-      },
-
-      clearToasts: () => {
-        set({ toasts: [] })
-      },
-
-      toggleSidebar: () => {
-        set((state) => ({
-          sidebar: {
-            isOpen: !state.sidebar.isOpen,
-          },
-        }))
-      },
-
-      setSidebarOpen: (isOpen) => {
-        set({
-          sidebar: {
-            isOpen,
-          },
-        })
+  setSidebarOpen: (isOpen) => {
+    set({
+      sidebar: {
+        isOpen,
       },
     })
+  },
+
+  toggleVendorSidebar: () => {
+    set((state) => ({
+      isVendorSidebarCollapsed: !state.isVendorSidebarCollapsed,
+    }))
+  },
+})
 )
 
 // TODO: Add localStorage persistence if needed
