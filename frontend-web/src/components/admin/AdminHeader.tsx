@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useAdminAuth } from '@/lib/admin'
 
 // =============================================================================
 // Types & Interfaces
@@ -310,6 +311,46 @@ function LanguageToggle() {
 
 function UserMenu() {
   const [isOpen, setIsOpen] = useState(false)
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
+  const { user, logout } = useAdminAuth()
+
+  // Handle logout
+  // معالجة تسجيل الخروج
+  const handleLogout = async () => {
+    setIsLoggingOut(true)
+    try {
+      await logout()
+    } finally {
+      setIsLoggingOut(false)
+    }
+  }
+
+  // Get user initials for avatar
+  // الحصول على الأحرف الأولى للصورة الرمزية
+  const getInitials = () => {
+    if (user?.full_name) {
+      return user.full_name.charAt(0).toUpperCase()
+    }
+    if (user?.email) {
+      return user.email.charAt(0).toUpperCase()
+    }
+    return 'A'
+  }
+
+  // Get role display name
+  // الحصول على اسم الدور للعرض
+  const getRoleDisplay = () => {
+    switch (user?.role) {
+      case 'super_admin':
+        return 'مدير عام'
+      case 'admin':
+        return 'مدير النظام'
+      case 'moderator':
+        return 'مشرف'
+      default:
+        return 'مستخدم'
+    }
+  }
 
   return (
     <div className="relative">
@@ -318,11 +359,13 @@ function UserMenu() {
         className="flex items-center gap-3 p-1.5 pr-3 rounded-xl hover:bg-historical-gold/10 transition-all duration-200"
       >
         <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-historical-gold to-historical-red flex items-center justify-center shadow-lg">
-          <span className="text-white font-bold text-sm">A</span>
+          <span className="text-white font-bold text-sm">{getInitials()}</span>
         </div>
         <div className="text-right hidden sm:block">
-          <p className="text-sm font-medium text-historical-charcoal">Admin</p>
-          <p className="text-xs text-historical-charcoal/50">مدير النظام</p>
+          <p className="text-sm font-medium text-historical-charcoal">
+            {user?.full_name || 'Admin'}
+          </p>
+          <p className="text-xs text-historical-charcoal/50">{getRoleDisplay()}</p>
         </div>
         <motion.div
           animate={{ rotate: isOpen ? 180 : 0 }}
@@ -351,6 +394,16 @@ function UserMenu() {
               transition={{ duration: 0.2 }}
               className="absolute left-0 mt-2 w-56 bg-white rounded-2xl shadow-soft-xl border border-historical-gold/10 overflow-hidden z-50"
             >
+              {/* User Info */}
+              <div className="p-3 border-b border-historical-gold/10 bg-historical-stone/30">
+                <p className="text-sm font-medium text-historical-charcoal truncate">
+                  {user?.full_name || 'Admin'}
+                </p>
+                <p className="text-xs text-historical-charcoal/50 truncate">
+                  {user?.email || 'admin@yallabuy.com'}
+                </p>
+              </div>
+              
               <div className="p-2">
                 <button className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm text-historical-charcoal hover:bg-historical-gold/10 transition-colors">
                   {Icons.user}
@@ -362,9 +415,20 @@ function UserMenu() {
                 </button>
               </div>
               <div className="border-t border-historical-gold/10 p-2">
-                <button className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm text-red-600 hover:bg-red-50 transition-colors">
-                  {Icons.logout}
-                  <span>تسجيل الخروج</span>
+                <button 
+                  onClick={handleLogout}
+                  disabled={isLoggingOut}
+                  className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
+                >
+                  {isLoggingOut ? (
+                    <svg className="w-5 h-5 animate-spin\" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                  ) : (
+                    Icons.logout
+                  )}
+                  <span>{isLoggingOut ? 'جاري الخروج...' : 'تسجيل الخروج'}</span>
                 </button>
               </div>
             </motion.div>
