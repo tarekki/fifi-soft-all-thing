@@ -21,7 +21,7 @@
 | 6 | 📋 Orders Management | ✅ | ✅ | ⬜ | 🟡 |
 | 7 | 🏪 Vendors Management | ✅ | ✅ | ⬜ | 🟡 |
 | 8 | 👥 Users Management | ✅ | ✅ | ⬜ | 🟡 |
-| 9 | 🎯 Promotions (Banners/Stories/Coupons) | ⬜ | ✅ | ⬜ | 🔴 |
+| 9 | 🎯 Promotions (Banners/Stories/Coupons) | ✅ | ✅ | ⬜ | 🟡 |
 | 10 | 📈 Reports & Analytics | ⬜ | ✅ | ⬜ | 🔴 |
 
 **الرموز**: ✅ مكتمل | 🟡 جزئي | ⬜ لم يبدأ | 🔴 أولوية عالية | 🟢 منخفضة
@@ -372,32 +372,64 @@ interface SalesChartData {
 
 ## 🎯 المهمة #9: Promotions (Admin)
 
-### 9.1 Backend
+### 9.1 Backend ✅ مكتمل
 ```
-□ إنشاء Banner Model:
+✓ إنشاء Banner Model:
   - title, title_ar, subtitle, subtitle_ar
   - image, link, location (hero/sidebar/popup/category)
   - start_date, end_date, is_active, order
   - clicks, views
-□ إنشاء Story Model:
+  - is_currently_active() method
+✓ إنشاء Story Model:
   - title, title_ar, image, link, link_type
   - expires_at, is_active, order, views
-□ إنشاء Coupon Model:
+  - is_currently_active() method
+✓ إنشاء Coupon Model:
   - code, description, description_ar
   - discount_type (percentage/fixed), discount_value
   - min_order, max_discount, usage_limit, used_count
   - start_date, end_date, is_active
   - applicable_to (all/category/product/user)
-□ إنشاء ViewSets لكل موديل
+  - is_currently_valid() method
+✓ إنشاء Serializers:
+  - AdminBannerListSerializer, AdminBannerDetailSerializer
+  - AdminBannerCreateSerializer, AdminBannerUpdateSerializer
+  - AdminStoryListSerializer, AdminStoryDetailSerializer
+  - AdminStoryCreateSerializer, AdminStoryUpdateSerializer
+  - AdminCouponListSerializer, AdminCouponDetailSerializer
+  - AdminCouponCreateSerializer, AdminCouponUpdateSerializer
+  - AdminPromotionStatsSerializer
+✓ إنشاء Views:
+  - AdminBannerListCreateView, AdminBannerDetailView
+  - AdminBannerClickView, AdminBannerViewView
+  - AdminStoryListCreateView, AdminStoryDetailView
+  - AdminStoryViewView
+  - AdminCouponListCreateView, AdminCouponDetailView
+  - AdminPromotionStatsView
+✓ إنشاء URLs:
+  - /api/v1/admin/promotions/banners/
+  - /api/v1/admin/promotions/stories/
+  - /api/v1/admin/promotions/coupons/
+  - /api/v1/admin/promotions/stats/
+✓ تسجيل Models في Django Admin
+✓ إصلاح is_currently_active() للتعامل مع None values
 ```
 
-### 9.2 Frontend
+### 9.2 Frontend ✅ مكتمل
 ```
-□ إنشاء Promotions API client
-□ إنشاء useAdminBanners, useAdminStories, useAdminCoupons hooks
-□ ربط صفحة Banners بالـ API
-□ ربط صفحة Stories بالـ API
-□ ربط صفحة Coupons بالـ API
+✓ إنشاء Promotions API client (lib/admin/api/promotions.ts)
+✓ إنشاء Types (lib/admin/types/promotions.ts)
+✓ إنشاء useBanners, useStories, useCoupons hooks
+✓ ربط صفحة Banners بالـ API (app/(admin)/admin/promotions/banners/page.tsx)
+✓ ربط صفحة Stories بالـ API (app/(admin)/admin/promotions/stories/page.tsx)
+✓ ربط صفحة Coupons بالـ API (app/(admin)/admin/promotions/coupons/page.tsx)
+✓ إضافة BannerModal للإنشاء/التعديل
+✓ إضافة StoryModal للإنشاء/التعديل
+✓ إضافة CouponModal للإنشاء/التعديل (مع dynamic fields)
+✓ إضافة Filtering وSearch
+✓ إضافة Pagination
+✓ إضافة Delete functionality
+✓ إضافة Toggle active status
 ```
 
 ---
@@ -1677,6 +1709,58 @@ Backend (Django API)
 1. **Domain Events System** (`core/events/`) - For notifications, analytics, webhooks
 2. **Background Jobs System** (`src/jobs/` + `app/api/cron/`) - For async tasks
 3. **Comprehensive Testing Suite** (`tests/`) - After MVP launch
+
+---
+
+## 🔧 التحسينات والإصلاحات الأخيرة (Recent Improvements & Fixes)
+
+### ✅ 25 ديسمبر 2025
+
+#### 1. إصلاح مشكلة Throttling في Dashboard
+- **المشكلة**: `HTTP 429: Too Many Requests` عند جلب بيانات Dashboard
+- **الحل**:
+  - زيادة حدود الـ throttling في وضع التطوير:
+    - `user`: من 1000/ساعة إلى **10000/ساعة** في التطوير
+    - `admin`: **50000/ساعة** في التطوير، 5000/ساعة في الإنتاج
+  - إنشاء `AdminUserRateThrottle` class مخصص للـ Admin API
+  - إضافة `throttle_classes` إلى جميع Dashboard views
+- **الملفات المعدلة**:
+  - `backend/core/settings.py` - تحديث `DEFAULT_THROTTLE_RATES`
+  - `backend/admin_api/throttling.py` - إنشاء `AdminUserRateThrottle`
+  - `backend/admin_api/views/dashboard.py` - إضافة throttle classes
+
+#### 2. تحسين معالجة الأخطاء في Frontend
+- **المشكلة**: `Failed to fetch overview: undefined` في Dashboard
+- **الحل**:
+  - تحسين `adminFetch` لإرجاع `ApiResponse` حتى عند حدوث خطأ
+  - تحسين `useDashboard` hook للتعامل مع الأخطاء بشكل أفضل
+  - إضافة optional chaining (`?.`) للتحقق من وجود البيانات
+- **الملفات المعدلة**:
+  - `frontend-web/src/lib/admin/api.ts` - تحسين `adminFetch`
+  - `frontend-web/src/lib/admin/hooks/useDashboard.ts` - تحسين معالجة الأخطاء
+
+#### 3. إصلاح مشكلة `is_currently_active` في Promotions Models
+- **المشكلة**: `TypeError: '>' not supported between instances of 'NoneType' and 'datetime.datetime'` عند إنشاء Banner/Story/Coupon جديد في Django Admin
+- **الحل**:
+  - إضافة فحص `None` قبل المقارنة في:
+    - `Banner.is_currently_active()` - التحقق من `start_date` قبل المقارنة
+    - `Story.is_currently_active()` - التحقق من `expires_at` قبل المقارنة
+    - `Coupon.is_currently_valid()` - التحقق من `start_date` قبل المقارنة
+- **الملفات المعدلة**:
+  - `backend/promotions/models.py` - إصلاح دوال `is_currently_active` و`is_currently_valid`
+
+#### 4. إكمال Promotions Management
+- **Backend**: ✅ مكتمل
+  - Models (Banner, Story, Coupon)
+  - Serializers (List, Detail, Create, Update)
+  - Views (CRUD, Tracking, Stats)
+  - URLs
+  - Django Admin registration
+- **Frontend**: ✅ مكتمل
+  - Types, API client, Hooks
+  - Pages (Banners, Stories, Coupons)
+  - Modals (Add/Edit)
+  - Filtering, Search, Pagination
 
 ## Phase 5: Security & Hardening (Newly Added) 🛡️
 - [/] **Backend Security**
