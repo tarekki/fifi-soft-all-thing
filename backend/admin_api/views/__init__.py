@@ -38,6 +38,14 @@ from .orders import (
     AdminOrderBulkActionView,
     AdminOrderStatsView,
 )
+from .vendors import (
+    AdminVendorListCreateView,
+    AdminVendorDetailView,
+    AdminVendorStatusUpdateView,
+    AdminVendorCommissionUpdateView,
+    AdminVendorBulkActionView,
+    AdminVendorStatsView,
+)
 
 __all__ = [
     # Auth
@@ -67,5 +75,12 @@ __all__ = [
     'AdminOrderStatusUpdateView',
     'AdminOrderBulkActionView',
     'AdminOrderStatsView',
+    # Vendors
+    'AdminVendorListCreateView',
+    'AdminVendorDetailView',
+    'AdminVendorStatusUpdateView',
+    'AdminVendorCommissionUpdateView',
+    'AdminVendorBulkActionView',
+    'AdminVendorStatsView',
 ]
 

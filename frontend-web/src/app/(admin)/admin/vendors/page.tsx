@@ -4,40 +4,30 @@
  * Admin Vendors Management Page
  * صفحة إدارة البائعين
  * 
- * Features:
- * - Vendor list with cards/table view
- * - Approval workflow
- * - Vendor statistics
+ * Features / الميزات:
+ * - Vendor list with cards view (connected to API)
+ * - Create/Edit vendor
+ * - Status management
  * - Commission management
+ * - Vendor statistics
+ * 
+ * @author Yalla Buy Team
  */
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useVendors } from '@/lib/admin'
+import type {
+  Vendor,
+  VendorDetail,
+  VendorFilters,
+  VendorCreatePayload,
+} from '@/lib/admin/types/vendors'
 
-// =============================================================================
-// Types
-// =============================================================================
-
-interface Vendor {
-  id: string
-  name: string
-  nameAr: string
-  logo: string
-  email: string
-  phone: string
-  status: 'pending' | 'active' | 'suspended' | 'rejected'
-  isFeatured: boolean
-  commissionRate: number
-  totalProducts: number
-  totalOrders: number
-  totalRevenue: number
-  joinedAt: string
-  rating: number
-  reviewCount: number
-}
 
 // =============================================================================
 // Icons
+// الأيقونات
 // =============================================================================
 
 const Icons = {
@@ -61,20 +51,25 @@ const Icons = {
       <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
     </svg>
   ),
+  close: (
+    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+    </svg>
+  ),
   eye: (
     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
       <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
     </svg>
   ),
-  star: (
-    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+  edit: (
+    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
     </svg>
   ),
-  starOutline: (
+  trash: (
     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
     </svg>
   ),
   store: (
@@ -97,122 +92,28 @@ const Icons = {
       <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
     </svg>
   ),
-  mail: (
-    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
-    </svg>
-  ),
-  phone: (
-    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
-    </svg>
-  ),
-  grid: (
+  refresh: (
     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
     </svg>
   ),
-  list: (
+  loader: (
+    <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+    </svg>
+  ),
+  clock: (
     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm-.375 5.25h.007v.008H3.75v-.008zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
     </svg>
   ),
 }
 
-// =============================================================================
-// Mock Data
-// =============================================================================
-
-const mockVendors: Vendor[] = [
-  {
-    id: '1',
-    name: 'Tech Store',
-    nameAr: 'متجر التقنية',
-    logo: 'https://via.placeholder.com/100',
-    email: 'tech@store.com',
-    phone: '+963 912 345 678',
-    status: 'active',
-    isFeatured: true,
-    commissionRate: 10,
-    totalProducts: 156,
-    totalOrders: 1234,
-    totalRevenue: 45678,
-    joinedAt: '2024-01-15',
-    rating: 4.8,
-    reviewCount: 324,
-  },
-  {
-    id: '2',
-    name: 'Fashion House',
-    nameAr: 'بيت الأزياء',
-    logo: 'https://via.placeholder.com/100',
-    email: 'fashion@house.com',
-    phone: '+963 922 345 678',
-    status: 'active',
-    isFeatured: true,
-    commissionRate: 12,
-    totalProducts: 234,
-    totalOrders: 892,
-    totalRevenue: 34567,
-    joinedAt: '2024-02-20',
-    rating: 4.6,
-    reviewCount: 198,
-  },
-  {
-    id: '3',
-    name: 'Sports World',
-    nameAr: 'عالم الرياضة',
-    logo: 'https://via.placeholder.com/100',
-    email: 'sports@world.com',
-    phone: '+963 932 345 678',
-    status: 'pending',
-    isFeatured: false,
-    commissionRate: 10,
-    totalProducts: 0,
-    totalOrders: 0,
-    totalRevenue: 0,
-    joinedAt: '2024-12-20',
-    rating: 0,
-    reviewCount: 0,
-  },
-  {
-    id: '4',
-    name: 'Home Decor',
-    nameAr: 'ديكور المنزل',
-    logo: 'https://via.placeholder.com/100',
-    email: 'home@decor.com',
-    phone: '+963 942 345 678',
-    status: 'suspended',
-    isFeatured: false,
-    commissionRate: 15,
-    totalProducts: 89,
-    totalOrders: 234,
-    totalRevenue: 12345,
-    joinedAt: '2024-03-10',
-    rating: 3.2,
-    reviewCount: 45,
-  },
-  {
-    id: '5',
-    name: 'Kids Corner',
-    nameAr: 'ركن الأطفال',
-    logo: 'https://via.placeholder.com/100',
-    email: 'kids@corner.com',
-    phone: '+963 952 345 678',
-    status: 'active',
-    isFeatured: false,
-    commissionRate: 10,
-    totalProducts: 67,
-    totalOrders: 456,
-    totalRevenue: 23456,
-    joinedAt: '2024-04-05',
-    rating: 4.4,
-    reviewCount: 112,
-  },
-]
 
 // =============================================================================
 // Animation Variants
+// متغيرات الحركة
 // =============================================================================
 
 const containerVariants = {
@@ -232,43 +133,38 @@ const itemVariants = {
   },
 }
 
+
 // =============================================================================
 // Helper Functions
+// الدوال المساعدة
 // =============================================================================
 
-const getStatusStyle = (status: Vendor['status']) => {
-  const styles = {
-    pending: 'bg-yellow-100 text-yellow-700 border-yellow-200',
-    active: 'bg-green-100 text-green-700 border-green-200',
-    suspended: 'bg-red-100 text-red-700 border-red-200',
-    rejected: 'bg-gray-100 text-gray-700 border-gray-200',
-  }
-  return styles[status]
+/**
+ * Format currency
+ * تنسيق العملة
+ */
+const formatCurrency = (amount: number) => {
+  return new Intl.NumberFormat('ar-SY', {
+    style: 'decimal',
+    minimumFractionDigits: 0,
+  }).format(amount) + ' ل.س'
 }
 
-const getStatusLabel = (status: Vendor['status']) => {
-  const labels = {
-    pending: 'بانتظار الموافقة',
-    active: 'نشط',
-    suspended: 'موقوف',
-    rejected: 'مرفوض',
-  }
-  return labels[status]
-}
 
 // =============================================================================
-// Sub-Components
+// Vendor Card Component
+// مكون بطاقة البائع
 // =============================================================================
 
 interface VendorCardProps {
   vendor: Vendor
-  onApprove: (id: string) => void
-  onReject: (id: string) => void
-  onView: (id: string) => void
-  onToggleFeatured: (id: string) => void
+  onEdit: (vendor: Vendor) => void
+  onToggleStatus: (id: number, isActive: boolean) => void
+  onDelete: (id: number) => void
+  isUpdating: boolean
 }
 
-function VendorCard({ vendor, onApprove, onReject, onView, onToggleFeatured }: VendorCardProps) {
+function VendorCard({ vendor, onEdit, onToggleStatus, onDelete, isUpdating }: VendorCardProps) {
   return (
     <motion.div
       variants={itemVariants}
@@ -277,154 +173,429 @@ function VendorCard({ vendor, onApprove, onReject, onView, onToggleFeatured }: V
       {/* Header */}
       <div className="relative p-4 border-b border-historical-gold/10 bg-gradient-to-l from-historical-gold/5 to-transparent">
         <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-xl bg-historical-stone overflow-hidden border-2 border-white shadow-lg flex-shrink-0">
-            <img src={vendor.logo} alt={vendor.name} className="w-full h-full object-cover" />
+          <div
+            className="w-16 h-16 rounded-xl overflow-hidden border-2 border-white shadow-lg flex-shrink-0 flex items-center justify-center"
+            style={{ backgroundColor: vendor.primary_color || '#f5f5f5' }}
+          >
+            {vendor.logo_url ? (
+              <img src={vendor.logo_url} alt={vendor.name} className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-2xl font-bold text-white">
+                {vendor.name.charAt(0).toUpperCase()}
+              </span>
+            )}
           </div>
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
-              <h3 className="font-bold text-historical-charcoal truncate">{vendor.nameAr}</h3>
-              {vendor.isFeatured && (
-                <span className="text-yellow-500">{Icons.star}</span>
-              )}
-            </div>
-            <p className="text-sm text-historical-charcoal/50 truncate">{vendor.name}</p>
-            <span className={`inline-flex mt-1 px-2 py-0.5 rounded-full text-xs font-medium border ${getStatusStyle(vendor.status)}`}>
-              {getStatusLabel(vendor.status)}
+            <h3 className="font-bold text-historical-charcoal truncate">{vendor.name}</h3>
+            <p className="text-sm text-historical-charcoal/50 truncate">{vendor.slug}</p>
+            <span className={`inline-flex mt-1 px-2 py-0.5 rounded-full text-xs font-medium ${
+              vendor.is_active
+                ? 'bg-green-100 text-green-700'
+                : 'bg-red-100 text-red-700'
+            }`}>
+              {vendor.is_active ? 'نشط' : 'غير نشط'}
             </span>
           </div>
         </div>
-
-        {/* Featured Toggle */}
-        <button
-          onClick={() => onToggleFeatured(vendor.id)}
-          className={`absolute top-4 left-4 p-2 rounded-lg transition-colors ${
-            vendor.isFeatured
-              ? 'text-yellow-500 bg-yellow-50'
-              : 'text-historical-charcoal/30 hover:text-yellow-500 hover:bg-yellow-50'
-          }`}
-          title={vendor.isFeatured ? 'إلغاء التمييز' : 'تمييز البائع'}
-        >
-          {vendor.isFeatured ? Icons.star : Icons.starOutline}
-        </button>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-3 divide-x divide-historical-gold/10 rtl:divide-x-reverse">
         <div className="p-3 text-center">
-          <p className="text-lg font-bold text-historical-charcoal">{vendor.totalProducts}</p>
+          <p className="text-lg font-bold text-historical-charcoal">{vendor.products_count}</p>
           <p className="text-xs text-historical-charcoal/50">منتج</p>
         </div>
         <div className="p-3 text-center">
-          <p className="text-lg font-bold text-historical-charcoal">{vendor.totalOrders}</p>
+          <p className="text-lg font-bold text-historical-charcoal">{vendor.orders_count}</p>
           <p className="text-xs text-historical-charcoal/50">طلب</p>
         </div>
         <div className="p-3 text-center">
-          <p className="text-lg font-bold text-historical-gold">${vendor.totalRevenue.toLocaleString()}</p>
+          <p className="text-lg font-bold text-historical-gold">{formatCurrency(vendor.total_revenue)}</p>
           <p className="text-xs text-historical-charcoal/50">إيرادات</p>
         </div>
       </div>
 
-      {/* Info */}
-      <div className="p-4 space-y-2 border-t border-historical-gold/10">
-        <div className="flex items-center gap-2 text-sm text-historical-charcoal/70">
-          {Icons.mail}
-          <span className="truncate" dir="ltr">{vendor.email}</span>
+      {/* Commission */}
+      <div className="px-4 py-3 border-t border-historical-gold/10 bg-historical-stone/20">
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-historical-charcoal/70">نسبة العمولة</span>
+          <span className="font-bold text-historical-gold">{vendor.commission_rate}%</span>
         </div>
-        <div className="flex items-center gap-2 text-sm text-historical-charcoal/70">
-          {Icons.phone}
-          <span dir="ltr">{vendor.phone}</span>
+        <div className="flex items-center justify-between mt-1">
+          <span className="text-sm text-historical-charcoal/70">المخزون</span>
+          <span className="font-medium text-historical-charcoal">{vendor.total_stock} وحدة</span>
         </div>
-        {vendor.rating > 0 && (
-          <div className="flex items-center gap-1">
-            <span className="text-yellow-500">{Icons.star}</span>
-            <span className="text-sm font-medium text-historical-charcoal">{vendor.rating}</span>
-            <span className="text-xs text-historical-charcoal/50">({vendor.reviewCount} تقييم)</span>
-          </div>
-        )}
       </div>
 
       {/* Actions */}
       <div className="p-4 border-t border-historical-gold/10 bg-historical-stone/30">
-        {vendor.status === 'pending' ? (
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => onApprove(vendor.id)}
-              className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-green-500 text-white font-medium hover:bg-green-600 transition-colors"
-            >
-              {Icons.check}
-              <span>قبول</span>
-            </button>
-            <button
-              onClick={() => onReject(vendor.id)}
-              className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-red-500 text-white font-medium hover:bg-red-600 transition-colors"
-            >
-              {Icons.x}
-              <span>رفض</span>
-            </button>
-          </div>
-        ) : (
+        <div className="flex items-center gap-2">
           <button
-            onClick={() => onView(vendor.id)}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-historical-gold/10 text-historical-gold font-medium hover:bg-historical-gold/20 transition-colors"
+            onClick={() => onEdit(vendor)}
+            className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-historical-gold/10 text-historical-gold font-medium hover:bg-historical-gold/20 transition-colors"
           >
-            {Icons.eye}
-            <span>عرض التفاصيل</span>
+            {Icons.edit}
+            <span>تعديل</span>
           </button>
-        )}
+          <button
+            onClick={() => onToggleStatus(vendor.id, !vendor.is_active)}
+            disabled={isUpdating}
+            className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-medium transition-colors ${
+              vendor.is_active
+                ? 'bg-red-100 text-red-700 hover:bg-red-200'
+                : 'bg-green-100 text-green-700 hover:bg-green-200'
+            }`}
+          >
+            {isUpdating ? Icons.loader : (vendor.is_active ? Icons.x : Icons.check)}
+            <span>{vendor.is_active ? 'تعطيل' : 'تفعيل'}</span>
+          </button>
+        </div>
       </div>
     </motion.div>
   )
 }
 
+
+// =============================================================================
+// Vendor Modal Component
+// مكون مودال البائع
+// =============================================================================
+
+interface VendorModalProps {
+  isOpen: boolean
+  vendor: Vendor | null
+  isSaving: boolean
+  onClose: () => void
+  onSave: (data: VendorCreatePayload) => Promise<void>
+}
+
+function VendorModal({ isOpen, vendor, isSaving, onClose, onSave }: VendorModalProps) {
+  const [name, setName] = useState('')
+  const [description, setDescription] = useState('')
+  const [primaryColor, setPrimaryColor] = useState('#D4AF37')
+  const [commissionRate, setCommissionRate] = useState(10)
+  const [isActive, setIsActive] = useState(true)
+  const [logo, setLogo] = useState<File | null>(null)
+
+  // Reset form when modal opens/closes or vendor changes
+  // إعادة تعيين النموذج عند فتح/إغلاق المودال أو تغيير البائع
+  useEffect(() => {
+    if (isOpen && vendor) {
+      setName(vendor.name)
+      setDescription(vendor.description || '')
+      setPrimaryColor(vendor.primary_color || '#D4AF37')
+      setCommissionRate(vendor.commission_rate)
+      setIsActive(vendor.is_active)
+      setLogo(null)
+    } else if (isOpen && !vendor) {
+      setName('')
+      setDescription('')
+      setPrimaryColor('#D4AF37')
+      setCommissionRate(10)
+      setIsActive(true)
+      setLogo(null)
+    }
+  }, [isOpen, vendor])
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    await onSave({
+      name,
+      description,
+      primary_color: primaryColor,
+      commission_rate: commissionRate,
+      is_active: isActive,
+      logo,
+    })
+  }
+
+  if (!isOpen) return null
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+        onClick={onClose}
+      >
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.95, y: 20 }}
+          className="w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between px-6 py-4 border-b border-historical-gold/10 bg-historical-stone/30">
+            <h2 className="text-lg font-bold text-historical-charcoal">
+              {vendor ? 'تعديل البائع' : 'إضافة بائع جديد'}
+            </h2>
+            <button
+              onClick={onClose}
+              className="p-2 rounded-lg text-historical-charcoal/50 hover:text-historical-charcoal hover:bg-historical-gold/10 transition-colors"
+            >
+              {Icons.close}
+            </button>
+          </div>
+
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="p-6 space-y-4">
+            {/* Name */}
+            <div>
+              <label className="block text-sm font-medium text-historical-charcoal mb-1">
+                اسم البائع *
+              </label>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+                className="w-full px-4 py-2.5 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+                placeholder="مثال: متجر التقنية"
+              />
+            </div>
+
+            {/* Description */}
+            <div>
+              <label className="block text-sm font-medium text-historical-charcoal mb-1">
+                الوصف
+              </label>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                rows={3}
+                className="w-full px-4 py-2.5 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 resize-none"
+                placeholder="وصف مختصر عن البائع..."
+              />
+            </div>
+
+            {/* Color and Commission */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-historical-charcoal mb-1">
+                  اللون الأساسي
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={primaryColor}
+                    onChange={(e) => setPrimaryColor(e.target.value)}
+                    className="w-12 h-10 rounded-lg border border-historical-gold/20 cursor-pointer"
+                  />
+                  <input
+                    type="text"
+                    value={primaryColor}
+                    onChange={(e) => setPrimaryColor(e.target.value)}
+                    className="flex-1 px-3 py-2 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 text-sm"
+                    placeholder="#D4AF37"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-historical-charcoal mb-1">
+                  نسبة العمولة (%)
+                </label>
+                <input
+                  type="number"
+                  value={commissionRate}
+                  onChange={(e) => setCommissionRate(Number(e.target.value))}
+                  min={0}
+                  max={100}
+                  step={0.5}
+                  className="w-full px-4 py-2.5 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+                />
+              </div>
+            </div>
+
+            {/* Logo */}
+            <div>
+              <label className="block text-sm font-medium text-historical-charcoal mb-1">
+                الشعار
+              </label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setLogo(e.target.files?.[0] || null)}
+                className="w-full px-4 py-2.5 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+              />
+            </div>
+
+            {/* Active Status */}
+            <div className="flex items-center gap-3">
+              <input
+                type="checkbox"
+                id="is_active"
+                checked={isActive}
+                onChange={(e) => setIsActive(e.target.checked)}
+                className="w-4 h-4 rounded border-historical-gold/30 text-historical-gold focus:ring-historical-gold"
+              />
+              <label htmlFor="is_active" className="text-sm text-historical-charcoal">
+                البائع نشط
+              </label>
+            </div>
+
+            {/* Actions */}
+            <div className="flex items-center gap-3 pt-4">
+              <button
+                type="button"
+                onClick={onClose}
+                className="flex-1 px-4 py-2.5 rounded-xl border border-historical-gold/20 text-historical-charcoal hover:bg-historical-stone/50 transition-colors"
+              >
+                إلغاء
+              </button>
+              <button
+                type="submit"
+                disabled={isSaving || !name.trim()}
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-l from-historical-gold to-historical-red text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isSaving ? Icons.loader : Icons.check}
+                <span>{vendor ? 'حفظ التعديلات' : 'إضافة البائع'}</span>
+              </button>
+            </div>
+          </form>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
+  )
+}
+
+
 // =============================================================================
 // Main Component
+// المكون الرئيسي
 // =============================================================================
 
 export default function VendorsPage() {
-  const [vendors, setVendors] = useState(mockVendors)
+  // =========================================================================
+  // Hook - Fetch vendors from API
+  // الخطاف - جلب البائعين من API
+  // =========================================================================
+  const {
+    vendors,
+    stats,
+    total,
+    currentPage,
+    hasNextPage,
+    hasPreviousPage,
+    isLoading,
+    isSaving,
+    error,
+    filters,
+    fetchVendors,
+    create,
+    update,
+    toggleStatus,
+    setFilters,
+    refresh,
+  } = useVendors()
+
+  // =========================================================================
+  // Local State
+  // الحالة المحلية
+  // =========================================================================
   const [searchQuery, setSearchQuery] = useState('')
-  const [filterStatus, setFilterStatus] = useState('')
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
+  const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'inactive'>('all')
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [editingVendor, setEditingVendor] = useState<Vendor | null>(null)
 
-  const handleApprove = useCallback((id: string) => {
-    setVendors(prev => prev.map(v => 
-      v.id === id ? { ...v, status: 'active' as const } : v
-    ))
+  // =========================================================================
+  // Handlers
+  // المعالجات
+  // =========================================================================
+
+  /**
+   * Handle search with debounce
+   * معالجة البحث مع تأخير
+   */
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const newFilters: VendorFilters = { ...filters, search: searchQuery, page: 1 }
+      if (filterStatus === 'active') {
+        newFilters.is_active = true
+      } else if (filterStatus === 'inactive') {
+        newFilters.is_active = false
+      } else {
+        delete newFilters.is_active
+      }
+      setFilters(newFilters)
+      fetchVendors(newFilters)
+    }, 300)
+
+    return () => clearTimeout(timer)
+  }, [searchQuery, filterStatus]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  /**
+   * Handle add vendor
+   * معالجة إضافة بائع
+   */
+  const handleAddVendor = useCallback(() => {
+    setEditingVendor(null)
+    setIsModalOpen(true)
   }, [])
 
-  const handleReject = useCallback((id: string) => {
-    setVendors(prev => prev.map(v => 
-      v.id === id ? { ...v, status: 'rejected' as const } : v
-    ))
+  /**
+   * Handle edit vendor
+   * معالجة تعديل بائع
+   */
+  const handleEditVendor = useCallback((vendor: Vendor) => {
+    setEditingVendor(vendor)
+    setIsModalOpen(true)
   }, [])
 
-  const handleView = useCallback((id: string) => {
-    // TODO: Navigate to vendor details
-    console.log('View vendor:', id)
+  /**
+   * Handle save vendor
+   * معالجة حفظ البائع
+   */
+  const handleSaveVendor = useCallback(async (data: VendorCreatePayload) => {
+    let success = false
+    
+    if (editingVendor) {
+      success = await update(editingVendor.id, data)
+    } else {
+      success = await create(data)
+    }
+    
+    if (success) {
+      setIsModalOpen(false)
+      setEditingVendor(null)
+    }
+  }, [editingVendor, create, update])
+
+  /**
+   * Handle toggle status
+   * معالجة تغيير الحالة
+   */
+  const handleToggleStatus = useCallback(async (id: number, isActive: boolean) => {
+    await toggleStatus(id, isActive)
+  }, [toggleStatus])
+
+  /**
+   * Handle delete vendor
+   * معالجة حذف بائع
+   */
+  const handleDeleteVendor = useCallback(async (id: number) => {
+    // TODO: Add confirmation dialog
+    console.log('Delete vendor:', id)
   }, [])
 
-  const handleToggleFeatured = useCallback((id: string) => {
-    setVendors(prev => prev.map(v => 
-      v.id === id ? { ...v, isFeatured: !v.isFeatured } : v
-    ))
-  }, [])
+  /**
+   * Handle page change
+   * معالجة تغيير الصفحة
+   */
+  const handlePageChange = useCallback((direction: 'next' | 'prev') => {
+    const newPage = direction === 'next' ? currentPage + 1 : currentPage - 1
+    const newFilters = { ...filters, page: newPage }
+    setFilters(newFilters)
+    fetchVendors(newFilters)
+  }, [currentPage, filters, setFilters, fetchVendors])
 
-  // Filter vendors
-  const filteredVendors = vendors.filter(v => {
-    const matchesSearch = v.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      v.nameAr.includes(searchQuery) ||
-      v.email.toLowerCase().includes(searchQuery.toLowerCase())
-    const matchesStatus = !filterStatus || v.status === filterStatus
-    return matchesSearch && matchesStatus
-  })
-
-  // Stats
-  const stats = {
-    total: vendors.length,
-    active: vendors.filter(v => v.status === 'active').length,
-    pending: vendors.filter(v => v.status === 'pending').length,
-    suspended: vendors.filter(v => v.status === 'suspended').length,
-  }
+  // =========================================================================
+  // Render
+  // العرض
+  // =========================================================================
 
   return (
     <motion.div
@@ -439,11 +610,33 @@ export default function VendorsPage() {
           <h1 className="text-2xl font-bold text-historical-charcoal">إدارة البائعين</h1>
           <p className="text-historical-charcoal/50 mt-1">عرض وإدارة جميع البائعين</p>
         </div>
-        <button className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-l from-historical-gold to-historical-red text-white font-medium shadow-lg hover:shadow-xl transition-shadow">
-          {Icons.add}
-          <span>إضافة بائع</span>
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={refresh}
+            disabled={isLoading}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-historical-gold/10 text-historical-gold hover:bg-historical-gold/20 transition-colors disabled:opacity-50"
+          >
+            {isLoading ? Icons.loader : Icons.refresh}
+          </button>
+          <button
+            onClick={handleAddVendor}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-l from-historical-gold to-historical-red text-white font-medium shadow-lg hover:shadow-xl transition-shadow"
+          >
+            {Icons.add}
+            <span>إضافة بائع</span>
+          </button>
+        </div>
       </motion.div>
+
+      {/* Error Display */}
+      {error && (
+        <motion.div
+          variants={itemVariants}
+          className="bg-red-50 border border-red-200 rounded-xl p-4 text-red-700"
+        >
+          {error}
+        </motion.div>
+      )}
 
       {/* Stats Cards */}
       <motion.div variants={itemVariants} className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -453,7 +646,9 @@ export default function VendorsPage() {
               {Icons.store}
             </div>
             <div>
-              <p className="text-2xl font-bold text-historical-charcoal">{stats.total}</p>
+              <p className="text-2xl font-bold text-historical-charcoal">
+                {stats?.total_vendors || 0}
+              </p>
               <p className="text-xs text-historical-charcoal/50">إجمالي البائعين</p>
             </div>
           </div>
@@ -464,21 +659,10 @@ export default function VendorsPage() {
               {Icons.check}
             </div>
             <div>
-              <p className="text-2xl font-bold text-green-600">{stats.active}</p>
+              <p className="text-2xl font-bold text-green-600">
+                {stats?.active_vendors || 0}
+              </p>
               <p className="text-xs text-historical-charcoal/50">نشط</p>
-            </div>
-          </div>
-        </div>
-        <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-yellow-200">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-yellow-100 text-yellow-600">
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-yellow-600">{stats.pending}</p>
-              <p className="text-xs text-historical-charcoal/50">بانتظار الموافقة</p>
             </div>
           </div>
         </div>
@@ -488,8 +672,23 @@ export default function VendorsPage() {
               {Icons.x}
             </div>
             <div>
-              <p className="text-2xl font-bold text-red-600">{stats.suspended}</p>
-              <p className="text-xs text-historical-charcoal/50">موقوف</p>
+              <p className="text-2xl font-bold text-red-600">
+                {stats?.inactive_vendors || 0}
+              </p>
+              <p className="text-xs text-historical-charcoal/50">غير نشط</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-blue-200">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-blue-100 text-blue-600">
+              {Icons.money}
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-blue-600">
+                {stats?.average_commission_rate || 0}%
+              </p>
+              <p className="text-xs text-historical-charcoal/50">متوسط العمولة</p>
             </div>
           </div>
         </div>
@@ -505,62 +704,96 @@ export default function VendorsPage() {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="بحث بالاسم أو البريد..."
+            placeholder="بحث بالاسم أو الوصف..."
             className="w-full pr-12 pl-4 py-3 rounded-xl border border-historical-gold/20 bg-white/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
           />
         </div>
 
         <select
           value={filterStatus}
-          onChange={(e) => setFilterStatus(e.target.value)}
+          onChange={(e) => setFilterStatus(e.target.value as 'all' | 'active' | 'inactive')}
           className="px-4 py-3 rounded-xl border border-historical-gold/20 bg-white/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-historical-gold/30 min-w-[150px]"
         >
-          <option value="">كل الحالات</option>
+          <option value="all">كل الحالات</option>
           <option value="active">نشط</option>
-          <option value="pending">بانتظار الموافقة</option>
-          <option value="suspended">موقوف</option>
-          <option value="rejected">مرفوض</option>
+          <option value="inactive">غير نشط</option>
         </select>
-
-        <div className="flex items-center bg-white/80 backdrop-blur-sm rounded-xl border border-historical-gold/20 p-1">
-          <button
-            onClick={() => setViewMode('grid')}
-            className={`p-2 rounded-lg transition-colors ${viewMode === 'grid' ? 'bg-historical-gold/20 text-historical-gold' : 'text-historical-charcoal/50'}`}
-          >
-            {Icons.grid}
-          </button>
-          <button
-            onClick={() => setViewMode('list')}
-            className={`p-2 rounded-lg transition-colors ${viewMode === 'list' ? 'bg-historical-gold/20 text-historical-gold' : 'text-historical-charcoal/50'}`}
-          >
-            {Icons.list}
-          </button>
-        </div>
       </motion.div>
 
       {/* Vendors Grid */}
-      <motion.div
-        variants={containerVariants}
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-      >
-        {filteredVendors.length === 0 ? (
-          <motion.div variants={itemVariants} className="col-span-full text-center py-12">
-            <p className="text-historical-charcoal/50">لا يوجد بائعين مطابقين للبحث</p>
+      {isLoading && vendors.length === 0 ? (
+        <motion.div variants={itemVariants} className="flex items-center justify-center py-12">
+          {Icons.loader}
+          <span className="mr-2 text-historical-charcoal/50">جاري تحميل البائعين...</span>
+        </motion.div>
+      ) : vendors.length === 0 ? (
+        <motion.div variants={itemVariants} className="text-center py-12">
+          <div className="text-4xl mb-4">🏪</div>
+          <p className="text-historical-charcoal/50">لا يوجد بائعين حالياً</p>
+          <button
+            onClick={handleAddVendor}
+            className="mt-4 px-6 py-2 rounded-xl bg-historical-gold/10 text-historical-gold hover:bg-historical-gold/20 transition-colors"
+          >
+            إضافة أول بائع
+          </button>
+        </motion.div>
+      ) : (
+        <>
+          <motion.div
+            variants={containerVariants}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+          >
+            {vendors.map(vendor => (
+              <VendorCard
+                key={vendor.id}
+                vendor={vendor}
+                onEdit={handleEditVendor}
+                onToggleStatus={handleToggleStatus}
+                onDelete={handleDeleteVendor}
+                isUpdating={isSaving}
+              />
+            ))}
           </motion.div>
-        ) : (
-          filteredVendors.map(vendor => (
-            <VendorCard
-              key={vendor.id}
-              vendor={vendor}
-              onApprove={handleApprove}
-              onReject={handleReject}
-              onView={handleView}
-              onToggleFeatured={handleToggleFeatured}
-            />
-          ))
-        )}
-      </motion.div>
+
+          {/* Pagination */}
+          {(hasNextPage || hasPreviousPage) && (
+            <motion.div
+              variants={itemVariants}
+              className="flex items-center justify-center gap-4 pt-4"
+            >
+              <button
+                onClick={() => handlePageChange('prev')}
+                disabled={!hasPreviousPage || isLoading}
+                className="px-4 py-2 rounded-xl border border-historical-gold/20 text-historical-charcoal/70 hover:bg-historical-gold/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                الصفحة السابقة
+              </button>
+              <span className="text-historical-charcoal/50">
+                صفحة {currentPage}
+              </span>
+              <button
+                onClick={() => handlePageChange('next')}
+                disabled={!hasNextPage || isLoading}
+                className="px-4 py-2 rounded-xl border border-historical-gold/20 text-historical-charcoal/70 hover:bg-historical-gold/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                الصفحة التالية
+              </button>
+            </motion.div>
+          )}
+        </>
+      )}
+
+      {/* Vendor Modal */}
+      <VendorModal
+        isOpen={isModalOpen}
+        vendor={editingVendor}
+        isSaving={isSaving}
+        onClose={() => {
+          setIsModalOpen(false)
+          setEditingVendor(null)
+        }}
+        onSave={handleSaveVendor}
+      />
     </motion.div>
   )
 }
-

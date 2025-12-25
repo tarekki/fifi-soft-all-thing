@@ -63,6 +63,7 @@ export { useDashboard } from './hooks/useDashboard'
 export { useCategories } from './hooks/useCategories'
 export { useProducts } from './hooks/useProducts'
 export { useOrders } from './hooks/useOrders'
+export { useVendors } from './hooks/useVendors'
 
 // Category Types
 // أنواع الفئات
@@ -148,4 +149,33 @@ export {
   bulkOrderAction,
   getOrderStats,
 } from './api/orders'
+
+// Vendor Types
+// أنواع البائعين
+export type {
+  Vendor,
+  VendorDetail,
+  VendorFilters,
+  VendorCreatePayload,
+  VendorUpdatePayload,
+  VendorStatusUpdatePayload,
+  VendorCommissionUpdatePayload,
+  VendorBulkAction,
+  VendorBulkActionPayload,
+  VendorStats,
+} from './types/vendors'
+
+// Vendor API Functions
+// دوال API البائعين
+export {
+  getVendors,
+  getVendor,
+  createVendor,
+  updateVendor,
+  deleteVendor,
+  updateVendorStatus,
+  updateVendorCommission,
+  bulkVendorAction,
+  getVendorStats,
+} from './api/vendors'
 

@@ -40,6 +40,15 @@ from .orders import (
     AdminOrderStatusUpdateSerializer,
     AdminOrderBulkActionSerializer,
 )
+from .vendors import (
+    AdminVendorListSerializer,
+    AdminVendorDetailSerializer,
+    AdminVendorCreateSerializer,
+    AdminVendorUpdateSerializer,
+    AdminVendorStatusUpdateSerializer,
+    AdminVendorCommissionUpdateSerializer,
+    AdminVendorBulkActionSerializer,
+)
 
 __all__ = [
     # Auth
@@ -71,5 +80,13 @@ __all__ = [
     'AdminOrderDetailSerializer',
     'AdminOrderStatusUpdateSerializer',
     'AdminOrderBulkActionSerializer',
+    # Vendors
+    'AdminVendorListSerializer',
+    'AdminVendorDetailSerializer',
+    'AdminVendorCreateSerializer',
+    'AdminVendorUpdateSerializer',
+    'AdminVendorStatusUpdateSerializer',
+    'AdminVendorCommissionUpdateSerializer',
+    'AdminVendorBulkActionSerializer',
 ]
 

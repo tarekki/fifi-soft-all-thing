@@ -47,6 +47,13 @@ from admin_api.views import (
     AdminOrderStatusUpdateView,
     AdminOrderBulkActionView,
     AdminOrderStatsView,
+    # Vendors
+    AdminVendorListCreateView,
+    AdminVendorDetailView,
+    AdminVendorStatusUpdateView,
+    AdminVendorCommissionUpdateView,
+    AdminVendorBulkActionView,
+    AdminVendorStatsView,
 )
 
 
@@ -269,6 +276,61 @@ orders_urlpatterns = [
 
 
 # =============================================================================
+# Vendors URL Patterns
+# أنماط URLs للبائعين
+# =============================================================================
+vendors_urlpatterns = [
+    # GET, POST /api/v1/admin/vendors/
+    # عرض قائمة البائعين وإنشاء بائع جديد
+    path(
+        '',
+        AdminVendorListCreateView.as_view(),
+        name='list-create'
+    ),
+    
+    # GET /api/v1/admin/vendors/stats/
+    # إحصائيات البائعين
+    path(
+        'stats/',
+        AdminVendorStatsView.as_view(),
+        name='stats'
+    ),
+    
+    # POST /api/v1/admin/vendors/bulk-action/
+    # عمليات مجمعة
+    path(
+        'bulk-action/',
+        AdminVendorBulkActionView.as_view(),
+        name='bulk-action'
+    ),
+    
+    # GET, PUT, DELETE /api/v1/admin/vendors/{id}/
+    # تفاصيل، تعديل، حذف بائع
+    path(
+        '<int:pk>/',
+        AdminVendorDetailView.as_view(),
+        name='detail'
+    ),
+    
+    # PUT /api/v1/admin/vendors/{id}/status/
+    # تحديث حالة البائع
+    path(
+        '<int:pk>/status/',
+        AdminVendorStatusUpdateView.as_view(),
+        name='status-update'
+    ),
+    
+    # PUT /api/v1/admin/vendors/{id}/commission/
+    # تحديث عمولة البائع
+    path(
+        '<int:pk>/commission/',
+        AdminVendorCommissionUpdateView.as_view(),
+        name='commission-update'
+    ),
+]
+
+
+# =============================================================================
 # Main URL Patterns
 # أنماط URLs الرئيسية
 # =============================================================================
@@ -292,6 +354,10 @@ urlpatterns = [
     # Orders endpoints
     # نقاط نهاية الطلبات
     path('orders/', include((orders_urlpatterns, 'orders'))),
+    
+    # Vendors endpoints
+    # نقاط نهاية البائعين
+    path('vendors/', include((vendors_urlpatterns, 'vendors'))),
     
     # TODO: Add more endpoints as they are implemented
     # سيتم إضافة المزيد من النقاط عند تنفيذها
