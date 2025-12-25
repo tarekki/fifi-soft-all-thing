@@ -17,8 +17,8 @@
 | 2 | ⚙️ Site Settings | ✅ | ✅ | ⬜ | 🟡 |
 | 3 | 📊 Dashboard Stats | ✅ | ✅ | ✅ | 🟢 |
 | 4 | 📂 Categories CRUD | ✅ | ✅ | ✅ | 🟢 |
-| 5 | 📦 Products CRUD | ⬜ | ✅ | ⬜ | 🔴 |
-| 6 | 📋 Orders Management | ⬜ | ✅ | ⬜ | 🔴 |
+| 5 | 📦 Products CRUD | ✅ | ✅ | ✅ | 🟢 |
+| 6 | 📋 Orders Management | ✅ | ✅ | ⬜ | 🟡 |
 | 7 | 🏪 Vendors Management | ⬜ | ✅ | ⬜ | 🔴 |
 | 8 | 👥 Users Management | ⬜ | ✅ | ⬜ | 🔴 |
 | 9 | 🎯 Promotions (Banners/Stories/Coupons) | ⬜ | ✅ | ⬜ | 🔴 |
@@ -201,70 +201,79 @@ interface SalesChartData {
 
 ---
 
-## 📦 المهمة #5: Products CRUD (Admin)
+## 📦 المهمة #5: Products CRUD (Admin) ✅ مكتمل
 
-### 5.1 Backend
+### 5.1 Backend ✅ مكتمل
 ```
-□ تحسين Product Model:
-  - إضافة category (ForeignKey)
-  - إضافة is_featured, is_new, is_bestseller
-  - إضافة compare_at_price (السعر قبل الخصم)
-  - إضافة badge_text, badge_color
-  - إضافة view_count, order_count
-□ إنشاء ProductImage Model (متعدد الصور)
-□ إنشاء ProductViewSet (Admin):
-  - GET    /api/v1/admin/products/             → قائمة + فلترة + بحث
-  - POST   /api/v1/admin/products/             → إنشاء
-  - GET    /api/v1/admin/products/{id}/        → تفاصيل
-  - PUT    /api/v1/admin/products/{id}/        → تعديل
-  - DELETE /api/v1/admin/products/{id}/        → حذف
-  - POST   /api/v1/admin/products/bulk-action/ → عمليات جماعية
-  - POST   /api/v1/admin/products/{id}/images/ → رفع صور
-  - CRUD   /api/v1/admin/products/{id}/variants/ → المتغيرات
-□ إضافة Filters (vendor, category, status, stock)
-□ إضافة Search (name, SKU, description)
-□ إضافة Ordering (price, stock, created_at)
+✓ إضافة category (ForeignKey) للـ Product Model
+✓ إنشاء AdminProductListSerializer, AdminProductDetailSerializer
+✓ إنشاء AdminProductCreateSerializer, AdminProductUpdateSerializer
+✓ إنشاء AdminProductVariantSerializer, AdminProductVariantCreateSerializer
+✓ إنشاء AdminProductBulkActionSerializer
+✓ إنشاء ProductViewSet (Admin):
+  ✓ GET    /api/v1/admin/products/             → قائمة + فلترة + بحث
+  ✓ POST   /api/v1/admin/products/             → إنشاء
+  ✓ GET    /api/v1/admin/products/{id}/        → تفاصيل
+  ✓ PUT    /api/v1/admin/products/{id}/        → تعديل
+  ✓ DELETE /api/v1/admin/products/{id}/        → حذف
+  ✓ POST   /api/v1/admin/products/bulk-action/ → عمليات جماعية
+  ✓ CRUD   /api/v1/admin/products/{id}/variants/ → المتغيرات
+✓ إضافة Filters (vendor, category, status, stock)
+✓ إضافة Search (name, SKU, description)
+✓ إضافة Ordering (price, stock, created_at)
+✓ تحديث ProductAdmin في Django Admin لعرض category
 ```
 
-### 5.2 Frontend
+### 5.2 Frontend ✅ مكتمل
 ```
-□ إنشاء Products API client
-□ إنشاء useAdminProducts hook
-□ ربط Products Table بالـ API
-□ ربط Filters بالـ API
-□ ربط Search بالـ API
-□ ربط Bulk Actions بالـ API
-□ إنشاء صفحة Add/Edit Product
-□ ربط Image upload بالـ API
-□ ربط Variants management بالـ API
+✓ إنشاء Product Types (products.ts)
+✓ إنشاء Products API client (api/products.ts)
+✓ إنشاء useProducts hook
+✓ ربط Products Table بالـ API
+✓ ربط Filters بالـ API (category, status)
+✓ ربط Search بالـ API
+✓ ربط Bulk Actions بالـ API (activate, deactivate, delete)
+✓ إضافة/تعديل/حذف المنتجات من الـ Admin Dashboard
+✓ ربط Variants management بالـ API
 ```
 
 ---
 
-## 📋 المهمة #6: Orders Management (Admin)
+## 📋 المهمة #6: Orders Management (Admin) ✅ مكتمل جزئياً
 
-### 6.1 Backend
+### 6.1 Backend ✅ مكتمل
 ```
-□ تحسين Order ViewSet (Admin):
-  - GET    /api/v1/admin/orders/               → قائمة + فلترة
-  - GET    /api/v1/admin/orders/{id}/          → تفاصيل كاملة
-  - PUT    /api/v1/admin/orders/{id}/status/   → تحديث الحالة
-  - POST   /api/v1/admin/orders/{id}/refund/   → إرجاع
-  - POST   /api/v1/admin/orders/{id}/note/     → إضافة ملاحظة
-  - GET    /api/v1/admin/orders/{id}/history/  → تاريخ الطلب
-□ إضافة Filters (status, date_range, vendor)
-□ إضافة OrderHistory Model (تسجيل كل التغييرات)
-□ إضافة OrderNote Model
+✓ إنشاء Order ViewSet (Admin):
+  ✓ GET    /api/v1/admin/orders/               → قائمة + فلترة + ترقيم
+  ✓ GET    /api/v1/admin/orders/{id}/          → تفاصيل كاملة مع العناصر
+  ✓ PUT    /api/v1/admin/orders/{id}/status/   → تحديث الحالة مع validation
+  ✓ POST   /api/v1/admin/orders/bulk-action/   → عمليات مجمعة
+  ✓ GET    /api/v1/admin/orders/stats/         → إحصائيات الطلبات
+✓ إضافة Filters (status, order_type, date_range, is_guest)
+✓ إضافة Search (order_number, customer_name, phone)
+✓ إضافة Sorting (created_at, total, status)
+✓ إنشاء AdminOrderListSerializer (مُحسّن للقوائم)
+✓ إنشاء AdminOrderDetailSerializer (تفاصيل كاملة)
+✓ إنشاء AdminOrderStatusUpdateSerializer (مع validation للانتقالات)
+✓ إنشاء AdminOrderBulkActionSerializer
+□ إضافة OrderHistory Model (لاحقاً - تسجيل التغييرات)
+□ إضافة OrderNote Model (لاحقاً)
+□ إضافة Refund endpoint (لاحقاً)
 ```
 
-### 6.2 Frontend
+### 6.2 Frontend ✅ مكتمل
 ```
-□ إنشاء Orders API client
-□ إنشاء useAdminOrders hook
-□ ربط Orders Table بالـ API
-□ ربط Status update بالـ API
-□ ربط Order Details Modal بالـ API
-□ إضافة Real-time updates (WebSocket أو Polling)
+✓ إنشاء Order Types (types/orders.ts)
+✓ إنشاء Orders API client (api/orders.ts)
+✓ إنشاء useOrders hook
+✓ ربط Orders Table بالـ API
+✓ ربط Search & Filters بالـ API
+✓ ربط Status update بالـ API (مع validation للانتقالات المسموحة)
+✓ ربط Order Details Modal بالـ API
+✓ ربط Bulk Actions بالـ API (confirm, ship, cancel)
+✓ عرض إحصائيات الطلبات من API
+✓ إضافة Pagination
+□ إضافة Real-time updates (لاحقاً - WebSocket)
 ```
 
 ---

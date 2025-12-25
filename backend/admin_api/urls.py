@@ -41,6 +41,12 @@ from admin_api.views import (
     AdminProductBulkActionView,
     AdminProductVariantListCreateView,
     AdminProductVariantDetailView,
+    # Orders
+    AdminOrderListView,
+    AdminOrderDetailView,
+    AdminOrderStatusUpdateView,
+    AdminOrderBulkActionView,
+    AdminOrderStatsView,
 )
 
 
@@ -216,6 +222,53 @@ products_urlpatterns = [
 
 
 # =============================================================================
+# Orders URL Patterns
+# أنماط URLs للطلبات
+# =============================================================================
+orders_urlpatterns = [
+    # GET /api/v1/admin/orders/
+    # عرض قائمة الطلبات
+    path(
+        '',
+        AdminOrderListView.as_view(),
+        name='list'
+    ),
+    
+    # GET /api/v1/admin/orders/stats/
+    # إحصائيات الطلبات
+    path(
+        'stats/',
+        AdminOrderStatsView.as_view(),
+        name='stats'
+    ),
+    
+    # POST /api/v1/admin/orders/bulk-action/
+    # عمليات مجمعة
+    path(
+        'bulk-action/',
+        AdminOrderBulkActionView.as_view(),
+        name='bulk-action'
+    ),
+    
+    # GET /api/v1/admin/orders/{id}/
+    # تفاصيل الطلب
+    path(
+        '<int:pk>/',
+        AdminOrderDetailView.as_view(),
+        name='detail'
+    ),
+    
+    # PUT /api/v1/admin/orders/{id}/status/
+    # تحديث حالة الطلب
+    path(
+        '<int:pk>/status/',
+        AdminOrderStatusUpdateView.as_view(),
+        name='status-update'
+    ),
+]
+
+
+# =============================================================================
 # Main URL Patterns
 # أنماط URLs الرئيسية
 # =============================================================================
@@ -235,6 +288,10 @@ urlpatterns = [
     # Products endpoints
     # نقاط نهاية المنتجات
     path('products/', include((products_urlpatterns, 'products'))),
+    
+    # Orders endpoints
+    # نقاط نهاية الطلبات
+    path('orders/', include((orders_urlpatterns, 'orders'))),
     
     # TODO: Add more endpoints as they are implemented
     # سيتم إضافة المزيد من النقاط عند تنفيذها
