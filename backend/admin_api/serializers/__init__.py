@@ -49,6 +49,12 @@ from .vendors import (
     AdminVendorCommissionUpdateSerializer,
     AdminVendorBulkActionSerializer,
 )
+from .vendor_applications import (
+    AdminVendorApplicationListSerializer,
+    AdminVendorApplicationDetailSerializer,
+    AdminVendorApplicationApproveSerializer,
+    AdminVendorApplicationRejectSerializer,
+)
 
 __all__ = [
     # Auth
@@ -88,5 +94,10 @@ __all__ = [
     'AdminVendorStatusUpdateSerializer',
     'AdminVendorCommissionUpdateSerializer',
     'AdminVendorBulkActionSerializer',
+    # Vendor Applications
+    'AdminVendorApplicationListSerializer',
+    'AdminVendorApplicationDetailSerializer',
+    'AdminVendorApplicationApproveSerializer',
+    'AdminVendorApplicationRejectSerializer',
 ]
 

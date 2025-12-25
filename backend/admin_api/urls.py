@@ -54,6 +54,12 @@ from admin_api.views import (
     AdminVendorCommissionUpdateView,
     AdminVendorBulkActionView,
     AdminVendorStatsView,
+    # Vendor Applications
+    AdminVendorApplicationListView,
+    AdminVendorApplicationDetailView,
+    AdminVendorApplicationApproveView,
+    AdminVendorApplicationRejectView,
+    AdminVendorApplicationStatsView,
 )
 
 
@@ -331,6 +337,53 @@ vendors_urlpatterns = [
 
 
 # =============================================================================
+# Vendor Applications URL Patterns
+# أنماط URLs لطلبات انضمام البائعين
+# =============================================================================
+vendor_applications_urlpatterns = [
+    # GET /api/v1/admin/vendor-applications/
+    # عرض قائمة طلبات الانضمام
+    path(
+        '',
+        AdminVendorApplicationListView.as_view(),
+        name='list'
+    ),
+    
+    # GET /api/v1/admin/vendor-applications/stats/
+    # إحصائيات الطلبات
+    path(
+        'stats/',
+        AdminVendorApplicationStatsView.as_view(),
+        name='stats'
+    ),
+    
+    # GET /api/v1/admin/vendor-applications/{id}/
+    # تفاصيل الطلب
+    path(
+        '<int:pk>/',
+        AdminVendorApplicationDetailView.as_view(),
+        name='detail'
+    ),
+    
+    # POST /api/v1/admin/vendor-applications/{id}/approve/
+    # الموافقة على الطلب
+    path(
+        '<int:pk>/approve/',
+        AdminVendorApplicationApproveView.as_view(),
+        name='approve'
+    ),
+    
+    # POST /api/v1/admin/vendor-applications/{id}/reject/
+    # رفض الطلب
+    path(
+        '<int:pk>/reject/',
+        AdminVendorApplicationRejectView.as_view(),
+        name='reject'
+    ),
+]
+
+
+# =============================================================================
 # Main URL Patterns
 # أنماط URLs الرئيسية
 # =============================================================================
@@ -358,6 +411,10 @@ urlpatterns = [
     # Vendors endpoints
     # نقاط نهاية البائعين
     path('vendors/', include((vendors_urlpatterns, 'vendors'))),
+    
+    # Vendor Applications endpoints
+    # نقاط نهاية طلبات انضمام البائعين
+    path('vendor-applications/', include((vendor_applications_urlpatterns, 'vendor-applications'))),
     
     # TODO: Add more endpoints as they are implemented
     # سيتم إضافة المزيد من النقاط عند تنفيذها

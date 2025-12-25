@@ -46,6 +46,13 @@ from .vendors import (
     AdminVendorBulkActionView,
     AdminVendorStatsView,
 )
+from .vendor_applications import (
+    AdminVendorApplicationListView,
+    AdminVendorApplicationDetailView,
+    AdminVendorApplicationApproveView,
+    AdminVendorApplicationRejectView,
+    AdminVendorApplicationStatsView,
+)
 
 __all__ = [
     # Auth
@@ -82,5 +89,11 @@ __all__ = [
     'AdminVendorCommissionUpdateView',
     'AdminVendorBulkActionView',
     'AdminVendorStatsView',
+    # Vendor Applications
+    'AdminVendorApplicationListView',
+    'AdminVendorApplicationDetailView',
+    'AdminVendorApplicationApproveView',
+    'AdminVendorApplicationRejectView',
+    'AdminVendorApplicationStatsView',
 ]
 

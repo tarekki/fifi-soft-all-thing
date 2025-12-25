@@ -64,6 +64,7 @@ export { useCategories } from './hooks/useCategories'
 export { useProducts } from './hooks/useProducts'
 export { useOrders } from './hooks/useOrders'
 export { useVendors } from './hooks/useVendors'
+export { useVendorApplications } from './hooks/useVendorApplications'
 
 // Category Types
 // أنواع الفئات
@@ -178,4 +179,27 @@ export {
   bulkVendorAction,
   getVendorStats,
 } from './api/vendors'
+
+// Vendor Application Types
+// أنواع طلبات انضمام البائعين
+export type {
+  VendorApplication,
+  VendorApplicationDetail,
+  VendorApplicationFilters,
+  VendorApplicationApprovePayload,
+  VendorApplicationRejectPayload,
+  VendorApplicationStats,
+  VendorApplicationStatus,
+  VendorApplicationBusinessType,
+} from './types/vendorApplications'
+
+// Vendor Application API Functions
+// دوال API طلبات انضمام البائعين
+export {
+  getVendorApplications,
+  getVendorApplication,
+  approveVendorApplication,
+  rejectVendorApplication,
+  getVendorApplicationStats,
+} from './api/vendorApplications'
 

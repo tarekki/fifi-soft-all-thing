@@ -142,6 +142,13 @@ const navigationItems: NavItem[] = [
     href: '/admin/vendors',
   },
   {
+    id: 'vendor-applications',
+    label: 'Vendor Applications',
+    labelAr: 'طلبات الانضمام',
+    icon: Icons.vendors,
+    href: '/admin/vendor-applications',
+  },
+  {
     id: 'orders',
     label: 'Orders',
     labelAr: 'الطلبات',
