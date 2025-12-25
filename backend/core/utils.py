@@ -66,6 +66,22 @@ def error_response(message="An error occurred", errors=None, status_code=status.
             status_code=400
         )
     """
+    # Convert ErrorDetail objects to strings for JSON serialization
+    # تحويل كائنات ErrorDetail إلى strings للـ JSON serialization
+    if errors:
+        def convert_error_detail(obj):
+            if isinstance(obj, dict):
+                return {key: convert_error_detail(value) for key, value in obj.items()}
+            elif isinstance(obj, list):
+                return [convert_error_detail(item) for item in obj]
+            elif hasattr(obj, 'string'):
+                # DRF ErrorDetail object
+                return str(obj)
+            else:
+                return obj
+        
+        errors = convert_error_detail(errors)
+    
     return Response(
         {
             "success": False,

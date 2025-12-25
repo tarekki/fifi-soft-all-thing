@@ -60,6 +60,12 @@ from admin_api.views import (
     AdminVendorApplicationApproveView,
     AdminVendorApplicationRejectView,
     AdminVendorApplicationStatsView,
+    # Users
+    AdminUserListView,
+    AdminUserDetailView,
+    AdminUserStatusUpdateView,
+    AdminUserBulkActionView,
+    AdminUserStatsView,
 )
 
 
@@ -384,6 +390,53 @@ vendor_applications_urlpatterns = [
 
 
 # =============================================================================
+# Users URL Patterns
+# أنماط URLs للمستخدمين
+# =============================================================================
+users_urlpatterns = [
+    # GET, POST /api/v1/admin/users/
+    # عرض قائمة المستخدمين وإنشاء مستخدم جديد
+    path(
+        '',
+        AdminUserListView.as_view(),
+        name='list-create'
+    ),
+    
+    # GET /api/v1/admin/users/stats/
+    # إحصائيات المستخدمين
+    path(
+        'stats/',
+        AdminUserStatsView.as_view(),
+        name='stats'
+    ),
+    
+    # POST /api/v1/admin/users/bulk-action/
+    # عمليات مجمعة
+    path(
+        'bulk-action/',
+        AdminUserBulkActionView.as_view(),
+        name='bulk-action'
+    ),
+    
+    # GET, PUT, DELETE /api/v1/admin/users/{id}/
+    # تفاصيل، تعديل، حذف مستخدم
+    path(
+        '<int:pk>/',
+        AdminUserDetailView.as_view(),
+        name='detail'
+    ),
+    
+    # PUT /api/v1/admin/users/{id}/status/
+    # تحديث حالة المستخدم
+    path(
+        '<int:pk>/status/',
+        AdminUserStatusUpdateView.as_view(),
+        name='status-update'
+    ),
+]
+
+
+# =============================================================================
 # Main URL Patterns
 # أنماط URLs الرئيسية
 # =============================================================================
@@ -416,6 +469,10 @@ urlpatterns = [
     # نقاط نهاية طلبات انضمام البائعين
     path('vendor-applications/', include((vendor_applications_urlpatterns, 'vendor-applications'))),
     
+    # Users endpoints
+    # نقاط نهاية المستخدمين
+    path('users/', include((users_urlpatterns, 'users'))),
+    
     # TODO: Add more endpoints as they are implemented
     # سيتم إضافة المزيد من النقاط عند تنفيذها
     
@@ -424,9 +481,6 @@ urlpatterns = [
     
     # Vendors Management
     # path('vendors/', include('admin_api.urls.vendors')),
-    
-    # Users Management
-    # path('users/', include('admin_api.urls.users')),
     
     # Promotions Management
     # path('promotions/', include('admin_api.urls.promotions')),

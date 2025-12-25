@@ -65,6 +65,7 @@ export { useProducts } from './hooks/useProducts'
 export { useOrders } from './hooks/useOrders'
 export { useVendors } from './hooks/useVendors'
 export { useVendorApplications } from './hooks/useVendorApplications'
+export { useUsers } from './hooks/useUsers'
 
 // Category Types
 // أنواع الفئات
@@ -202,4 +203,31 @@ export {
   rejectVendorApplication,
   getVendorApplicationStats,
 } from './api/vendorApplications'
+
+// User Types
+// أنواع المستخدمين
+export type {
+  User,
+  UserDetail,
+  UserFilters,
+  UserCreatePayload,
+  UserUpdatePayload,
+  UserStatusUpdatePayload,
+  UserBulkActionPayload,
+  UserStats,
+  UserRole,
+} from './types/users'
+
+// User API Functions
+// دوال API المستخدمين
+export {
+  getUsers,
+  getUser,
+  createUser,
+  updateUser,
+  deleteUser,
+  updateUserStatus,
+  bulkUserAction,
+  getUserStats,
+} from './api/users'
 
