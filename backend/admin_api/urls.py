@@ -35,6 +35,12 @@ from admin_api.views import (
     AdminCategoryDetailView,
     AdminCategoryTreeView,
     AdminCategoryBulkActionView,
+    # Products
+    AdminProductListCreateView,
+    AdminProductDetailView,
+    AdminProductBulkActionView,
+    AdminProductVariantListCreateView,
+    AdminProductVariantDetailView,
 )
 
 
@@ -163,6 +169,53 @@ categories_urlpatterns = [
 
 
 # =============================================================================
+# Products URL Patterns
+# أنماط URLs للمنتجات
+# =============================================================================
+products_urlpatterns = [
+    # GET, POST /api/v1/admin/products/
+    # عرض القائمة وإنشاء منتج جديد
+    path(
+        '',
+        AdminProductListCreateView.as_view(),
+        name='list-create'
+    ),
+    
+    # POST /api/v1/admin/products/bulk-action/
+    # عمليات مجمعة
+    path(
+        'bulk-action/',
+        AdminProductBulkActionView.as_view(),
+        name='bulk-action'
+    ),
+    
+    # GET, PUT, DELETE /api/v1/admin/products/{id}/
+    # تفاصيل، تحديث، حذف
+    path(
+        '<int:pk>/',
+        AdminProductDetailView.as_view(),
+        name='detail'
+    ),
+    
+    # GET, POST /api/v1/admin/products/{id}/variants/
+    # عرض وإنشاء متغيرات المنتج
+    path(
+        '<int:product_pk>/variants/',
+        AdminProductVariantListCreateView.as_view(),
+        name='variants-list-create'
+    ),
+    
+    # GET, PUT, DELETE /api/v1/admin/products/{id}/variants/{variant_id}/
+    # تفاصيل، تحديث، حذف متغير
+    path(
+        '<int:product_pk>/variants/<int:pk>/',
+        AdminProductVariantDetailView.as_view(),
+        name='variant-detail'
+    ),
+]
+
+
+# =============================================================================
 # Main URL Patterns
 # أنماط URLs الرئيسية
 # =============================================================================
@@ -179,11 +232,12 @@ urlpatterns = [
     # نقاط نهاية الفئات
     path('categories/', include((categories_urlpatterns, 'categories'))),
     
+    # Products endpoints
+    # نقاط نهاية المنتجات
+    path('products/', include((products_urlpatterns, 'products'))),
+    
     # TODO: Add more endpoints as they are implemented
     # سيتم إضافة المزيد من النقاط عند تنفيذها
-    
-    # Products Management
-    # path('products/', include('admin_api.urls.products')),
     
     # Orders Management
     # path('orders/', include('admin_api.urls.orders')),

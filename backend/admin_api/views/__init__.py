@@ -24,6 +24,13 @@ from .categories import (
     AdminCategoryTreeView,
     AdminCategoryBulkActionView,
 )
+from .products import (
+    AdminProductListCreateView,
+    AdminProductDetailView,
+    AdminProductBulkActionView,
+    AdminProductVariantListCreateView,
+    AdminProductVariantDetailView,
+)
 
 __all__ = [
     # Auth
@@ -41,5 +48,11 @@ __all__ = [
     'AdminCategoryDetailView',
     'AdminCategoryTreeView',
     'AdminCategoryBulkActionView',
+    # Products
+    'AdminProductListCreateView',
+    'AdminProductDetailView',
+    'AdminProductBulkActionView',
+    'AdminProductVariantListCreateView',
+    'AdminProductVariantDetailView',
 ]
 

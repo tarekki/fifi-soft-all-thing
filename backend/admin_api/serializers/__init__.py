@@ -24,6 +24,15 @@ from .categories import (
     AdminCategoryUpdateSerializer,
     AdminCategoryTreeSerializer,
 )
+from .products import (
+    AdminProductListSerializer,
+    AdminProductDetailSerializer,
+    AdminProductCreateSerializer,
+    AdminProductUpdateSerializer,
+    AdminProductBulkActionSerializer,
+    AdminProductVariantSerializer,
+    AdminProductVariantCreateSerializer,
+)
 
 __all__ = [
     # Auth
@@ -41,5 +50,13 @@ __all__ = [
     'AdminCategoryCreateSerializer',
     'AdminCategoryUpdateSerializer',
     'AdminCategoryTreeSerializer',
+    # Products
+    'AdminProductListSerializer',
+    'AdminProductDetailSerializer',
+    'AdminProductCreateSerializer',
+    'AdminProductUpdateSerializer',
+    'AdminProductBulkActionSerializer',
+    'AdminProductVariantSerializer',
+    'AdminProductVariantCreateSerializer',
 ]
 

@@ -10,33 +10,30 @@
  * - Search
  * - Bulk actions
  * - Quick edit
+ * - Real-time API integration
  */
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useProducts, useCategories } from '@/lib/admin'
+import type { Product, ProductStatus, ProductFilters, ProductCreatePayload } from '@/lib/admin'
 
 // =============================================================================
 // Types
 // =============================================================================
 
-interface Product {
-  id: string
-  name: string
-  nameAr: string
-  sku: string
-  image: string
-  category: string
-  vendor: string
-  price: number
-  comparePrice: number | null
-  stock: number
-  status: 'active' | 'draft' | 'out_of_stock'
-  isFeatured: boolean
-  createdAt: string
-}
-
-type SortField = 'name' | 'price' | 'stock' | 'createdAt'
+type SortField = 'name' | 'price' | 'stock' | 'created_at'
 type SortDirection = 'asc' | 'desc'
+
+interface ProductFormData {
+  name: string
+  description: string
+  base_price: number
+  product_type: string
+  vendor_id: number | null
+  category_id: number | null
+  is_active: boolean
+}
 
 // =============================================================================
 // Icons
@@ -51,11 +48,6 @@ const Icons = {
   search: (
     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-    </svg>
-  ),
-  filter: (
-    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 01-.659 1.591l-5.432 5.432a2.25 2.25 0 00-.659 1.591v2.927a2.25 2.25 0 01-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 00-.659-1.591L3.659 7.409A2.25 2.25 0 013 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0112 3z" />
     </svg>
   ),
   edit: (
@@ -104,109 +96,18 @@ const Icons = {
       <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm-.375 5.25h.007v.008H3.75v-.008zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
     </svg>
   ),
-  moreVertical: (
+  close: (
     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 18.75a.75.75 0 110-1.5.75.75 0 010 1.5z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+    </svg>
+  ),
+  loader: (
+    <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
     </svg>
   ),
 }
-
-// =============================================================================
-// Mock Data
-// =============================================================================
-
-const mockProducts: Product[] = [
-  {
-    id: '1',
-    name: 'iPhone 15 Pro Max',
-    nameAr: 'آيفون 15 برو ماكس',
-    sku: 'IPH-15-PM-256',
-    image: 'https://via.placeholder.com/80',
-    category: 'هواتف',
-    vendor: 'متجر التقنية',
-    price: 1199,
-    comparePrice: 1299,
-    stock: 25,
-    status: 'active',
-    isFeatured: true,
-    createdAt: '2024-12-20',
-  },
-  {
-    id: '2',
-    name: 'Samsung Galaxy S24 Ultra',
-    nameAr: 'سامسونج جالاكسي S24 الترا',
-    sku: 'SAM-S24-U-256',
-    image: 'https://via.placeholder.com/80',
-    category: 'هواتف',
-    vendor: 'متجر التقنية',
-    price: 1099,
-    comparePrice: null,
-    stock: 18,
-    status: 'active',
-    isFeatured: false,
-    createdAt: '2024-12-19',
-  },
-  {
-    id: '3',
-    name: 'MacBook Pro 14"',
-    nameAr: 'ماك بوك برو 14 بوصة',
-    sku: 'MAC-PRO-14-M3',
-    image: 'https://via.placeholder.com/80',
-    category: 'لابتوبات',
-    vendor: 'متجر التقنية',
-    price: 1999,
-    comparePrice: 2199,
-    stock: 8,
-    status: 'active',
-    isFeatured: true,
-    createdAt: '2024-12-18',
-  },
-  {
-    id: '4',
-    name: 'Nike Air Max 90',
-    nameAr: 'نايك اير ماكس 90',
-    sku: 'NIK-AM90-BLK',
-    image: 'https://via.placeholder.com/80',
-    category: 'أحذية',
-    vendor: 'متجر الرياضة',
-    price: 129,
-    comparePrice: 159,
-    stock: 45,
-    status: 'active',
-    isFeatured: false,
-    createdAt: '2024-12-17',
-  },
-  {
-    id: '5',
-    name: 'Sony WH-1000XM5',
-    nameAr: 'سوني WH-1000XM5',
-    sku: 'SON-WH1000-XM5',
-    image: 'https://via.placeholder.com/80',
-    category: 'إكسسوارات',
-    vendor: 'متجر التقنية',
-    price: 349,
-    comparePrice: 399,
-    stock: 0,
-    status: 'out_of_stock',
-    isFeatured: false,
-    createdAt: '2024-12-16',
-  },
-  {
-    id: '6',
-    name: 'Elegant Dress',
-    nameAr: 'فستان أنيق',
-    sku: 'DRS-ELG-001',
-    image: 'https://via.placeholder.com/80',
-    category: 'نسائي',
-    vendor: 'متجر الأناقة',
-    price: 89,
-    comparePrice: null,
-    stock: 12,
-    status: 'draft',
-    isFeatured: false,
-    createdAt: '2024-12-15',
-  },
-]
 
 // =============================================================================
 // Animation Variants
@@ -233,7 +134,7 @@ const itemVariants = {
 // Helper Functions
 // =============================================================================
 
-const getStatusStyle = (status: Product['status']) => {
+const getStatusStyle = (status: ProductStatus) => {
   const styles = {
     active: 'bg-green-100 text-green-700',
     draft: 'bg-gray-100 text-gray-700',
@@ -242,7 +143,7 @@ const getStatusStyle = (status: Product['status']) => {
   return styles[status]
 }
 
-const getStatusLabel = (status: Product['status']) => {
+const getStatusLabel = (status: ProductStatus) => {
   const labels = {
     active: 'نشط',
     draft: 'مسودة',
@@ -251,23 +152,286 @@ const getStatusLabel = (status: Product['status']) => {
   return labels[status]
 }
 
+const formatPrice = (price: number) => {
+  return new Intl.NumberFormat('ar-SY', {
+    style: 'currency',
+    currency: 'SYP',
+    minimumFractionDigits: 0,
+  }).format(price)
+}
+
+// =============================================================================
+// Product Modal Component
+// =============================================================================
+
+interface ProductModalProps {
+  isOpen: boolean
+  onClose: () => void
+  onSave: (data: ProductFormData) => Promise<void>
+  product?: Product | null
+  categories: { id: number; name: string; name_ar: string }[]
+  isSubmitting: boolean
+}
+
+function ProductModal({ isOpen, onClose, onSave, product, categories, isSubmitting }: ProductModalProps) {
+  const [formData, setFormData] = useState<ProductFormData>({
+    name: '',
+    description: '',
+    base_price: 0,
+    product_type: '',
+    vendor_id: null,
+    category_id: null,
+    is_active: true,
+  })
+
+  useEffect(() => {
+    if (product) {
+      setFormData({
+        name: product.name,
+        description: '',
+        base_price: product.base_price,
+        product_type: '',
+        vendor_id: product.vendor,
+        category_id: product.category,
+        is_active: product.is_active,
+      })
+    } else {
+      setFormData({
+        name: '',
+        description: '',
+        base_price: 0,
+        product_type: '',
+        vendor_id: null,
+        category_id: null,
+        is_active: true,
+      })
+    }
+  }, [product])
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    await onSave(formData)
+  }
+
+  if (!isOpen) return null
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl p-6 mx-4"
+      >
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-bold text-historical-charcoal">
+            {product ? 'تعديل المنتج' : 'إضافة منتج جديد'}
+          </h2>
+          <button onClick={onClose} className="p-2 rounded-lg hover:bg-gray-100 transition-colors">
+            {Icons.close}
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-historical-charcoal/70 mb-1">
+              اسم المنتج
+            </label>
+            <input
+              type="text"
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-historical-charcoal/70 mb-1">
+              الوصف
+            </label>
+            <textarea
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              rows={3}
+              className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 resize-none"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-historical-charcoal/70 mb-1">
+                السعر الأساسي
+              </label>
+              <input
+                type="number"
+                value={formData.base_price}
+                onChange={(e) => setFormData({ ...formData, base_price: Number(e.target.value) })}
+                className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+                min={0}
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-historical-charcoal/70 mb-1">
+                الفئة
+              </label>
+              <select
+                value={formData.category_id || ''}
+                onChange={(e) => setFormData({ ...formData, category_id: e.target.value ? Number(e.target.value) : null })}
+                className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+              >
+                <option value="">بدون فئة</option>
+                {categories.map((cat) => (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.name_ar || cat.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <input
+              type="checkbox"
+              id="is_active"
+              checked={formData.is_active}
+              onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
+              className="w-4 h-4 rounded border-historical-gold/30 text-historical-gold focus:ring-historical-gold"
+            />
+            <label htmlFor="is_active" className="text-sm text-historical-charcoal">
+              نشط
+            </label>
+          </div>
+
+          <div className="flex gap-3 pt-4">
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="flex-1 flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-l from-historical-gold to-historical-red text-white font-medium shadow-lg hover:shadow-xl transition-shadow disabled:opacity-50"
+            >
+              {isSubmitting ? Icons.loader : null}
+              {product ? 'تحديث' : 'إضافة'}
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-5 py-3 rounded-xl border border-historical-gold/20 text-historical-charcoal font-medium hover:bg-historical-gold/5 transition-colors"
+            >
+              إلغاء
+            </button>
+          </div>
+        </form>
+      </motion.div>
+    </div>
+  )
+}
+
+// =============================================================================
+// Delete Confirmation Modal
+// =============================================================================
+
+interface DeleteModalProps {
+  isOpen: boolean
+  onClose: () => void
+  onConfirm: () => Promise<void>
+  productName: string
+  isSubmitting: boolean
+}
+
+function DeleteModal({ isOpen, onClose, onConfirm, productName, isSubmitting }: DeleteModalProps) {
+  if (!isOpen) return null
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl p-6 mx-4"
+      >
+        <h2 className="text-xl font-bold text-historical-charcoal mb-4">تأكيد الحذف</h2>
+        <p className="text-historical-charcoal/70 mb-6">
+          هل أنت متأكد من حذف المنتج &quot;{productName}&quot;؟ هذا الإجراء لا يمكن التراجع عنه.
+        </p>
+        <div className="flex gap-3">
+          <button
+            onClick={onConfirm}
+            disabled={isSubmitting}
+            className="flex-1 flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-red-500 text-white font-medium hover:bg-red-600 transition-colors disabled:opacity-50"
+          >
+            {isSubmitting ? Icons.loader : null}
+            حذف
+          </button>
+          <button
+            onClick={onClose}
+            className="px-5 py-3 rounded-xl border border-historical-gold/20 text-historical-charcoal font-medium hover:bg-historical-gold/5 transition-colors"
+          >
+            إلغاء
+          </button>
+        </div>
+      </motion.div>
+    </div>
+  )
+}
+
 // =============================================================================
 // Main Component
 // =============================================================================
 
 export default function ProductsPage() {
-  const [products] = useState(mockProducts)
+  // API Hooks
+  const {
+    products,
+    totalCount,
+    currentPage,
+    totalPages,
+    isLoading,
+    isSubmitting,
+    error,
+    fetchProducts,
+    addProduct,
+    editProduct,
+    removeProduct,
+    bulkAction,
+    goToPage,
+  } = useProducts({ page_size: 10 })
+
+  const { categories } = useCategories()
+
+  // Local State
   const [searchQuery, setSearchQuery] = useState('')
-  const [selectedProducts, setSelectedProducts] = useState<string[]>([])
-  const [sortField, setSortField] = useState<SortField>('createdAt')
+  const [selectedProducts, setSelectedProducts] = useState<number[]>([])
+  const [sortField, setSortField] = useState<SortField>('created_at')
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc')
   const [viewMode, setViewMode] = useState<'table' | 'grid'>('table')
-  const [currentPage, setCurrentPage] = useState(1)
-  const [filterCategory, setFilterCategory] = useState('')
-  const [filterStatus, setFilterStatus] = useState('')
+  const [filterCategory, setFilterCategory] = useState<number | ''>('')
+  const [filterStatus, setFilterStatus] = useState<ProductStatus | ''>('')
 
-  const itemsPerPage = 10
-  const totalPages = Math.ceil(products.length / itemsPerPage)
+  // Modal State
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null)
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+  const [deletingProduct, setDeletingProduct] = useState<Product | null>(null)
+
+  // Debounced search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchProducts({
+        search: searchQuery || undefined,
+        category: filterCategory || undefined,
+        status: filterStatus || undefined,
+        sort_by: sortField,
+        sort_dir: sortDirection,
+        page: 1,
+      })
+    }, 300)
+
+    return () => clearTimeout(timer)
+  }, [searchQuery, filterCategory, filterStatus, sortField, sortDirection])
 
   const handleSort = useCallback((field: SortField) => {
     if (sortField === field) {
@@ -286,34 +450,85 @@ export default function ProductsPage() {
     }
   }, [selectedProducts.length, products])
 
-  const handleSelectProduct = useCallback((id: string) => {
+  const handleSelectProduct = useCallback((id: number) => {
     setSelectedProducts(prev =>
       prev.includes(id) ? prev.filter(p => p !== id) : [...prev, id]
     )
   }, [])
 
-  // Filter and sort products
-  const filteredProducts = products
-    .filter(p => {
-      const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.nameAr.includes(searchQuery) ||
-        p.sku.toLowerCase().includes(searchQuery.toLowerCase())
-      const matchesCategory = !filterCategory || p.category === filterCategory
-      const matchesStatus = !filterStatus || p.status === filterStatus
-      return matchesSearch && matchesCategory && matchesStatus
-    })
-    .sort((a, b) => {
-      const modifier = sortDirection === 'asc' ? 1 : -1
-      if (sortField === 'name') return a.name.localeCompare(b.name) * modifier
-      if (sortField === 'price') return (a.price - b.price) * modifier
-      if (sortField === 'stock') return (a.stock - b.stock) * modifier
-      return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime() * modifier
-    })
+  const handleAddClick = () => {
+    setEditingProduct(null)
+    setIsModalOpen(true)
+  }
 
-  const paginatedProducts = filteredProducts.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  )
+  const handleEditClick = (product: Product) => {
+    setEditingProduct(product)
+    setIsModalOpen(true)
+  }
+
+  const handleDeleteClick = (product: Product) => {
+    setDeletingProduct(product)
+    setIsDeleteModalOpen(true)
+  }
+
+  const handleSaveProduct = async (formData: ProductFormData) => {
+    // For creating new products, we need vendor_id
+    // For now, we'll just use a dummy vendor_id of 1 if not editing
+    // In a real app, you'd have a vendor selector
+    if (editingProduct) {
+      const result = await editProduct(editingProduct.id, {
+        name: formData.name,
+        description: formData.description,
+        base_price: formData.base_price,
+        category_id: formData.category_id,
+        is_active: formData.is_active,
+      })
+      if (result) {
+        setIsModalOpen(false)
+        setEditingProduct(null)
+      }
+    } else {
+      const payload: ProductCreatePayload = {
+        name: formData.name,
+        description: formData.description,
+        base_price: formData.base_price,
+        vendor_id: formData.vendor_id || 1, // Default to vendor 1
+        category_id: formData.category_id,
+        is_active: formData.is_active,
+      }
+      const result = await addProduct(payload)
+      if (result) {
+        setIsModalOpen(false)
+      }
+    }
+  }
+
+  const handleConfirmDelete = async () => {
+    if (deletingProduct) {
+      const success = await removeProduct(deletingProduct.id)
+      if (success) {
+        setIsDeleteModalOpen(false)
+        setDeletingProduct(null)
+      }
+    }
+  }
+
+  const handleBulkActivate = async () => {
+    await bulkAction(selectedProducts, 'activate')
+    setSelectedProducts([])
+  }
+
+  const handleBulkDeactivate = async () => {
+    await bulkAction(selectedProducts, 'deactivate')
+    setSelectedProducts([])
+  }
+
+  const handleBulkDelete = async () => {
+    if (confirm(`هل أنت متأكد من حذف ${selectedProducts.length} منتج؟`)) {
+      await bulkAction(selectedProducts, 'delete')
+      setSelectedProducts([])
+    }
+  }
 
   const SortIcon = ({ field }: { field: SortField }) => (
     <span className="mr-1 text-historical-charcoal/30">
@@ -325,6 +540,18 @@ export default function ProductsPage() {
     </span>
   )
 
+  // Loading State
+  if (isLoading && products.length === 0) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="flex flex-col items-center gap-4">
+          {Icons.loader}
+          <p className="text-historical-charcoal/50">جاري تحميل المنتجات...</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <motion.div
       variants={containerVariants}
@@ -332,13 +559,29 @@ export default function ProductsPage() {
       animate="visible"
       className="space-y-6"
     >
+      {/* Error Message */}
+      {error && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="p-4 rounded-xl bg-red-50 border border-red-200 text-red-600"
+        >
+          {error}
+        </motion.div>
+      )}
+
       {/* Page Header */}
       <motion.div variants={itemVariants} className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-historical-charcoal">إدارة المنتجات</h1>
-          <p className="text-historical-charcoal/50 mt-1">عرض وإدارة جميع المنتجات</p>
+          <p className="text-historical-charcoal/50 mt-1">
+            {totalCount} منتج
+          </p>
         </div>
-        <button className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-l from-historical-gold to-historical-red text-white font-medium shadow-lg hover:shadow-xl transition-shadow">
+        <button
+          onClick={handleAddClick}
+          className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-l from-historical-gold to-historical-red text-white font-medium shadow-lg hover:shadow-xl transition-shadow"
+        >
           {Icons.add}
           <span>إضافة منتج</span>
         </button>
@@ -363,21 +606,21 @@ export default function ProductsPage() {
         {/* Category Filter */}
         <select
           value={filterCategory}
-          onChange={(e) => setFilterCategory(e.target.value)}
+          onChange={(e) => setFilterCategory(e.target.value ? Number(e.target.value) : '')}
           className="px-4 py-3 rounded-xl border border-historical-gold/20 bg-white/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-historical-gold/30 min-w-[150px]"
         >
           <option value="">كل الفئات</option>
-          <option value="هواتف">هواتف</option>
-          <option value="لابتوبات">لابتوبات</option>
-          <option value="إكسسوارات">إكسسوارات</option>
-          <option value="أحذية">أحذية</option>
-          <option value="نسائي">نسائي</option>
+          {categories.map((cat) => (
+            <option key={cat.id} value={cat.id}>
+              {cat.name_ar || cat.name}
+            </option>
+          ))}
         </select>
 
         {/* Status Filter */}
         <select
           value={filterStatus}
-          onChange={(e) => setFilterStatus(e.target.value)}
+          onChange={(e) => setFilterStatus(e.target.value as ProductStatus | '')}
           className="px-4 py-3 rounded-xl border border-historical-gold/20 bg-white/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-historical-gold/30 min-w-[150px]"
         >
           <option value="">كل الحالات</option>
@@ -416,13 +659,25 @@ export default function ProductsPage() {
               تم تحديد {selectedProducts.length} منتج
             </span>
             <div className="flex items-center gap-2">
-              <button className="px-4 py-2 rounded-lg bg-green-500/10 text-green-600 text-sm font-medium hover:bg-green-500/20 transition-colors">
+              <button
+                onClick={handleBulkActivate}
+                disabled={isSubmitting}
+                className="px-4 py-2 rounded-lg bg-green-500/10 text-green-600 text-sm font-medium hover:bg-green-500/20 transition-colors disabled:opacity-50"
+              >
                 تفعيل
               </button>
-              <button className="px-4 py-2 rounded-lg bg-gray-500/10 text-gray-600 text-sm font-medium hover:bg-gray-500/20 transition-colors">
+              <button
+                onClick={handleBulkDeactivate}
+                disabled={isSubmitting}
+                className="px-4 py-2 rounded-lg bg-gray-500/10 text-gray-600 text-sm font-medium hover:bg-gray-500/20 transition-colors disabled:opacity-50"
+              >
                 إلغاء التفعيل
               </button>
-              <button className="px-4 py-2 rounded-lg bg-red-500/10 text-red-600 text-sm font-medium hover:bg-red-500/20 transition-colors">
+              <button
+                onClick={handleBulkDelete}
+                disabled={isSubmitting}
+                className="px-4 py-2 rounded-lg bg-red-500/10 text-red-600 text-sm font-medium hover:bg-red-500/20 transition-colors disabled:opacity-50"
+              >
                 حذف
               </button>
             </div>
@@ -435,150 +690,215 @@ export default function ProductsPage() {
         variants={itemVariants}
         className="bg-white/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 shadow-soft overflow-hidden"
       >
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-historical-stone/50">
-              <tr>
-                <th className="w-12 px-4 py-4">
-                  <input
-                    type="checkbox"
-                    checked={selectedProducts.length === products.length}
-                    onChange={handleSelectAll}
-                    className="w-4 h-4 rounded border-historical-gold/30 text-historical-gold focus:ring-historical-gold"
-                  />
-                </th>
-                <th className="text-right text-xs font-medium text-historical-charcoal/50 px-4 py-4">المنتج</th>
-                <th className="text-right text-xs font-medium text-historical-charcoal/50 px-4 py-4">SKU</th>
-                <th className="text-right text-xs font-medium text-historical-charcoal/50 px-4 py-4">الفئة</th>
-                <th className="text-right text-xs font-medium text-historical-charcoal/50 px-4 py-4">البائع</th>
-                <th className="text-right text-xs font-medium text-historical-charcoal/50 px-4 py-4">
-                  <button onClick={() => handleSort('price')} className="flex items-center group">
-                    السعر
-                    <SortIcon field="price" />
-                  </button>
-                </th>
-                <th className="text-right text-xs font-medium text-historical-charcoal/50 px-4 py-4">
-                  <button onClick={() => handleSort('stock')} className="flex items-center group">
-                    المخزون
-                    <SortIcon field="stock" />
-                  </button>
-                </th>
-                <th className="text-right text-xs font-medium text-historical-charcoal/50 px-4 py-4">الحالة</th>
-                <th className="text-right text-xs font-medium text-historical-charcoal/50 px-4 py-4 w-20"></th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-historical-gold/5">
-              {paginatedProducts.map((product) => (
-                <motion.tr
-                  key={product.id}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="hover:bg-historical-gold/5 transition-colors group"
-                >
-                  <td className="px-4 py-3">
-                    <input
-                      type="checkbox"
-                      checked={selectedProducts.includes(product.id)}
-                      onChange={() => handleSelectProduct(product.id)}
-                      className="w-4 h-4 rounded border-historical-gold/30 text-historical-gold focus:ring-historical-gold"
-                    />
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-xl bg-historical-stone overflow-hidden flex-shrink-0">
-                        <img src={product.image} alt="" className="w-full h-full object-cover" />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="font-medium text-historical-charcoal truncate">{product.nameAr}</p>
-                        <p className="text-xs text-historical-charcoal/50 truncate">{product.name}</p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className="text-sm text-historical-charcoal/70 font-mono">{product.sku}</span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className="text-sm text-historical-charcoal/70">{product.category}</span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className="text-sm text-historical-charcoal/70">{product.vendor}</span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <div>
-                      <span className="font-medium text-historical-charcoal">${product.price}</span>
-                      {product.comparePrice && (
-                        <span className="text-xs text-historical-charcoal/40 line-through mr-2">
-                          ${product.comparePrice}
-                        </span>
-                      )}
-                    </div>
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className={`text-sm font-medium ${product.stock === 0 ? 'text-red-500' : product.stock < 10 ? 'text-yellow-600' : 'text-historical-charcoal'}`}>
-                      {product.stock}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${getStatusStyle(product.status)}`}>
-                      {getStatusLabel(product.status)}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button className="p-2 rounded-lg text-historical-charcoal/50 hover:text-historical-charcoal hover:bg-historical-gold/10 transition-colors" title="عرض">
-                        {Icons.eye}
-                      </button>
-                      <button className="p-2 rounded-lg text-historical-charcoal/50 hover:text-historical-charcoal hover:bg-historical-gold/10 transition-colors" title="تعديل">
-                        {Icons.edit}
-                      </button>
-                      <button className="p-2 rounded-lg text-historical-charcoal/50 hover:text-red-500 hover:bg-red-50 transition-colors" title="حذف">
-                        {Icons.delete}
-                      </button>
-                    </div>
-                  </td>
-                </motion.tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Pagination */}
-        <div className="flex items-center justify-between px-6 py-4 border-t border-historical-gold/10 bg-historical-stone/30">
-          <p className="text-sm text-historical-charcoal/50">
-            عرض {(currentPage - 1) * itemsPerPage + 1} - {Math.min(currentPage * itemsPerPage, filteredProducts.length)} من {filteredProducts.length} منتج
-          </p>
-          <div className="flex items-center gap-2">
+        {products.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16">
+            <p className="text-historical-charcoal/50 text-lg">لا توجد منتجات</p>
             <button
-              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-              disabled={currentPage === 1}
-              className="p-2 rounded-lg border border-historical-gold/20 text-historical-charcoal/50 hover:text-historical-charcoal hover:bg-historical-gold/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              onClick={handleAddClick}
+              className="mt-4 flex items-center gap-2 px-5 py-2.5 rounded-xl bg-historical-gold/10 text-historical-gold font-medium hover:bg-historical-gold/20 transition-colors"
             >
-              {Icons.chevronRight}
-            </button>
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-              <button
-                key={page}
-                onClick={() => setCurrentPage(page)}
-                className={`w-10 h-10 rounded-lg text-sm font-medium transition-colors ${
-                  currentPage === page
-                    ? 'bg-historical-gold text-white'
-                    : 'text-historical-charcoal/50 hover:bg-historical-gold/10'
-                }`}
-              >
-                {page}
-              </button>
-            ))}
-            <button
-              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-              disabled={currentPage === totalPages}
-              className="p-2 rounded-lg border border-historical-gold/20 text-historical-charcoal/50 hover:text-historical-charcoal hover:bg-historical-gold/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              {Icons.chevronLeft}
+              {Icons.add}
+              <span>إضافة أول منتج</span>
             </button>
           </div>
-        </div>
+        ) : (
+          <>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-historical-stone/50">
+                  <tr>
+                    <th className="w-12 px-4 py-4">
+                      <input
+                        type="checkbox"
+                        checked={selectedProducts.length === products.length && products.length > 0}
+                        onChange={handleSelectAll}
+                        className="w-4 h-4 rounded border-historical-gold/30 text-historical-gold focus:ring-historical-gold"
+                      />
+                    </th>
+                    <th className="text-right text-xs font-medium text-historical-charcoal/50 px-4 py-4">المنتج</th>
+                    <th className="text-right text-xs font-medium text-historical-charcoal/50 px-4 py-4">الفئة</th>
+                    <th className="text-right text-xs font-medium text-historical-charcoal/50 px-4 py-4">البائع</th>
+                    <th className="text-right text-xs font-medium text-historical-charcoal/50 px-4 py-4">
+                      <button onClick={() => handleSort('price')} className="flex items-center group">
+                        السعر
+                        <SortIcon field="price" />
+                      </button>
+                    </th>
+                    <th className="text-right text-xs font-medium text-historical-charcoal/50 px-4 py-4">
+                      <button onClick={() => handleSort('stock')} className="flex items-center group">
+                        المخزون
+                        <SortIcon field="stock" />
+                      </button>
+                    </th>
+                    <th className="text-right text-xs font-medium text-historical-charcoal/50 px-4 py-4">الحالة</th>
+                    <th className="text-right text-xs font-medium text-historical-charcoal/50 px-4 py-4 w-20"></th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-historical-gold/5">
+                  {products.map((product) => (
+                    <motion.tr
+                      key={product.id}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="hover:bg-historical-gold/5 transition-colors group"
+                    >
+                      <td className="px-4 py-3">
+                        <input
+                          type="checkbox"
+                          checked={selectedProducts.includes(product.id)}
+                          onChange={() => handleSelectProduct(product.id)}
+                          className="w-4 h-4 rounded border-historical-gold/30 text-historical-gold focus:ring-historical-gold"
+                        />
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-12 h-12 rounded-xl bg-historical-stone overflow-hidden flex-shrink-0">
+                            {product.main_image ? (
+                              <img src={product.main_image} alt="" className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-historical-charcoal/30">
+                                📦
+                              </div>
+                            )}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="font-medium text-historical-charcoal truncate">{product.name}</p>
+                            <p className="text-xs text-historical-charcoal/50 truncate">
+                              {product.variants_count} متغير
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="text-sm text-historical-charcoal/70">
+                          {product.category_name_ar || product.category_name || '-'}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="text-sm text-historical-charcoal/70">
+                          {product.vendor_name || '-'}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="font-medium text-historical-charcoal">
+                          {formatPrice(product.base_price)}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className={`text-sm font-medium ${product.total_stock === 0 ? 'text-red-500' : product.total_stock < 10 ? 'text-yellow-600' : 'text-historical-charcoal'}`}>
+                          {product.total_stock}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${getStatusStyle(product.status)}`}>
+                          {getStatusLabel(product.status)}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            className="p-2 rounded-lg text-historical-charcoal/50 hover:text-historical-charcoal hover:bg-historical-gold/10 transition-colors"
+                            title="عرض"
+                          >
+                            {Icons.eye}
+                          </button>
+                          <button
+                            onClick={() => handleEditClick(product)}
+                            className="p-2 rounded-lg text-historical-charcoal/50 hover:text-historical-charcoal hover:bg-historical-gold/10 transition-colors"
+                            title="تعديل"
+                          >
+                            {Icons.edit}
+                          </button>
+                          <button
+                            onClick={() => handleDeleteClick(product)}
+                            className="p-2 rounded-lg text-historical-charcoal/50 hover:text-red-500 hover:bg-red-50 transition-colors"
+                            title="حذف"
+                          >
+                            {Icons.delete}
+                          </button>
+                        </div>
+                      </td>
+                    </motion.tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Pagination */}
+            <div className="flex items-center justify-between px-6 py-4 border-t border-historical-gold/10 bg-historical-stone/30">
+              <p className="text-sm text-historical-charcoal/50">
+                عرض {((currentPage - 1) * 10) + 1} - {Math.min(currentPage * 10, totalCount)} من {totalCount} منتج
+              </p>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => goToPage(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="p-2 rounded-lg border border-historical-gold/20 text-historical-charcoal/50 hover:text-historical-charcoal hover:bg-historical-gold/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {Icons.chevronRight}
+                </button>
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  const page = i + 1
+                  return (
+                    <button
+                      key={page}
+                      onClick={() => goToPage(page)}
+                      className={`w-10 h-10 rounded-lg text-sm font-medium transition-colors ${
+                        currentPage === page
+                          ? 'bg-historical-gold text-white'
+                          : 'text-historical-charcoal/50 hover:bg-historical-gold/10'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  )
+                })}
+                {totalPages > 5 && <span className="text-historical-charcoal/50">...</span>}
+                <button
+                  onClick={() => goToPage(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="p-2 rounded-lg border border-historical-gold/20 text-historical-charcoal/50 hover:text-historical-charcoal hover:bg-historical-gold/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {Icons.chevronLeft}
+                </button>
+              </div>
+            </div>
+          </>
+        )}
       </motion.div>
+
+      {/* Product Modal */}
+      <AnimatePresence>
+        {isModalOpen && (
+          <ProductModal
+            isOpen={isModalOpen}
+            onClose={() => {
+              setIsModalOpen(false)
+              setEditingProduct(null)
+            }}
+            onSave={handleSaveProduct}
+            product={editingProduct}
+            categories={categories.map(c => ({ id: c.id, name: c.name, name_ar: c.name_ar }))}
+            isSubmitting={isSubmitting}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Delete Confirmation Modal */}
+      <AnimatePresence>
+        {isDeleteModalOpen && deletingProduct && (
+          <DeleteModal
+            isOpen={isDeleteModalOpen}
+            onClose={() => {
+              setIsDeleteModalOpen(false)
+              setDeletingProduct(null)
+            }}
+            onConfirm={handleConfirmDelete}
+            productName={deletingProduct.name}
+            isSubmitting={isSubmitting}
+          />
+        )}
+      </AnimatePresence>
     </motion.div>
   )
 }
-

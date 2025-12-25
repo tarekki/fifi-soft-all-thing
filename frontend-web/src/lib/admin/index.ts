@@ -61,6 +61,7 @@ export {
 // الهوكات
 export { useDashboard } from './hooks/useDashboard'
 export { useCategories } from './hooks/useCategories'
+export { useProducts } from './hooks/useProducts'
 
 // Category Types
 // أنواع الفئات
@@ -88,4 +89,36 @@ export {
   toggleCategoryActive,
   toggleCategoryFeatured,
 } from './api/categories'
+
+// Product Types
+// أنواع المنتجات
+export type {
+  Product,
+  ProductDetail,
+  ProductVariant,
+  ProductStatus,
+  ProductCreatePayload,
+  ProductUpdatePayload,
+  ProductFilters,
+  ProductBulkAction,
+  ProductBulkActionPayload,
+  ProductVariantCreatePayload,
+  ProductListResponse,
+} from './types/products'
+
+// Product API Functions
+// دوال API المنتجات
+export {
+  getProducts,
+  getProduct,
+  createProduct,
+  updateProduct,
+  deleteProduct,
+  bulkProductAction,
+  getProductVariants,
+  getProductVariant,
+  createProductVariant,
+  updateProductVariant,
+  deleteProductVariant,
+} from './api/products'
 

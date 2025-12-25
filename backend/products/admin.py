@@ -260,6 +260,7 @@ class ProductAdmin(admin.ModelAdmin):
     list_display = [
         'name',
         'vendor',
+        'category',
         'product_type',
         'base_price',
         'variants_count',
@@ -273,6 +274,7 @@ class ProductAdmin(admin.ModelAdmin):
     # الفلاتر - الفلاتر المعروضة في الشريط الجانبي
     list_filter = [
         'vendor',
+        'category',
         'product_type',
         'is_active',
         'created_at',
@@ -310,7 +312,7 @@ class ProductAdmin(admin.ModelAdmin):
     # Fieldsets - تنظيم الحقول في أقسام
     fieldsets = (
         ('Basic Information', {
-            'fields': ('vendor', 'name', 'slug', 'description')
+            'fields': ('vendor', 'category', 'name', 'slug', 'description')
         }),
         ('Product Details', {
             'fields': ('product_type', 'base_price', 'is_active')
