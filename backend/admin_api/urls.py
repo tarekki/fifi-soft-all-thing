@@ -66,6 +66,17 @@ from admin_api.views import (
     AdminUserStatusUpdateView,
     AdminUserBulkActionView,
     AdminUserStatsView,
+    # Promotions
+    AdminBannerListCreateView,
+    AdminBannerDetailView,
+    AdminBannerClickView,
+    AdminBannerViewView,
+    AdminStoryListCreateView,
+    AdminStoryDetailView,
+    AdminStoryViewView,
+    AdminCouponListCreateView,
+    AdminCouponDetailView,
+    AdminPromotionStatsView,
 )
 
 
@@ -437,6 +448,102 @@ users_urlpatterns = [
 
 
 # =============================================================================
+# Promotions URL Patterns
+# أنماط URLs للعروض والحملات
+# =============================================================================
+promotions_urlpatterns = [
+    # GET /api/v1/admin/promotions/stats/
+    # إحصائيات العروض
+    path(
+        'stats/',
+        AdminPromotionStatsView.as_view(),
+        name='stats'
+    ),
+    
+    # =========================================================================
+    # Banners URLs
+    # =========================================================================
+    # GET, POST /api/v1/admin/promotions/banners/
+    # عرض قائمة البانرات وإنشاء بانر جديد
+    path(
+        'banners/',
+        AdminBannerListCreateView.as_view(),
+        name='banners-list-create'
+    ),
+    
+    # GET, PUT, DELETE /api/v1/admin/promotions/banners/{id}/
+    # تفاصيل، تعديل، حذف بانر
+    path(
+        'banners/<int:pk>/',
+        AdminBannerDetailView.as_view(),
+        name='banners-detail'
+    ),
+    
+    # POST /api/v1/admin/promotions/banners/{id}/click/
+    # تتبع نقرات البانر
+    path(
+        'banners/<int:pk>/click/',
+        AdminBannerClickView.as_view(),
+        name='banners-click'
+    ),
+    
+    # POST /api/v1/admin/promotions/banners/{id}/view/
+    # تتبع مشاهدات البانر
+    path(
+        'banners/<int:pk>/view/',
+        AdminBannerViewView.as_view(),
+        name='banners-view'
+    ),
+    
+    # =========================================================================
+    # Stories URLs
+    # =========================================================================
+    # GET, POST /api/v1/admin/promotions/stories/
+    # عرض قائمة القصص وإنشاء قصة جديدة
+    path(
+        'stories/',
+        AdminStoryListCreateView.as_view(),
+        name='stories-list-create'
+    ),
+    
+    # GET, PUT, DELETE /api/v1/admin/promotions/stories/{id}/
+    # تفاصيل، تعديل، حذف قصة
+    path(
+        'stories/<int:pk>/',
+        AdminStoryDetailView.as_view(),
+        name='stories-detail'
+    ),
+    
+    # POST /api/v1/admin/promotions/stories/{id}/view/
+    # تتبع مشاهدات القصة
+    path(
+        'stories/<int:pk>/view/',
+        AdminStoryViewView.as_view(),
+        name='stories-view'
+    ),
+    
+    # =========================================================================
+    # Coupons URLs
+    # =========================================================================
+    # GET, POST /api/v1/admin/promotions/coupons/
+    # عرض قائمة الكوبونات وإنشاء كوبون جديد
+    path(
+        'coupons/',
+        AdminCouponListCreateView.as_view(),
+        name='coupons-list-create'
+    ),
+    
+    # GET, PUT, DELETE /api/v1/admin/promotions/coupons/{id}/
+    # تفاصيل، تعديل، حذف كوبون
+    path(
+        'coupons/<int:pk>/',
+        AdminCouponDetailView.as_view(),
+        name='coupons-detail'
+    ),
+]
+
+
+# =============================================================================
 # Main URL Patterns
 # أنماط URLs الرئيسية
 # =============================================================================
@@ -473,17 +580,12 @@ urlpatterns = [
     # نقاط نهاية المستخدمين
     path('users/', include((users_urlpatterns, 'users'))),
     
+    # Promotions endpoints
+    # نقاط نهاية العروض والحملات
+    path('promotions/', include((promotions_urlpatterns, 'promotions'))),
+    
     # TODO: Add more endpoints as they are implemented
     # سيتم إضافة المزيد من النقاط عند تنفيذها
-    
-    # Orders Management
-    # path('orders/', include('admin_api.urls.orders')),
-    
-    # Vendors Management
-    # path('vendors/', include('admin_api.urls.vendors')),
-    
-    # Promotions Management
-    # path('promotions/', include('admin_api.urls.promotions')),
     
     # Settings Management
     # path('settings/', include('admin_api.urls.settings')),

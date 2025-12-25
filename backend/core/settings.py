@@ -67,6 +67,7 @@ INSTALLED_APPS = [
     "vendors",        # Vendor management
     "products",       # Product catalog
     "orders",         # Order management
+    "promotions",     # Promotions (Banners, Stories, Coupons)
     "settings_app",   # Site settings and configuration
     "admin_api",      # Admin Dashboard API - إدارة لوحة التحكم
 ]
@@ -266,8 +267,13 @@ REST_FRAMEWORK = {
         "rest_framework.throttling.UserRateThrottle",  # للمستخدمين المسجلين
     ],
     "DEFAULT_THROTTLE_RATES": {
-        "anon": "100/hour",      # 100 طلب في الساعة للمستخدمين غير المسجلين
-        "user": "1000/hour",     # 1000 طلب في الساعة للمستخدمين المسجلين
+        # In development: higher limits for easier testing
+        # في التطوير: حدود أعلى لتسهيل الاختبار
+        # In production: stricter limits for security
+        # في الإنتاج: حدود أكثر صرامة للأمان
+        "anon": "100/hour" if not DEBUG else "1000/hour",      # 100 طلب في الساعة (1000 في التطوير)
+        "user": "1000/hour" if not DEBUG else "10000/hour",    # 1000 طلب في الساعة (10000 في التطوير)
+        "admin": "5000/hour" if not DEBUG else "50000/hour",   # 5000 طلب في الساعة للـ admin (50000 في التطوير)
         "login": "5/minute",     # 5 محاولات تسجيل دخول في الدقيقة
         "register": "3/minute",  # 3 محاولات تسجيل في الدقيقة
     },

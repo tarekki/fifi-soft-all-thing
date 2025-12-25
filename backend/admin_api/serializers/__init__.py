@@ -64,6 +64,21 @@ from .users import (
     AdminUserBulkActionSerializer,
     AdminUserStatsSerializer,
 )
+from .promotions import (
+    AdminBannerListSerializer,
+    AdminBannerDetailSerializer,
+    AdminBannerCreateSerializer,
+    AdminBannerUpdateSerializer,
+    AdminStoryListSerializer,
+    AdminStoryDetailSerializer,
+    AdminStoryCreateSerializer,
+    AdminStoryUpdateSerializer,
+    AdminCouponListSerializer,
+    AdminCouponDetailSerializer,
+    AdminCouponCreateSerializer,
+    AdminCouponUpdateSerializer,
+    AdminPromotionStatsSerializer,
+)
 
 __all__ = [
     # Auth
@@ -116,5 +131,19 @@ __all__ = [
     'AdminUserStatusUpdateSerializer',
     'AdminUserBulkActionSerializer',
     'AdminUserStatsSerializer',
+    # Promotions
+    'AdminBannerListSerializer',
+    'AdminBannerDetailSerializer',
+    'AdminBannerCreateSerializer',
+    'AdminBannerUpdateSerializer',
+    'AdminStoryListSerializer',
+    'AdminStoryDetailSerializer',
+    'AdminStoryCreateSerializer',
+    'AdminStoryUpdateSerializer',
+    'AdminCouponListSerializer',
+    'AdminCouponDetailSerializer',
+    'AdminCouponCreateSerializer',
+    'AdminCouponUpdateSerializer',
+    'AdminPromotionStatsSerializer',
 ]
 

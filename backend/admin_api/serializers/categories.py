@@ -11,6 +11,7 @@ from products.models import Category
 
 
 class AdminCategoryListSerializer(serializers.ModelSerializer):
+    
     """
     Admin Category List Serializer
     مسلسل قائمة الفئات للإدارة

@@ -20,7 +20,7 @@
 | 5 | 📦 Products CRUD | ✅ | ✅ | ✅ | 🟢 |
 | 6 | 📋 Orders Management | ✅ | ✅ | ⬜ | 🟡 |
 | 7 | 🏪 Vendors Management | ✅ | ✅ | ⬜ | 🟡 |
-| 8 | 👥 Users Management | ⬜ | ✅ | ⬜ | 🔴 |
+| 8 | 👥 Users Management | ✅ | ✅ | ⬜ | 🟡 |
 | 9 | 🎯 Promotions (Banners/Stories/Coupons) | ⬜ | ✅ | ⬜ | 🔴 |
 | 10 | 📈 Reports & Analytics | ⬜ | ✅ | ⬜ | 🔴 |
 
@@ -323,28 +323,49 @@ interface SalesChartData {
 
 ## 👥 المهمة #8: Users Management (Admin)
 
-### 8.1 Backend
+### 8.1 Backend ✅ مكتمل
 ```
-□ إنشاء User ViewSet (Admin):
-  - GET    /api/v1/admin/users/                → قائمة + فلترة
-  - GET    /api/v1/admin/users/{id}/           → تفاصيل
-  - PUT    /api/v1/admin/users/{id}/           → تعديل
-  - PUT    /api/v1/admin/users/{id}/role/      → تغيير الدور
-  - PUT    /api/v1/admin/users/{id}/block/     → حظر/إلغاء حظر
-  - GET    /api/v1/admin/users/{id}/orders/    → طلبات المستخدم
-  - GET    /api/v1/admin/users/{id}/activity/  → نشاط المستخدم
-□ إضافة Filters (role, status, verified)
-□ إضافة UserActivity Model
+✓ إنشاء User Serializers (Admin):
+  - AdminUserListSerializer
+  - AdminUserDetailSerializer
+  - AdminUserCreateSerializer
+  - AdminUserUpdateSerializer
+  - AdminUserStatusUpdateSerializer
+  - AdminUserBulkActionSerializer
+  - AdminUserStatsSerializer
+✓ إنشاء User Views (Admin):
+  - GET    /api/v1/admin/users/                → قائمة + فلترة + بحث + ترتيب
+  - POST   /api/v1/admin/users/                → إنشاء مستخدم جديد
+  - GET    /api/v1/admin/users/{id}/           → تفاصيل المستخدم
+  - PUT    /api/v1/admin/users/{id}/           → تعديل المستخدم
+  - DELETE /api/v1/admin/users/{id}/           → حذف المستخدم
+  - PUT    /api/v1/admin/users/{id}/status/    → تحديث الحالة (حظر/إلغاء حظر)
+  - POST   /api/v1/admin/users/bulk-action/    → إجراءات مجمعة
+  - GET    /api/v1/admin/users/stats/          → إحصائيات المستخدمين
+✓ إضافة Filters (role, status, staff, search)
+✓ إضافة Pagination
+✓ إضافة Sorting
+✓ حماية Superusers من الإجراءات المجمعة
+✓ تحسين معالجة الأخطاء (ErrorDetail serialization)
 ```
 
-### 8.2 Frontend
+### 8.2 Frontend ✅ مكتمل
 ```
-□ إنشاء Users API client
-□ إنشاء useAdminUsers hook
-□ ربط Users Table بالـ API
-□ ربط Block/Unblock بالـ API
-□ ربط Role change بالـ API
-□ إنشاء صفحة User Details
+✓ إنشاء Users API client (lib/admin/api/users.ts)
+✓ إنشاء useUsers hook (lib/admin/hooks/useUsers.ts)
+✓ ربط Users Table بالـ API
+✓ ربط Search بالـ API
+✓ ربط Filters (role, status) بالـ API
+✓ ربط Pagination بالـ API
+✓ ربط Block/Unblock بالـ API
+✓ ربط Bulk Actions بالـ API
+✓ إنشاء Modal لعرض تفاصيل المستخدم (ViewUserModal)
+✓ إنشاء Modal لتعديل المستخدم (EditUserModal)
+✓ إنشاء Modal لإضافة مستخدم جديد (CreateUserModal)
+✓ ربط User Stats بالـ API
+✓ إضافة Loading states
+✓ إضافة Error handling
+✓ منع اختيار Superusers في Bulk Actions
 ```
 
 ---
@@ -984,17 +1005,33 @@ function createCategory(data: any) { ... }
 
 ### 👥 إدارة المستخدمين (Users) ✅
 - [x] **صفحة قائمة المستخدمين**:
-  - [x] جدول المستخدمين
+  - [x] جدول المستخدمين (مربوط بالـ API)
   - [x] فلترة (نوع، حالة)
-  - [x] بحث
-  - [x] إحصائيات الأدوار (Stats Cards)
+  - [x] بحث (مربوط بالـ API)
+  - [x] إحصائيات الأدوار (Stats Cards - مربوطة بالـ API)
   - [x] تحديد متعدد
-  - [x] حظر/إلغاء حظر المستخدم
-- [ ] **صفحة تفاصيل المستخدم** (قريباً):
-  - [ ] معلومات المستخدم
-  - [ ] طلبات المستخدم
-  - [ ] تعديل الصلاحيات
-  - [ ] تفعيل/تعطيل الحساب
+  - [x] حظر/إلغاء حظر المستخدم (مربوط بالـ API)
+  - [x] إجراءات مجمعة (مربوطة بالـ API)
+  - [x] Pagination (مربوط بالـ API)
+- [x] **Modal عرض تفاصيل المستخدم** ✅:
+  - [x] معلومات المستخدم الأساسية
+  - [x] معلومات الملف الشخصي
+  - [x] إحصائيات (عدد الطلبات، إجمالي الإنفاق)
+  - [x] ارتباطات البائعين (إن وجدت)
+  - [x] التواريخ (تاريخ الإنشاء، آخر تسجيل دخول)
+- [x] **Modal تعديل المستخدم** ✅:
+  - [x] تعديل البريد الإلكتروني
+  - [x] تعديل الاسم الكامل
+  - [x] تعديل رقم الهاتف
+  - [x] تعديل الدور
+  - [x] تعديل العنوان
+  - [x] تعديل اللغة المفضلة
+  - [x] تفعيل/تعطيل المستخدم
+  - [x] تفعيل/تعطيل صلاحيات الموظف
+- [x] **Modal إضافة مستخدم جديد** ✅:
+  - [x] إنشاء مستخدم جديد (مربوط بالـ API)
+  - [x] Validation في Frontend
+  - [x] رسائل خطأ واضحة
 
 ### 🎯 إدارة العروض والحملات (Promotions) ✅
 - [x] **صفحة العروض الرئيسية**:

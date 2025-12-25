@@ -108,28 +108,33 @@ export function useDashboard(
       
       // Update state with results
       // تحديث الحالة بالنتائج
-      if (overviewRes.success && overviewRes.data) {
+      if (overviewRes?.success && overviewRes?.data) {
         setOverview(overviewRes.data)
-      } else if (!overviewRes.success) {
-        console.error('Failed to fetch overview:', overviewRes.message)
+      } else if (overviewRes && !overviewRes.success) {
+        const errorMsg = overviewRes.message || 'فشل في جلب نظرة عامة على لوحة التحكم'
+        console.error('Failed to fetch overview:', errorMsg)
+        setError(errorMsg)
       }
       
-      if (chartRes.success && chartRes.data) {
+      if (chartRes?.success && chartRes?.data) {
         setSalesChart(chartRes.data)
-      } else if (!chartRes.success) {
-        console.error('Failed to fetch chart:', chartRes.message)
+      } else if (chartRes && !chartRes.success) {
+        const errorMsg = chartRes.message || 'فشل في جلب بيانات الرسم البياني'
+        console.error('Failed to fetch chart:', errorMsg)
       }
       
-      if (ordersRes.success && ordersRes.data) {
+      if (ordersRes?.success && ordersRes?.data) {
         setRecentOrders(ordersRes.data)
-      } else if (!ordersRes.success) {
-        console.error('Failed to fetch orders:', ordersRes.message)
+      } else if (ordersRes && !ordersRes.success) {
+        const errorMsg = ordersRes.message || 'فشل في جلب الطلبات الأخيرة'
+        console.error('Failed to fetch orders:', errorMsg)
       }
       
-      if (activityRes.success && activityRes.data) {
+      if (activityRes?.success && activityRes?.data) {
         setRecentActivity(activityRes.data)
-      } else if (!activityRes.success) {
-        console.error('Failed to fetch activity:', activityRes.message)
+      } else if (activityRes && !activityRes.success) {
+        const errorMsg = activityRes.message || 'فشل في جلب النشاطات الأخيرة'
+        console.error('Failed to fetch activity:', errorMsg)
       }
       
     } catch (err) {

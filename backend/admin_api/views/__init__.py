@@ -60,6 +60,18 @@ from .users import (
     AdminUserBulkActionView,
     AdminUserStatsView,
 )
+from .promotions import (
+    AdminBannerListCreateView,
+    AdminBannerDetailView,
+    AdminBannerClickView,
+    AdminBannerViewView,
+    AdminStoryListCreateView,
+    AdminStoryDetailView,
+    AdminStoryViewView,
+    AdminCouponListCreateView,
+    AdminCouponDetailView,
+    AdminPromotionStatsView,
+)
 
 __all__ = [
     # Auth
@@ -108,5 +120,16 @@ __all__ = [
     'AdminUserStatusUpdateView',
     'AdminUserBulkActionView',
     'AdminUserStatsView',
+    # Promotions
+    'AdminBannerListCreateView',
+    'AdminBannerDetailView',
+    'AdminBannerClickView',
+    'AdminBannerViewView',
+    'AdminStoryListCreateView',
+    'AdminStoryDetailView',
+    'AdminStoryViewView',
+    'AdminCouponListCreateView',
+    'AdminCouponDetailView',
+    'AdminPromotionStatsView',
 ]
 

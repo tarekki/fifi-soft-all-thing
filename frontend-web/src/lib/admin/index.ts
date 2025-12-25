@@ -66,6 +66,7 @@ export { useOrders } from './hooks/useOrders'
 export { useVendors } from './hooks/useVendors'
 export { useVendorApplications } from './hooks/useVendorApplications'
 export { useUsers } from './hooks/useUsers'
+export { useBanners, useStories, useCoupons, usePromotionStats } from './hooks/usePromotions'
 
 // Category Types
 // أنواع الفئات
@@ -230,4 +231,54 @@ export {
   bulkUserAction,
   getUserStats,
 } from './api/users'
+
+// Promotion Types
+// أنواع العروض والحملات
+export type {
+  Banner,
+  BannerDetail,
+  BannerPayload,
+  BannerFilters,
+  PaginatedBanners,
+  BannerLocation,
+  BannerLinkType,
+  Story,
+  StoryDetail,
+  StoryPayload,
+  StoryFilters,
+  PaginatedStories,
+  StoryLinkType,
+  Coupon,
+  CouponDetail,
+  CouponPayload,
+  CouponFilters,
+  PaginatedCoupons,
+  CouponDiscountType,
+  CouponApplicableTo,
+  PromotionStats,
+} from './types/promotions'
+
+// Promotion API Functions
+// دوال API العروض والحملات
+export {
+  getBanners,
+  getBanner,
+  createBanner,
+  updateBanner,
+  deleteBanner,
+  trackBannerClick,
+  trackBannerView,
+  getStories,
+  getStory,
+  createStory,
+  updateStory,
+  deleteStory,
+  trackStoryView,
+  getCoupons,
+  getCoupon,
+  createCoupon,
+  updateCoupon,
+  deleteCoupon,
+  getPromotionStats,
+} from './api/promotions'
 

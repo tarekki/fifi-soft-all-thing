@@ -3,27 +3,20 @@
 /**
  * Admin Stories Management Page
  * صفحة إدارة القصص
+ * 
+ * Features:
+ * - Story list with grid view
+ * - Filters (active status)
+ * - Search
+ * - Create/Update/Delete stories
+ * - Real-time API integration
  */
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-
-// =============================================================================
-// Types
-// =============================================================================
-
-interface Story {
-  id: string
-  title: string
-  titleAr: string
-  image: string
-  link: string
-  linkType: 'product' | 'category' | 'offer' | 'external'
-  expiresAt: string
-  isActive: boolean
-  order: number
-  views: number
-}
+import Link from 'next/link'
+import { useStories } from '@/lib/admin'
+import type { Story, StoryPayload } from '@/lib/admin'
 
 // =============================================================================
 // Icons
@@ -72,74 +65,35 @@ const Icons = {
       <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
     </svg>
   ),
+  image: (
+    <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+    </svg>
+  ),
 }
 
 // =============================================================================
-// Mock Data
+// Helper Functions
+// دوال مساعدة
 // =============================================================================
 
-const mockStories: Story[] = [
-  {
-    id: '1',
-    title: 'New iPhone 15',
-    titleAr: 'آيفون 15 الجديد',
-    image: 'https://via.placeholder.com/200x350',
-    link: '/products/iphone-15',
-    linkType: 'product',
-    expiresAt: '2024-12-25T23:59:59',
-    isActive: true,
-    order: 1,
-    views: 5400,
-  },
-  {
-    id: '2',
-    title: 'Fashion Week',
-    titleAr: 'أسبوع الموضة',
-    image: 'https://via.placeholder.com/200x350',
-    link: '/categories/fashion',
-    linkType: 'category',
-    expiresAt: '2024-12-26T23:59:59',
-    isActive: true,
-    order: 2,
-    views: 3200,
-  },
-  {
-    id: '3',
-    title: '50% Off Electronics',
-    titleAr: '50% خصم إلكترونيات',
-    image: 'https://via.placeholder.com/200x350',
-    link: '/offers/electronics',
-    linkType: 'offer',
-    expiresAt: '2024-12-31T23:59:59',
-    isActive: true,
-    order: 3,
-    views: 8100,
-  },
-  {
-    id: '4',
-    title: 'Winter Collection',
-    titleAr: 'مجموعة الشتاء',
-    image: 'https://via.placeholder.com/200x350',
-    link: '/categories/winter',
-    linkType: 'category',
-    expiresAt: '2025-01-15T23:59:59',
-    isActive: true,
-    order: 4,
-    views: 2800,
-  },
-  {
-    id: '5',
-    title: 'Flash Sale',
-    titleAr: 'تخفيضات خاطفة',
-    image: 'https://via.placeholder.com/200x350',
-    link: '/flash-sale',
-    linkType: 'offer',
-    expiresAt: '2024-12-24T18:00:00',
-    isActive: false,
-    order: 5,
-    views: 1200,
-  },
-]
+const getLinkTypeLabel = (linkType: 'url' | 'product' | 'category') => {
+  const labels = {
+    url: 'رابط مباشر',
+    product: 'منتج',
+    category: 'فئة',
+  }
+  return labels[linkType]
+}
+
+const getLinkTypeColor = (linkType: 'url' | 'product' | 'category') => {
+  const colors = {
+    url: 'bg-blue-100 text-blue-700',
+    product: 'bg-green-100 text-green-700',
+    category: 'bg-purple-100 text-purple-700',
+  }
+  return colors[linkType]
+}
 
 // =============================================================================
 // Animation Variants
@@ -162,30 +116,6 @@ const itemVariants = {
   },
 }
 
-// =============================================================================
-// Helpers
-// =============================================================================
-
-const getLinkTypeLabel = (type: Story['linkType']) => {
-  const labels = {
-    product: 'منتج',
-    category: 'فئة',
-    offer: 'عرض',
-    external: 'خارجي',
-  }
-  return labels[type]
-}
-
-const getLinkTypeColor = (type: Story['linkType']) => {
-  const colors = {
-    product: 'bg-blue-100 text-blue-700',
-    category: 'bg-green-100 text-green-700',
-    offer: 'bg-orange-100 text-orange-700',
-    external: 'bg-gray-100 text-gray-700',
-  }
-  return colors[type]
-}
-
 const getTimeRemaining = (expiresAt: string) => {
   const now = new Date()
   const expires = new Date(expiresAt)
@@ -205,19 +135,43 @@ const getTimeRemaining = (expiresAt: string) => {
 // =============================================================================
 
 export default function StoriesPage() {
-  const [stories, setStories] = useState(mockStories)
+  const {
+    stories,
+    total,
+    isLoading,
+    isProcessing,
+    error,
+    create,
+    update,
+    remove,
+    refresh,
+  } = useStories()
+  
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingStory, setEditingStory] = useState<Story | null>(null)
 
-  const handleToggle = useCallback((id: string) => {
-    setStories(prev => prev.map(s => s.id === id ? { ...s, isActive: !s.isActive } : s))
-  }, [])
-
-  const handleDelete = useCallback((id: string) => {
-    if (confirm('هل أنت متأكد من حذف هذه القصة؟')) {
-      setStories(prev => prev.filter(s => s.id !== id))
+  const handleToggle = useCallback(async (id: number, isActive: boolean) => {
+    const story = stories.find(s => s.id === id)
+    if (!story) return
+    
+    const success = await update(id, {
+      ...story,
+      is_active: !isActive,
+    } as StoryPayload)
+    
+    if (success) {
+      refresh()
     }
-  }, [])
+  }, [stories, update, refresh])
+
+  const handleDelete = useCallback(async (id: number) => {
+    if (confirm('هل أنت متأكد من حذف هذه القصة؟')) {
+      const success = await remove(id)
+      if (success) {
+        refresh()
+      }
+    }
+  }, [remove, refresh])
 
   const handleEdit = useCallback((story: Story) => {
     setEditingStory(story)
@@ -229,6 +183,8 @@ export default function StoriesPage() {
     setIsModalOpen(true)
   }, [])
 
+  const activeStories = stories.filter(s => s.is_active)
+
   return (
     <motion.div
       variants={containerVariants}
@@ -239,12 +195,12 @@ export default function StoriesPage() {
       {/* Page Header */}
       <motion.div variants={itemVariants} className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <a
+          <Link
             href="/admin/promotions"
             className="p-2 rounded-xl border border-historical-gold/20 text-historical-charcoal/50 hover:text-historical-charcoal hover:bg-historical-gold/10 transition-colors"
           >
             {Icons.back}
-          </a>
+          </Link>
           <div>
             <h1 className="text-2xl font-bold text-historical-charcoal">القصص (Stories)</h1>
             <p className="text-historical-charcoal/50 mt-1">إدارة القصص المؤقتة للمنتجات والعروض</p>
@@ -259,192 +215,470 @@ export default function StoriesPage() {
         </button>
       </motion.div>
 
+      {/* Error Display */}
+      {error && (
+        <motion.div
+          variants={itemVariants}
+          className="p-4 rounded-xl bg-red-50 border border-red-200 text-red-700"
+        >
+          {error}
+        </motion.div>
+      )}
+
       {/* Stories Preview (Instagram-style) */}
-      <motion.div variants={itemVariants} className="bg-white/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 shadow-soft p-6">
-        <h2 className="text-sm font-medium text-historical-charcoal/50 mb-4">معاينة كما تظهر للمستخدم</h2>
-        <div className="flex gap-4 overflow-x-auto pb-2">
-          {stories.filter(s => s.isActive).map((story) => (
-            <div key={story.id} className="flex-shrink-0 text-center">
-              <div className="w-16 h-16 rounded-full p-0.5 bg-gradient-to-br from-historical-gold via-historical-red to-historical-gold">
-                <div className="w-full h-full rounded-full border-2 border-white overflow-hidden">
-                  <img src={story.image} alt={story.titleAr} className="w-full h-full object-cover" />
+      {isLoading ? (
+        <motion.div variants={itemVariants} className="bg-white/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 shadow-soft p-6">
+          <div className="flex gap-4">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="w-16 h-16 rounded-full bg-historical-stone animate-pulse" />
+            ))}
+          </div>
+        </motion.div>
+      ) : (
+        <motion.div variants={itemVariants} className="bg-white/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 shadow-soft p-6">
+          <h2 className="text-sm font-medium text-historical-charcoal/50 mb-4">معاينة كما تظهر للمستخدم</h2>
+          <div className="flex gap-4 overflow-x-auto pb-2">
+            {activeStories.map((story) => (
+              <div key={story.id} className="flex-shrink-0 text-center">
+                <div className="w-16 h-16 rounded-full p-0.5 bg-gradient-to-br from-historical-gold via-historical-red to-historical-gold">
+                  <div className="w-full h-full rounded-full border-2 border-white overflow-hidden">
+                    {story.image_url ? (
+                      <img src={story.image_url} alt={story.title_ar} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full bg-historical-stone flex items-center justify-center">
+                        {Icons.image}
+                      </div>
+                    )}
+                  </div>
                 </div>
+                <p className="text-xs text-historical-charcoal mt-2 max-w-[64px] truncate">{story.title_ar}</p>
               </div>
-              <p className="text-xs text-historical-charcoal mt-2 max-w-[64px] truncate">{story.titleAr}</p>
-            </div>
-          ))}
-        </div>
-      </motion.div>
+            ))}
+            {activeStories.length === 0 && (
+              <p className="text-sm text-historical-charcoal/50">لا توجد قصص نشطة</p>
+            )}
+          </div>
+        </motion.div>
+      )}
 
       {/* Stories List */}
-      <motion.div variants={itemVariants} className="bg-white/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 shadow-soft overflow-hidden">
-        <div className="p-4 space-y-3">
-          {stories.map((story) => (
-            <motion.div
-              key={story.id}
-              layout
-              className={`flex items-center gap-4 p-4 rounded-xl border transition-colors group ${
-                story.isActive ? 'border-green-200 bg-green-50/30' : 'border-historical-gold/10 bg-historical-stone/30'
-              }`}
-            >
-              {/* Drag Handle */}
-              <button className="p-1 rounded cursor-grab text-historical-charcoal/30 hover:text-historical-charcoal/60">
-                {Icons.drag}
-              </button>
-
-              {/* Story Image */}
-              <div className="w-14 h-20 rounded-lg overflow-hidden bg-historical-stone flex-shrink-0">
-                <img src={story.image} alt={story.titleAr} className="w-full h-full object-cover" />
-              </div>
-
-              {/* Story Info */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <h3 className="font-bold text-historical-charcoal truncate">{story.titleAr}</h3>
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${getLinkTypeColor(story.linkType)}`}>
-                    {getLinkTypeLabel(story.linkType)}
-                  </span>
-                </div>
-                <div className="flex items-center gap-4 text-sm text-historical-charcoal/50">
-                  <span className="flex items-center gap-1">
-                    {Icons.eye}
-                    {story.views.toLocaleString()}
-                  </span>
-                  <span>ينتهي: {getTimeRemaining(story.expiresAt)}</span>
-                </div>
-              </div>
-
-              {/* Toggle */}
-              <button
-                onClick={() => handleToggle(story.id)}
-                className={`relative w-12 h-7 rounded-full transition-colors duration-200 ${
-                  story.isActive ? 'bg-green-500' : 'bg-historical-charcoal/20'
+      {isLoading ? (
+        <motion.div variants={itemVariants} className="bg-white/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 shadow-soft p-4 space-y-3">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-20 bg-historical-stone animate-pulse rounded-xl" />
+          ))}
+        </motion.div>
+      ) : stories.length === 0 ? (
+        <motion.div
+          variants={itemVariants}
+          className="text-center py-12 bg-white/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10"
+        >
+          <p className="text-historical-charcoal/50">لا توجد قصص</p>
+        </motion.div>
+      ) : (
+        <motion.div variants={itemVariants} className="bg-white/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 shadow-soft overflow-hidden">
+          <div className="p-4 space-y-3">
+            {stories.map((story) => (
+              <motion.div
+                key={story.id}
+                layout
+                className={`flex items-center gap-4 p-4 rounded-xl border transition-colors group ${
+                  story.is_active ? 'border-green-200 bg-green-50/30' : 'border-historical-gold/10 bg-historical-stone/30'
                 }`}
               >
-                <motion.div
-                  initial={false}
-                  animate={{ x: story.isActive ? 22 : 4 }}
-                  transition={{ duration: 0.2 }}
-                  className="absolute top-1 w-5 h-5 rounded-full bg-white shadow"
-                />
-              </button>
-
-              {/* Actions */}
-              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button
-                  onClick={() => handleEdit(story)}
-                  className="p-2 rounded-lg text-historical-charcoal/50 hover:text-historical-charcoal hover:bg-historical-gold/10 transition-colors"
-                >
-                  {Icons.edit}
-                </button>
-                <button
-                  onClick={() => handleDelete(story.id)}
-                  className="p-2 rounded-lg text-historical-charcoal/50 hover:text-red-500 hover:bg-red-50 transition-colors"
-                >
-                  {Icons.delete}
-                </button>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-      </motion.div>
-
-      {/* Add/Edit Modal */}
-      <AnimatePresence>
-        {isModalOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
-            onClick={() => setIsModalOpen(false)}
-          >
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="flex items-center justify-between p-6 border-b border-historical-gold/10">
-                <h2 className="text-lg font-bold text-historical-charcoal">
-                  {editingStory ? 'تعديل القصة' : 'إضافة قصة جديدة'}
-                </h2>
-                <button
-                  onClick={() => setIsModalOpen(false)}
-                  className="p-2 rounded-lg text-historical-charcoal/50 hover:bg-historical-gold/10"
-                >
-                  {Icons.close}
-                </button>
-              </div>
-              <div className="p-6 space-y-4">
-                {/* Image Upload */}
-                <div className="flex justify-center">
-                  <div className="w-32 h-48 rounded-xl border-2 border-dashed border-historical-gold/30 bg-historical-stone/30 flex items-center justify-center cursor-pointer hover:bg-historical-gold/10 transition-colors">
-                    <div className="text-center">
-                      <div className="text-historical-gold mb-2">{Icons.play}</div>
-                      <p className="text-xs text-historical-charcoal/50">رفع صورة</p>
+                {/* Story Image */}
+                <div className="w-14 h-20 rounded-lg overflow-hidden bg-historical-stone flex-shrink-0">
+                  {story.image_url ? (
+                    <img src={story.image_url} alt={story.title_ar} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      {Icons.image}
                     </div>
+                  )}
+                </div>
+
+                {/* Story Info */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="font-bold text-historical-charcoal truncate">{story.title_ar}</h3>
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${getLinkTypeColor(story.link_type)}`}>
+                      {getLinkTypeLabel(story.link_type)}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-4 text-sm text-historical-charcoal/50">
+                    <span className="flex items-center gap-1">
+                      {Icons.eye}
+                      {story.views.toLocaleString()}
+                    </span>
+                    <span>ينتهي: {new Date(story.expires_at).toLocaleDateString('ar-SY')}</span>
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-historical-charcoal mb-2">العنوان (عربي)</label>
-                  <input
-                    type="text"
-                    defaultValue={editingStory?.titleAr}
-                    className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-historical-charcoal mb-2">نوع الرابط</label>
-                  <select
-                    defaultValue={editingStory?.linkType || 'product'}
-                    className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
-                  >
-                    <option value="product">منتج</option>
-                    <option value="category">فئة</option>
-                    <option value="offer">عرض</option>
-                    <option value="external">رابط خارجي</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-historical-charcoal mb-2">الرابط</label>
-                  <input
-                    type="text"
-                    defaultValue={editingStory?.link}
-                    className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
-                    dir="ltr"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-historical-charcoal mb-2">تاريخ الانتهاء</label>
-                  <input
-                    type="datetime-local"
-                    defaultValue={editingStory?.expiresAt}
-                    className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
-                  />
-                </div>
-              </div>
-              <div className="flex items-center justify-end gap-3 p-6 border-t border-historical-gold/10">
+                {/* Toggle */}
                 <button
-                  onClick={() => setIsModalOpen(false)}
-                  className="px-6 py-2.5 rounded-xl text-historical-charcoal/70 hover:bg-historical-gold/10"
+                  onClick={() => handleToggle(story.id, story.is_active)}
+                  disabled={isProcessing}
+                  className={`relative w-12 h-7 rounded-full transition-colors duration-200 disabled:opacity-50 ${
+                    story.is_active ? 'bg-green-500' : 'bg-historical-charcoal/20'
+                  }`}
                 >
-                  إلغاء
+                  <motion.div
+                    initial={false}
+                    animate={{ x: story.is_active ? 22 : 4 }}
+                    transition={{ duration: 0.2 }}
+                    className="absolute top-1 w-5 h-5 rounded-full bg-white shadow"
+                  />
                 </button>
-                <button className="px-6 py-2.5 rounded-xl bg-historical-gold text-white font-medium hover:bg-historical-red transition-colors">
-                  {editingStory ? 'حفظ التغييرات' : 'إضافة القصة'}
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+
+                {/* Actions */}
+                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button
+                    onClick={() => handleEdit(story)}
+                    className="p-2 rounded-lg text-historical-charcoal/50 hover:text-historical-charcoal hover:bg-historical-gold/10 transition-colors"
+                  >
+                    {Icons.edit}
+                  </button>
+                  <button
+                    onClick={() => handleDelete(story.id)}
+                    disabled={isProcessing}
+                    className="p-2 rounded-lg text-historical-charcoal/50 hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-50"
+                  >
+                    {Icons.delete}
+                  </button>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
+      )}
+
+      {/* Add/Edit Modal */}
+      <StoryModal
+        isOpen={isModalOpen}
+        isProcessing={isProcessing}
+        story={editingStory}
+        onClose={() => {
+          setIsModalOpen(false)
+          setEditingStory(null)
+        }}
+        onSave={async (data) => {
+          let success = false
+          if (editingStory) {
+            success = await update(editingStory.id, data)
+          } else {
+            success = await create(data)
+          }
+          if (success) {
+            setIsModalOpen(false)
+            setEditingStory(null)
+            refresh()
+          }
+          return success
+        }}
+      />
     </motion.div>
+  )
+}
+
+// =============================================================================
+// Story Modal Component
+// مكون Modal القصة
+// =============================================================================
+
+interface StoryModalProps {
+  isOpen: boolean
+  isProcessing: boolean
+  story: Story | null
+  onClose: () => void
+  onSave: (data: StoryPayload) => Promise<boolean>
+}
+
+function StoryModal({
+  isOpen,
+  isProcessing,
+  story,
+  onClose,
+  onSave,
+}: StoryModalProps) {
+  const [formData, setFormData] = useState<StoryPayload>({
+    title: '',
+    title_ar: '',
+    link_type: 'url',
+    link: '',
+    expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 16),
+    is_active: true,
+    order: 0,
+  })
+  const [imageFile, setImageFile] = useState<File | null>(null)
+  const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({})
+
+  useEffect(() => {
+    if (isOpen) {
+      if (story) {
+        setFormData({
+          title: story.title,
+          title_ar: story.title_ar,
+          link_type: story.link_type,
+          link: story.link || '',
+          expires_at: story.expires_at.slice(0, 16),
+          is_active: story.is_active,
+          order: story.order,
+        })
+        setImagePreview(story.image_url || null)
+      } else {
+        setFormData({
+          title: '',
+          title_ar: '',
+          link_type: 'url',
+          link: '',
+          expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 16),
+          is_active: true,
+          order: 0,
+        })
+        setImagePreview(null)
+      }
+      setImageFile(null)
+      setFormErrors({})
+    }
+  }, [isOpen, story])
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      setImageFile(file)
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string)
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setFormErrors({})
+
+    // Validation
+    if (!formData.title_ar.trim()) {
+      setFormErrors({ title_ar: 'العنوان بالعربية مطلوب' })
+      return
+    }
+    if (!formData.title.trim()) {
+      setFormErrors({ title: 'العنوان بالإنجليزية مطلوب' })
+      return
+    }
+    if (!story && !imageFile && !imagePreview) {
+      setFormErrors({ image: 'الصورة مطلوبة' })
+      return
+    }
+
+    const payload: StoryPayload = {
+      ...formData,
+      image: imageFile || undefined,
+      expires_at: new Date(formData.expires_at).toISOString(),
+    }
+
+    const success = await onSave(payload)
+    if (success) {
+      // Form will be reset by useEffect when modal closes
+    }
+  }
+
+  if (!isOpen) return null
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm overflow-y-auto"
+        onClick={onClose}
+      >
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.95, y: 20 }}
+          className="w-full max-w-md max-h-[90vh] bg-white rounded-2xl shadow-2xl overflow-hidden my-8"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="flex items-center justify-between p-6 border-b border-historical-gold/10">
+            <h2 className="text-lg font-bold text-historical-charcoal">
+              {story ? 'تعديل القصة' : 'إضافة قصة جديدة'}
+            </h2>
+            <button
+              onClick={onClose}
+              className="p-2 rounded-lg text-historical-charcoal/50 hover:bg-historical-gold/10 transition-colors"
+            >
+              {Icons.close}
+            </button>
+          </div>
+
+          <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto max-h-[calc(90vh-140px)]">
+            {/* Image Upload */}
+            <div>
+              <label className="block text-sm font-medium text-historical-charcoal mb-2">الصورة</label>
+              <div className="flex justify-center">
+                <div className="w-32 h-48 rounded-xl border-2 border-dashed border-historical-gold/30 bg-historical-stone/30 flex items-center justify-center cursor-pointer hover:bg-historical-gold/10 transition-colors">
+                  {imagePreview ? (
+                    <div className="relative w-full h-full">
+                      <img
+                        src={imagePreview}
+                        alt="Preview"
+                        className="w-full h-full object-cover rounded-xl"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setImagePreview(null)
+                          setImageFile(null)
+                        }}
+                        className="absolute top-2 right-2 p-1 rounded-full bg-red-500 text-white"
+                      >
+                        {Icons.close}
+                      </button>
+                    </div>
+                  ) : (
+                    <label className="text-center cursor-pointer">
+                      <div className="text-historical-gold mb-2">{Icons.play}</div>
+                      <p className="text-xs text-historical-charcoal/50">رفع صورة</p>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageChange}
+                        className="hidden"
+                      />
+                    </label>
+                  )}
+                </div>
+              </div>
+              {formErrors.image && (
+                <p className="text-sm text-red-600 mt-1">{formErrors.image}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-historical-charcoal mb-2">
+                العنوان (عربي) *
+              </label>
+              <input
+                type="text"
+                value={formData.title_ar}
+                onChange={(e) => setFormData({ ...formData, title_ar: e.target.value })}
+                className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+                required
+              />
+              {formErrors.title_ar && (
+                <p className="text-sm text-red-600 mt-1">{formErrors.title_ar}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-historical-charcoal mb-2">
+                Title (English) *
+              </label>
+              <input
+                type="text"
+                value={formData.title}
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+                dir="ltr"
+                required
+              />
+              {formErrors.title && (
+                <p className="text-sm text-red-600 mt-1">{formErrors.title}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-historical-charcoal mb-2">
+                نوع الرابط
+              </label>
+              <select
+                value={formData.link_type}
+                onChange={(e) => setFormData({ ...formData, link_type: e.target.value as 'url' | 'product' | 'category' })}
+                className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+              >
+                <option value="url">رابط مباشر</option>
+                <option value="product">منتج</option>
+                <option value="category">فئة</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-historical-charcoal mb-2">
+                الرابط
+              </label>
+              <input
+                type="text"
+                value={formData.link}
+                onChange={(e) => setFormData({ ...formData, link: e.target.value })}
+                className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+                dir="ltr"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-historical-charcoal mb-2">
+                  تاريخ الانتهاء *
+                </label>
+                <input
+                  type="datetime-local"
+                  value={formData.expires_at}
+                  onChange={(e) => setFormData({ ...formData, expires_at: e.target.value })}
+                  className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-historical-charcoal mb-2">
+                  الترتيب
+                </label>
+                <input
+                  type="number"
+                  value={formData.order}
+                  onChange={(e) => setFormData({ ...formData, order: parseInt(e.target.value) || 0 })}
+                  className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+                  min="0"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={formData.is_active}
+                  onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
+                  className="w-4 h-4 rounded border-historical-gold/30 text-historical-gold focus:ring-historical-gold"
+                />
+                <span className="text-sm text-historical-charcoal">نشط</span>
+              </label>
+            </div>
+          </form>
+
+          <div className="flex items-center justify-end gap-3 p-6 border-t border-historical-gold/10">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-6 py-2.5 rounded-xl text-historical-charcoal/70 hover:bg-historical-gold/10 transition-colors"
+            >
+              إلغاء
+            </button>
+            <button
+              type="submit"
+              onClick={handleSubmit}
+              disabled={isProcessing}
+              className="px-6 py-2.5 rounded-xl bg-historical-gold text-white font-medium hover:bg-historical-red transition-colors disabled:opacity-50"
+            >
+              {isProcessing ? 'جاري الحفظ...' : (story ? 'حفظ التغييرات' : 'إضافة القصة')}
+            </button>
+          </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
   )
 }
 

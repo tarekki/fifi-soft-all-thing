@@ -24,6 +24,7 @@ from decimal import Decimal
 from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiResponse
 
 from admin_api.permissions import IsAdminUser
+from admin_api.throttling import AdminUserRateThrottle
 from admin_api.serializers.dashboard import (
     DashboardOverviewSerializer,
     SalesChartSerializer,
@@ -52,6 +53,7 @@ class DashboardOverviewView(APIView):
     """
     
     permission_classes = [IsAdminUser]
+    throttle_classes = [AdminUserRateThrottle]
     
     @extend_schema(
         summary='Dashboard Overview',
@@ -249,6 +251,7 @@ class DashboardSalesChartView(APIView):
     """
     
     permission_classes = [IsAdminUser]
+    throttle_classes = [AdminUserRateThrottle]
     
     @extend_schema(
         summary='Sales Chart Data',
@@ -346,6 +349,7 @@ class DashboardRecentOrdersView(APIView):
     """
     
     permission_classes = [IsAdminUser]
+    throttle_classes = [AdminUserRateThrottle]
     
     @extend_schema(
         summary='Recent Orders',
@@ -438,6 +442,7 @@ class DashboardRecentActivityView(APIView):
     """
     
     permission_classes = [IsAdminUser]
+    throttle_classes = [AdminUserRateThrottle]
     
     @extend_schema(
         summary='Recent Activity',

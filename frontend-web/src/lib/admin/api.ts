@@ -153,23 +153,60 @@ async function adminFetch<T>(
       headers,
     })
     
-    const data = await response.json()
+    // Handle network errors
+    // معالجة أخطاء الشبكة
+    if (!response.ok && response.status !== 400 && response.status !== 401) {
+      return {
+        success: false,
+        data: null,
+        message: `HTTP ${response.status}: ${response.statusText}`,
+        errors: null,
+      } as ApiResponse<T>
+    }
+    
+    let data: any
+    try {
+      data = await response.json()
+    } catch (jsonError) {
+      // If response is not JSON, return error response
+      // إذا كانت الاستجابة ليست JSON، إرجاع استجابة خطأ
+      return {
+        success: false,
+        data: null,
+        message: 'Invalid response format from server',
+        errors: null,
+      } as ApiResponse<T>
+    }
     
     // Handle 401 Unauthorized
     // معالجة 401 غير مصرح
     if (response.status === 401) {
       clearTokens()
-      throw new Error(data.message || 'Unauthorized')
+      return {
+        success: false,
+        data: null,
+        message: data.message || 'Unauthorized. Please login again.',
+        errors: data.errors || null,
+      } as ApiResponse<T>
     }
     
+    // Return the API response (may be success or error)
+    // إرجاع استجابة API (قد تكون نجاح أو خطأ)
     return data as ApiResponse<T>
     
   } catch (error) {
-    // Re-throw if it's our custom error
-    if (error instanceof Error) {
-      throw error
-    }
-    throw new Error('Network error. Please check your connection.')
+    // Handle network/fetch errors
+    // معالجة أخطاء الشبكة/الجلب
+    const errorMessage = error instanceof Error 
+      ? error.message 
+      : 'Network error. Please check your connection.'
+    
+    return {
+      success: false,
+      data: null,
+      message: errorMessage,
+      errors: null,
+    } as ApiResponse<T>
   }
 }
 
