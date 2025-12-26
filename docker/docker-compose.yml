@@ -99,9 +99,16 @@ services:
     ports:
       - "3000:3000"
     environment:
+      # Use backend service name for internal Docker network communication
+      # استخدام اسم خدمة backend للاتصال الداخلي في شبكة Docker
+      # For browser requests: use localhost (exposed port)
+      # لطلبات المتصفح: استخدام localhost (المنفذ المعرض)
       - NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
       - NEXT_PUBLIC_FRONTEND_URL=http://localhost:3000
       - WATCHPACK_POLLING=true
+      # Internal API URL for server-side requests (SSR)
+      # عنوان API الداخلي للطلبات من جانب الخادم (SSR)
+      - INTERNAL_API_URL=http://backend:8000/api/v1
     depends_on:
       - backend
     networks:

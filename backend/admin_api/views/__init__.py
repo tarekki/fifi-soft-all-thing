@@ -72,6 +72,13 @@ from .promotions import (
     AdminCouponDetailView,
     AdminPromotionStatsView,
 )
+from .reports import (
+    SalesReportView,
+    ProductsReportView,
+    UsersReportView,
+    CommissionsReportView,
+    ExportReportView,
+)
 
 __all__ = [
     # Auth
@@ -131,5 +138,11 @@ __all__ = [
     'AdminCouponListCreateView',
     'AdminCouponDetailView',
     'AdminPromotionStatsView',
+    # Reports
+    'SalesReportView',
+    'ProductsReportView',
+    'UsersReportView',
+    'CommissionsReportView',
+    'ExportReportView',
 ]
 

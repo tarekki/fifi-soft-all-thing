@@ -11,15 +11,10 @@
  * - Export functionality
  */
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-
-// =============================================================================
-// Types
-// =============================================================================
-
-type DateRange = '7days' | '30days' | '90days' | 'year' | 'custom'
-type ReportType = 'sales' | 'revenue' | 'products' | 'users'
+import { useReports } from '@/lib/admin/hooks/useReports'
+import type { DateRange, ReportType } from '@/lib/admin/types/reports'
 
 // =============================================================================
 // Icons
@@ -69,41 +64,22 @@ const Icons = {
 }
 
 // =============================================================================
-// Mock Data
+// Helper Functions
+// دوال مساعدة
 // =============================================================================
 
-const summaryData = {
-  totalRevenue: { value: 125890, change: 12.5 },
-  totalOrders: { value: 3456, change: 8.2 },
-  avgOrderValue: { value: 36.42, change: 3.1 },
-  newUsers: { value: 1234, change: -2.4 },
+function formatCurrency(value: number): string {
+  return new Intl.NumberFormat('ar-SY', {
+    style: 'currency',
+    currency: 'SYP',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(value)
 }
 
-const salesByCategory = [
-  { category: 'إلكترونيات', sales: 45000, percentage: 35.7 },
-  { category: 'أزياء', sales: 32000, percentage: 25.4 },
-  { category: 'منزل وحديقة', sales: 18000, percentage: 14.3 },
-  { category: 'رياضة', sales: 15000, percentage: 11.9 },
-  { category: 'أخرى', sales: 15890, percentage: 12.6 },
-]
-
-const topProducts = [
-  { name: 'آيفون 15 برو ماكس', sales: 156, revenue: 186844 },
-  { name: 'سامسونج جالاكسي S24', sales: 134, revenue: 147266 },
-  { name: 'ماك بوك برو 14', sales: 89, revenue: 177911 },
-  { name: 'نايك اير ماكس 90', sales: 234, revenue: 30186 },
-  { name: 'سماعات سوني WH-1000XM5', sales: 112, revenue: 39088 },
-]
-
-const dailySales = [
-  { day: 'السبت', sales: 4500 },
-  { day: 'الأحد', sales: 5200 },
-  { day: 'الاثنين', sales: 4800 },
-  { day: 'الثلاثاء', sales: 6100 },
-  { day: 'الأربعاء', sales: 5600 },
-  { day: 'الخميس', sales: 7200 },
-  { day: 'الجمعة', sales: 8500 },
-]
+function formatNumber(value: number): string {
+  return new Intl.NumberFormat('ar-SY').format(value)
+}
 
 // =============================================================================
 // Animation Variants
@@ -131,10 +107,49 @@ const itemVariants = {
 // =============================================================================
 
 export default function ReportsPage() {
-  const [dateRange, setDateRange] = useState<DateRange>('30days')
-  const [reportType, setReportType] = useState<ReportType>('sales')
+  const [selectedReportType, setSelectedReportType] = useState<ReportType>('sales')
+  
+  const {
+    salesReport,
+    productsReport,
+    usersReport,
+    commissionsReport,
+    isLoading,
+    error,
+    dateRange,
+    setDateRange,
+    exportReportAsWord,
+  } = useReports('30days', 'sales')
 
-  const maxSales = Math.max(...dailySales.map(d => d.sales))
+  // Get data from reports
+  const summaryData = salesReport ? {
+    totalRevenue: { value: Number(salesReport.total_revenue), change: salesReport.revenue_change },
+    totalOrders: { value: salesReport.total_orders, change: salesReport.orders_change },
+    avgOrderValue: { value: Number(salesReport.avg_order_value), change: salesReport.avg_order_value_change },
+    newUsers: { value: salesReport.new_users, change: salesReport.new_users_change },
+  } : {
+    totalRevenue: { value: 0, change: 0 },
+    totalOrders: { value: 0, change: 0 },
+    avgOrderValue: { value: 0, change: 0 },
+    newUsers: { value: 0, change: 0 },
+  }
+
+  const dailySales = salesReport?.daily_sales || []
+  const salesByCategory = productsReport?.sales_by_category || []
+  const topProducts = productsReport?.top_products || []
+
+  const maxSales = dailySales.length > 0 
+    ? Math.max(...dailySales.map(d => Number(d.sales))) 
+    : 1
+
+  const handleExport = async () => {
+    try {
+      console.log('Exporting report type:', selectedReportType)
+      await exportReportAsWord(selectedReportType)
+    } catch (err) {
+      console.error('Export error:', err)
+    }
+  }
 
   return (
     <motion.div
@@ -149,7 +164,7 @@ export default function ReportsPage() {
           <h1 className="text-2xl font-bold text-historical-charcoal">التقارير والإحصائيات</h1>
           <p className="text-historical-charcoal/50 mt-1">تحليل أداء المتجر والمبيعات</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           <select
             value={dateRange}
             onChange={(e) => setDateRange(e.target.value as DateRange)}
@@ -160,9 +175,29 @@ export default function ReportsPage() {
             <option value="90days">آخر 90 يوم</option>
             <option value="year">سنة كاملة</option>
           </select>
-          <button className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-historical-gold/10 text-historical-gold font-medium hover:bg-historical-gold/20 transition-colors">
+          <select
+            value={selectedReportType}
+            onChange={(e) => {
+              const newType = e.target.value as ReportType
+              console.log('Report type changed to:', newType)
+              setSelectedReportType(newType)
+            }}
+            className="px-4 py-2.5 rounded-xl border border-blue-500/30 bg-white/80 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 font-medium"
+            title="اختر نوع التقرير للتصدير"
+          >
+            <option value="sales">📊 تقرير المبيعات</option>
+            <option value="products">📦 تقرير المنتجات</option>
+            <option value="users">👥 تقرير المستخدمين</option>
+            <option value="commissions">💰 تقرير العمولات</option>
+          </select>
+          <button 
+            onClick={handleExport}
+            disabled={isLoading}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-historical-gold/10 text-historical-gold font-medium hover:bg-historical-gold/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            title={`تصدير ${selectedReportType === 'sales' ? 'تقرير المبيعات' : selectedReportType === 'products' ? 'تقرير المنتجات' : selectedReportType === 'users' ? 'تقرير المستخدمين' : 'تقرير العمولات'}`}
+          >
             {Icons.download}
-            <span>تصدير التقرير</span>
+            <span>{isLoading ? 'جاري التصدير...' : `تصدير ${selectedReportType === 'sales' ? 'المبيعات' : selectedReportType === 'products' ? 'المنتجات' : selectedReportType === 'users' ? 'المستخدمين' : 'العمولات'}`}</span>
           </button>
         </div>
       </motion.div>
@@ -183,7 +218,7 @@ export default function ReportsPage() {
             </span>
           </div>
           <p className="text-2xl font-bold text-historical-charcoal">
-            ${summaryData.totalRevenue.value.toLocaleString()}
+            {formatCurrency(summaryData.totalRevenue.value)}
           </p>
           <p className="text-sm text-historical-charcoal/50 mt-1">إجمالي الإيرادات</p>
         </div>
@@ -202,7 +237,7 @@ export default function ReportsPage() {
             </span>
           </div>
           <p className="text-2xl font-bold text-historical-charcoal">
-            {summaryData.totalOrders.value.toLocaleString()}
+            {formatNumber(summaryData.totalOrders.value)}
           </p>
           <p className="text-sm text-historical-charcoal/50 mt-1">إجمالي الطلبات</p>
         </div>
@@ -221,7 +256,7 @@ export default function ReportsPage() {
             </span>
           </div>
           <p className="text-2xl font-bold text-historical-charcoal">
-            ${summaryData.avgOrderValue.value}
+            {formatCurrency(summaryData.avgOrderValue.value)}
           </p>
           <p className="text-sm text-historical-charcoal/50 mt-1">متوسط قيمة الطلب</p>
         </div>
@@ -240,53 +275,81 @@ export default function ReportsPage() {
             </span>
           </div>
           <p className="text-2xl font-bold text-historical-charcoal">
-            {summaryData.newUsers.value.toLocaleString()}
+            {formatNumber(summaryData.newUsers.value)}
           </p>
           <p className="text-sm text-historical-charcoal/50 mt-1">المستخدمين الجدد</p>
         </div>
       </motion.div>
 
-      {/* Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Daily Sales Chart */}
-        <motion.div
+      {/* Error Message */}
+      {error && (
+        <motion.div 
           variants={itemVariants}
-          className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-historical-gold/10 shadow-soft"
+          className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl"
         >
-          <h3 className="text-lg font-bold text-historical-charcoal mb-6">المبيعات اليومية</h3>
-          <div className="flex items-end justify-between gap-2 h-48">
-            {dailySales.map((data, index) => (
+          <p>{error}</p>
+        </motion.div>
+      )}
+
+      {/* Loading State */}
+      {isLoading && !salesReport && (
+        <motion.div 
+          variants={itemVariants}
+          className="text-center py-12"
+        >
+          <p className="text-historical-charcoal/50">جاري تحميل البيانات...</p>
+        </motion.div>
+      )}
+
+      {/* Charts Row */}
+      {salesReport && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Daily Sales Chart */}
+          <motion.div
+            variants={itemVariants}
+            className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-historical-gold/10 shadow-soft"
+          >
+            <h3 className="text-lg font-bold text-historical-charcoal mb-6">المبيعات اليومية</h3>
+            {dailySales.length > 0 ? (
+              <div className="flex items-end justify-between gap-2 h-48">
+                {dailySales.map((data, index) => (
               <div key={data.day} className="flex-1 flex flex-col items-center gap-2">
                 <motion.div
                   initial={{ height: 0 }}
-                  animate={{ height: `${(data.sales / maxSales) * 100}%` }}
+                  animate={{ height: `${(Number(data.sales) / maxSales) * 100}%` }}
                   transition={{ duration: 0.5, delay: index * 0.1 }}
                   className="w-full bg-gradient-to-t from-historical-gold to-historical-gold/50 rounded-t-lg relative group cursor-pointer"
                 >
                   <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
                     <div className="bg-historical-charcoal text-white text-xs px-2 py-1 rounded-lg whitespace-nowrap">
-                      ${data.sales.toLocaleString()}
+                      {formatCurrency(Number(data.sales))}
                     </div>
                   </div>
                 </motion.div>
-                <span className="text-xs text-historical-charcoal/50">{data.day}</span>
+                  <span className="text-xs text-historical-charcoal/50">{data.day}</span>
+                </div>
+              ))}
+            </div>
+            ) : (
+              <div className="flex items-center justify-center h-48 text-historical-charcoal/50">
+                لا توجد بيانات
               </div>
-            ))}
-          </div>
-        </motion.div>
+            )}
+          </motion.div>
 
-        {/* Sales by Category */}
-        <motion.div
-          variants={itemVariants}
-          className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-historical-gold/10 shadow-soft"
-        >
-          <h3 className="text-lg font-bold text-historical-charcoal mb-6">المبيعات حسب الفئة</h3>
-          <div className="space-y-4">
-            {salesByCategory.map((cat, index) => (
+          {/* Sales by Category */}
+          <motion.div
+            variants={itemVariants}
+            className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-historical-gold/10 shadow-soft"
+          >
+            <h3 className="text-lg font-bold text-historical-charcoal mb-6">المبيعات حسب الفئة</h3>
+            {productsReport && salesByCategory.length > 0 ? (
+              <div className="space-y-4">
+                {salesByCategory.map((cat, index) => (
               <div key={cat.category}>
                 <div className="flex items-center justify-between mb-1.5">
                   <span className="text-sm font-medium text-historical-charcoal">{cat.category}</span>
-                  <span className="text-sm text-historical-charcoal/50">${cat.sales.toLocaleString()}</span>
+                  <span className="text-sm text-historical-charcoal/50">{formatCurrency(Number(cat.sales))}</span>
                 </div>
                 <div className="h-2.5 bg-historical-stone rounded-full overflow-hidden">
                   <motion.div
@@ -295,33 +358,41 @@ export default function ReportsPage() {
                     transition={{ duration: 0.5, delay: index * 0.1 }}
                     className="h-full bg-gradient-to-l from-historical-gold to-historical-red rounded-full"
                   />
+                  </div>
                 </div>
+              ))}
+            </div>
+            ) : (
+              <div className="flex items-center justify-center h-48 text-historical-charcoal/50">
+                لا توجد بيانات
               </div>
-            ))}
-          </div>
-        </motion.div>
-      </div>
+            )}
+          </motion.div>
+        </div>
+      )}
 
       {/* Top Products */}
-      <motion.div
-        variants={itemVariants}
-        className="bg-white/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 shadow-soft overflow-hidden"
-      >
-        <div className="px-6 py-4 border-b border-historical-gold/10">
-          <h3 className="text-lg font-bold text-historical-charcoal">المنتجات الأكثر مبيعاً</h3>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-historical-stone/50">
-              <tr>
-                <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">#</th>
-                <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">المنتج</th>
-                <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">المبيعات</th>
-                <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">الإيرادات</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-historical-gold/5">
-              {topProducts.map((product, index) => (
+      {productsReport && (
+        <motion.div
+          variants={itemVariants}
+          className="bg-white/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 shadow-soft overflow-hidden"
+        >
+          <div className="px-6 py-4 border-b border-historical-gold/10">
+            <h3 className="text-lg font-bold text-historical-charcoal">المنتجات الأكثر مبيعاً</h3>
+          </div>
+          {topProducts.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-historical-stone/50">
+                  <tr>
+                    <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">#</th>
+                    <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">المنتج</th>
+                    <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">المبيعات</th>
+                    <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">الإيرادات</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-historical-gold/5">
+                  {topProducts.map((product, index) => (
                 <tr key={product.name} className="hover:bg-historical-gold/5 transition-colors">
                   <td className="px-6 py-4">
                     <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
@@ -337,14 +408,20 @@ export default function ReportsPage() {
                     <span className="text-sm text-historical-charcoal/70">{product.sales} وحدة</span>
                   </td>
                   <td className="px-6 py-4">
-                    <span className="font-bold text-historical-gold">${product.revenue.toLocaleString()}</span>
+                    <span className="font-bold text-historical-gold">{formatCurrency(Number(product.revenue))}</span>
                   </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </motion.div>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          ) : (
+            <div className="px-6 py-12 text-center text-historical-charcoal/50">
+              لا توجد بيانات
+            </div>
+          )}
+        </motion.div>
+      )}
     </motion.div>
   )
 }

@@ -77,6 +77,12 @@ from admin_api.views import (
     AdminCouponListCreateView,
     AdminCouponDetailView,
     AdminPromotionStatsView,
+    # Reports
+    SalesReportView,
+    ProductsReportView,
+    UsersReportView,
+    CommissionsReportView,
+    ExportReportView,
 )
 
 
@@ -544,6 +550,53 @@ promotions_urlpatterns = [
 
 
 # =============================================================================
+# Reports URL Patterns
+# أنماط URLs للتقارير
+# =============================================================================
+reports_urlpatterns = [
+    # GET /api/v1/admin/reports/sales/
+    # تقرير المبيعات
+    path(
+        'sales/',
+        SalesReportView.as_view(),
+        name='sales-report'
+    ),
+    
+    # GET /api/v1/admin/reports/products/
+    # تقرير المنتجات
+    path(
+        'products/',
+        ProductsReportView.as_view(),
+        name='products-report'
+    ),
+    
+    # GET /api/v1/admin/reports/users/
+    # تقرير المستخدمين
+    path(
+        'users/',
+        UsersReportView.as_view(),
+        name='users-report'
+    ),
+    
+    # GET /api/v1/admin/reports/commissions/
+    # تقرير العمولات
+    path(
+        'commissions/',
+        CommissionsReportView.as_view(),
+        name='commissions-report'
+    ),
+    
+    # GET /api/v1/admin/reports/export/
+    # تصدير التقرير كملف Word
+    path(
+        'export/',
+        ExportReportView.as_view(),
+        name='export-report'
+    ),
+]
+
+
+# =============================================================================
 # Main URL Patterns
 # أنماط URLs الرئيسية
 # =============================================================================
@@ -590,7 +643,8 @@ urlpatterns = [
     # Settings Management
     # path('settings/', include('admin_api.urls.settings')),
     
-    # Reports
-    # path('reports/', include('admin_api.urls.reports')),
+    # Reports endpoints
+    # نقاط نهاية التقارير
+    path('reports/', include((reports_urlpatterns, 'reports'))),
 ]
 

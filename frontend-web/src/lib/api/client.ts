@@ -14,18 +14,29 @@ export async function apiClient<T>(
 ): Promise<T> {
   const url = `${API_URL}${endpoint}`
   
-  const response = await fetch(url, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...options?.headers,
-    },
-  })
+  try {
+    const response = await fetch(url, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...options?.headers,
+      },
+    })
 
-  if (!response.ok) {
-    throw new Error(`API Error: ${response.statusText}`)
+    if (!response.ok) {
+      throw new Error(`API Error: ${response.status} ${response.statusText}`)
+    }
+
+    return response.json()
+  } catch (error) {
+    // Handle network errors (Backend not running, CORS, etc.)
+    if (error instanceof TypeError && error.message.includes('fetch')) {
+      throw new Error(
+        `Failed to connect to API at ${url}. ` +
+        `Please make sure the backend server is running on ${API_URL}`
+      )
+    }
+    throw error
   }
-
-  return response.json()
 }
 

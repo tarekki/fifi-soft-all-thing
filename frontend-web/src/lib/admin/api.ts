@@ -22,6 +22,14 @@ import type {
   RecentOrder,
   RecentActivity,
 } from './types'
+import type {
+  SalesReport,
+  ProductsReport,
+  UsersReport,
+  CommissionsReport,
+  DateRange,
+  ReportType,
+} from './types/reports'
 
 // =============================================================================
 // Configuration
@@ -360,6 +368,88 @@ export async function getRecentActivity(
   limit: number = 10
 ): Promise<ApiResponse<RecentActivity[]>> {
   return adminFetch<RecentActivity[]>(`/dashboard/recent-activity/?limit=${limit}`)
+}
+
+// =============================================================================
+// Reports API Functions
+// دوال API التقارير
+// =============================================================================
+
+/**
+ * Get sales report
+ * الحصول على تقرير المبيعات
+ * 
+ * @param dateRange - Date range: '7days', '30days', '90days', 'year'
+ */
+export async function getSalesReport(
+  dateRange: DateRange = '30days'
+): Promise<ApiResponse<SalesReport>> {
+  return adminFetch<SalesReport>(`/reports/sales/?date_range=${dateRange}`)
+}
+
+/**
+ * Get products report
+ * الحصول على تقرير المنتجات
+ * 
+ * @param dateRange - Date range: '7days', '30days', '90days', 'year'
+ */
+export async function getProductsReport(
+  dateRange: DateRange = '30days'
+): Promise<ApiResponse<ProductsReport>> {
+  return adminFetch<ProductsReport>(`/reports/products/?date_range=${dateRange}`)
+}
+
+/**
+ * Get users report
+ * الحصول على تقرير المستخدمين
+ * 
+ * @param dateRange - Date range: '7days', '30days', '90days', 'year'
+ */
+export async function getUsersReport(
+  dateRange: DateRange = '30days'
+): Promise<ApiResponse<UsersReport>> {
+  return adminFetch<UsersReport>(`/reports/users/?date_range=${dateRange}`)
+}
+
+/**
+ * Get commissions report
+ * الحصول على تقرير العمولات
+ * 
+ * @param dateRange - Date range: '7days', '30days', '90days', 'year'
+ */
+export async function getCommissionsReport(
+  dateRange: DateRange = '30days'
+): Promise<ApiResponse<CommissionsReport>> {
+  return adminFetch<CommissionsReport>(`/reports/commissions/?date_range=${dateRange}`)
+}
+
+/**
+ * Export report as Word document
+ * تصدير التقرير كملف Word
+ * 
+ * @param reportType - Type of report: 'sales', 'products', 'users', 'commissions'
+ * @param dateRange - Date range: '7days', '30days', '90days', 'year'
+ */
+export async function exportReport(
+  reportType: ReportType,
+  dateRange: DateRange = '30days'
+): Promise<Blob> {
+  const accessToken = getAccessToken()
+  const url = `${ADMIN_API_URL}/reports/export/?type=${reportType}&date_range=${dateRange}`
+  
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: {
+      'Authorization': accessToken ? `Bearer ${accessToken}` : '',
+    },
+  })
+  
+  if (!response.ok) {
+    const errorText = await response.text().catch(() => 'Unknown error')
+    throw new Error(`Failed to export report: ${response.status} ${response.statusText}. ${errorText}`)
+  }
+  
+  return response.blob()
 }
 
 // =============================================================================
