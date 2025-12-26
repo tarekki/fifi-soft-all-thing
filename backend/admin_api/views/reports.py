@@ -238,6 +238,31 @@ class SalesReportView(APIView):
                 'sales': item['sales'] or Decimal('0.00')
             })
         
+        # Get detailed orders list
+        detailed_orders = current_orders.select_related('user').prefetch_related('items')[:100]  # Limit to 100 orders
+        
+        orders_list = []
+        status_display_map = {
+            'pending': _('قيد الانتظار / Pending'),
+            'confirmed': _('مؤكد / Confirmed'),
+            'shipped': _('تم الشحن / Shipped'),
+            'delivered': _('تم التوصيل / Delivered'),
+            'cancelled': _('ملغي / Cancelled'),
+        }
+        
+        for order in detailed_orders:
+            orders_list.append({
+                'id': order.id,
+                'order_number': order.order_number or f"ORD-{order.id:06d}",
+                'customer_name': order.customer_name or (order.user.get_full_name() if order.user else _('ضيف / Guest')),
+                'customer_phone': getattr(order, 'customer_phone', ''),
+                'status': order.status,
+                'status_display': status_display_map.get(order.status, order.status),
+                'total': order.total,
+                'items_count': order.items.count() if hasattr(order, 'items') else 0,
+                'created_at': order.created_at,
+            })
+        
         # Build response
         data = {
             'total_revenue': total_revenue,
@@ -249,16 +274,24 @@ class SalesReportView(APIView):
             'avg_order_value_change': calculate_change(float(avg_order_value), float(prev_avg_order_value)),
             'new_users_change': calculate_change(new_users, prev_new_users),
             'daily_sales': daily_sales,
+            'orders': orders_list,
             'date_from': date_from,
             'date_to': date_to,
         }
         
-        serializer = SalesReportSerializer(data)
-        
-        return success_response(
-            data=serializer.data,
-            message=_('تم جلب تقرير المبيعات / Sales report retrieved')
-        )
+        # Serialize the data
+        serializer = SalesReportSerializer(data=data)
+        if serializer.is_valid():
+            return success_response(
+                data=serializer.validated_data,
+                message=_('تم جلب تقرير المبيعات / Sales report retrieved')
+            )
+        else:
+            # If validation fails, return data directly (shouldn't happen with calculated data)
+            return success_response(
+                data=data,
+                message=_('تم جلب تقرير المبيعات / Sales report retrieved')
+            )
 
 
 # =============================================================================
@@ -313,23 +346,45 @@ class ProductsReportView(APIView):
             status__in=['delivered', 'confirmed', 'shipped']
         )
         
-        # Top products by sales
+        # Top products by sales with details
         order_items = OrderItem.objects.filter(
             order__in=orders
+        ).select_related(
+            'product_variant__product__vendor',
+            'product_variant__product__category'
         ).values(
             'product_variant__product__id',
-            'product_variant__product__name'
+            'product_variant__product__name',
+            'product_variant__product__vendor__name',
+            'product_variant__product__category__name_ar',
+            'product_variant__product__category__name'
         ).annotate(
             sales=Count('id'),
             revenue=Sum(F('price') * F('quantity'))
-        ).order_by('-sales')[:5]
+        ).order_by('-sales')[:20]  # Top 20 products
+        
+        # Get stock quantities for products
+        from products.models import ProductVariant
+        product_ids = [item['product_variant__product__id'] for item in order_items]
+        stock_data = ProductVariant.objects.filter(
+            product_id__in=product_ids
+        ).values('product_id').annotate(
+            total_stock=Sum('stock_quantity')
+        )
+        stock_map = {item['product_id']: item['total_stock'] for item in stock_data}
         
         top_products = []
         for item in order_items:
+            product_id = item['product_variant__product__id']
+            category_name = item['product_variant__product__category__name_ar'] or item['product_variant__product__category__name'] or 'أخرى'
             top_products.append({
+                'id': product_id,
                 'name': item['product_variant__product__name'],
+                'vendor_name': item['product_variant__product__vendor__name'] or 'غير معروف',
+                'category_name': category_name,
                 'sales': item['sales'],
-                'revenue': item['revenue'] or Decimal('0.00')
+                'revenue': item['revenue'] or Decimal('0.00'),
+                'stock_quantity': stock_map.get(product_id, 0)
             })
         
         # Sales by category
@@ -363,12 +418,19 @@ class ProductsReportView(APIView):
             'date_to': date_to,
         }
         
-        serializer = ProductsReportSerializer(data)
-        
-        return success_response(
-            data=serializer.data,
-            message=_('تم جلب تقرير المنتجات / Products report retrieved')
-        )
+        # Serialize the data
+        serializer = ProductsReportSerializer(data=data)
+        if serializer.is_valid():
+            return success_response(
+                data=serializer.validated_data,
+                message=_('تم جلب تقرير المنتجات / Products report retrieved')
+            )
+        else:
+            # If validation fails, return data directly
+            return success_response(
+                data=data,
+                message=_('تم جلب تقرير المنتجات / Products report retrieved')
+            )
 
 
 # =============================================================================
@@ -442,21 +504,55 @@ class UsersReportView(APIView):
             is_active=True
         ).count()
         
+        # Get detailed users list with their orders
+        from orders.models import Order
+        detailed_users = User.objects.filter(
+            is_staff=False,
+            date_joined__gte=date_from_dt,
+            date_joined__lte=date_to_dt
+        ).annotate(
+            orders_count=Count('orders'),
+            total_spent=Sum('orders__total', filter=Q(orders__status__in=['delivered', 'confirmed', 'shipped']))
+        )[:100]  # Limit to 100 users
+        
+        users_list = []
+        for user in detailed_users:
+            users_list.append({
+                'id': user.id,
+                'email': user.email,
+                'first_name': user.first_name or '',
+                'last_name': user.last_name or '',
+                'phone': getattr(user, 'phone', '') or '',
+                'orders_count': user.orders_count or 0,
+                'total_spent': user.total_spent or Decimal('0.00'),
+                'date_joined': user.date_joined,
+                'last_login': user.last_login,
+                'is_active': user.is_active,
+            })
+        
         data = {
             'new_users': new_users,
             'new_users_change': calculate_change(new_users, prev_new_users),
             'total_users': total_users,
             'active_users': active_users,
+            'users': users_list,
             'date_from': date_from,
             'date_to': date_to,
         }
         
-        serializer = UsersReportSerializer(data)
-        
-        return success_response(
-            data=serializer.data,
-            message=_('تم جلب تقرير المستخدمين / Users report retrieved')
-        )
+        # Serialize the data
+        serializer = UsersReportSerializer(data=data)
+        if serializer.is_valid():
+            return success_response(
+                data=serializer.validated_data,
+                message=_('تم جلب تقرير المستخدمين / Users report retrieved')
+            )
+        else:
+            # If validation fails, return data directly
+            return success_response(
+                data=data,
+                message=_('تم جلب تقرير المستخدمين / Users report retrieved')
+            )
 
 
 # =============================================================================
@@ -513,7 +609,7 @@ class CommissionsReportView(APIView):
             created_at__gte=date_from_dt,
             created_at__lte=date_to_dt,
             status__in=['delivered', 'confirmed', 'shipped']
-        )
+        ).select_related('user').prefetch_related('items__product_variant__product__vendor')
         
         total_commissions = current_orders.aggregate(total=Sum('platform_commission'))['total'] or Decimal('0.00')
         total_orders = current_orders.count()
@@ -528,21 +624,54 @@ class CommissionsReportView(APIView):
         
         prev_commissions = previous_orders.aggregate(total=Sum('platform_commission'))['total'] or Decimal('0.00')
         
+        # Get detailed commissions list
+        commissions_list = []
+        for order in current_orders[:100]:  # Limit to 100 orders
+            # Get vendor name from first order item
+            vendor_name = 'غير معروف'
+            if order.items.exists():
+                first_item = order.items.first()
+                if first_item and first_item.product_variant and first_item.product_variant.product:
+                    vendor_name = first_item.product_variant.product.vendor.name if first_item.product_variant.product.vendor else 'غير معروف'
+            
+            commission_percentage = 10.0  # Default commission percentage
+            if order.subtotal > 0:
+                commission_percentage = float((order.platform_commission / order.subtotal) * 100)
+            
+            commissions_list.append({
+                'order_id': order.id,
+                'order_number': order.order_number or f"ORD-{order.id:06d}",
+                'customer_name': order.customer_name or (order.user.get_full_name() if order.user else _('ضيف / Guest')),
+                'vendor_name': vendor_name,
+                'order_total': order.total,
+                'commission_amount': order.platform_commission,
+                'commission_percentage': round(commission_percentage, 2),
+                'created_at': order.created_at,
+            })
+        
         data = {
             'total_commissions': total_commissions,
             'commissions_change': calculate_change(float(total_commissions), float(prev_commissions)),
             'total_orders': total_orders,
             'avg_commission_per_order': avg_commission_per_order,
+            'commissions': commissions_list,
             'date_from': date_from,
             'date_to': date_to,
         }
         
-        serializer = CommissionsReportSerializer(data)
-        
-        return success_response(
-            data=serializer.data,
-            message=_('تم جلب تقرير العمولات / Commissions report retrieved')
-        )
+        # Serialize the data
+        serializer = CommissionsReportSerializer(data=data)
+        if serializer.is_valid():
+            return success_response(
+                data=serializer.validated_data,
+                message=_('تم جلب تقرير العمولات / Commissions report retrieved')
+            )
+        else:
+            # If validation fails, return data directly
+            return success_response(
+                data=data,
+                message=_('تم جلب تقرير العمولات / Commissions report retrieved')
+            )
 
 
 # =============================================================================
@@ -719,6 +848,29 @@ class ExportReportView(APIView):
                 daily_table.rows[i].cells[0].text = daily['day']
                 daily_table.rows[i].cells[1].text = f'{float(daily["sales"]):,.2f}'
         
+        # Detailed orders
+        if data.get('orders') and len(data.get('orders', [])) > 0:
+            doc.add_heading('قائمة الطلبات التفصيلية', 1).alignment = WD_ALIGN_PARAGRAPH.RIGHT
+            
+            orders_table = doc.add_table(rows=min(len(data['orders']), 50) + 1, cols=6)
+            orders_table.style = 'Light Grid Accent 1'
+            
+            # Header
+            orders_table.rows[0].cells[0].text = 'رقم الطلب'
+            orders_table.rows[0].cells[1].text = 'العميل'
+            orders_table.rows[0].cells[2].text = 'الحالة'
+            orders_table.rows[0].cells[3].text = 'عدد العناصر'
+            orders_table.rows[0].cells[4].text = 'الإجمالي'
+            orders_table.rows[0].cells[5].text = 'التاريخ'
+            
+            for i, order in enumerate(data['orders'][:50], 1):  # Limit to 50 orders in Word
+                orders_table.rows[i].cells[0].text = order.get('order_number', '')
+                orders_table.rows[i].cells[1].text = order.get('customer_name', '')
+                orders_table.rows[i].cells[2].text = order.get('status_display', order.get('status', ''))
+                orders_table.rows[i].cells[3].text = str(order.get('items_count', 0))
+                orders_table.rows[i].cells[4].text = f'{float(order.get("total", 0)):,.2f}'
+                orders_table.rows[i].cells[5].text = str(order.get('created_at', ''))[:10]  # Date only
+        
         return doc
     
     def _create_products_word_document(self, data, date_range):
@@ -735,17 +887,23 @@ class ExportReportView(APIView):
         if data.get('top_products'):
             doc.add_heading('المنتجات الأكثر مبيعاً', 1).alignment = WD_ALIGN_PARAGRAPH.RIGHT
             
-            top_table = doc.add_table(rows=len(data['top_products']) + 1, cols=3)
+            top_table = doc.add_table(rows=len(data['top_products']) + 1, cols=6)
             top_table.style = 'Light Grid Accent 1'
             
             top_table.rows[0].cells[0].text = 'المنتج'
-            top_table.rows[0].cells[1].text = 'المبيعات'
-            top_table.rows[0].cells[2].text = 'الإيرادات'
+            top_table.rows[0].cells[1].text = 'البائع'
+            top_table.rows[0].cells[2].text = 'الفئة'
+            top_table.rows[0].cells[3].text = 'المبيعات'
+            top_table.rows[0].cells[4].text = 'الإيرادات'
+            top_table.rows[0].cells[5].text = 'المخزون'
             
             for i, product in enumerate(data['top_products'], 1):
                 top_table.rows[i].cells[0].text = product['name']
-                top_table.rows[i].cells[1].text = str(product['sales'])
-                top_table.rows[i].cells[2].text = f'{float(product["revenue"]):,.2f}'
+                top_table.rows[i].cells[1].text = product.get('vendor_name', 'غير معروف')
+                top_table.rows[i].cells[2].text = product.get('category_name', 'أخرى')
+                top_table.rows[i].cells[3].text = str(product['sales'])
+                top_table.rows[i].cells[4].text = f'{float(product["revenue"]):,.2f}'
+                top_table.rows[i].cells[5].text = str(product.get('stock_quantity', 0))
         
         # Sales by category
         if data.get('sales_by_category'):

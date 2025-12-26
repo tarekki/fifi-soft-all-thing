@@ -103,6 +103,8 @@ export function useReports(
     try {
       const response = await getSalesReport(dateRange)
       if (response?.success && response?.data) {
+        console.log('Sales Report Data:', response.data)
+        console.log('Orders in report:', response.data.orders)
         setSalesReport(response.data)
       } else {
         const errorMsg = response?.message || 'فشل في جلب تقرير المبيعات'
@@ -147,6 +149,8 @@ export function useReports(
     try {
       const response = await getUsersReport(dateRange)
       if (response?.success && response?.data) {
+        console.log('Users Report Data:', response.data)
+        console.log('Users in report:', response.data.users)
         setUsersReport(response.data)
       } else {
         const errorMsg = response?.message || 'فشل في جلب تقرير المستخدمين'
@@ -169,6 +173,8 @@ export function useReports(
     try {
       const response = await getCommissionsReport(dateRange)
       if (response?.success && response?.data) {
+        console.log('Commissions Report Data:', response.data)
+        console.log('Commissions in report:', response.data.commissions)
         setCommissionsReport(response.data)
       } else {
         const errorMsg = response?.message || 'فشل في جلب تقرير العمولات'
@@ -189,12 +195,33 @@ export function useReports(
     setError(null)
     
     try {
-      await Promise.all([
-        fetchSalesReport(),
-        fetchProductsReport(),
-        fetchUsersReport(),
-        fetchCommissionsReport(),
+      // Fetch all reports in parallel but don't set loading in individual functions
+      const [salesResult, productsResult, usersResult, commissionsResult] = await Promise.allSettled([
+        getSalesReport(dateRange),
+        getProductsReport(dateRange),
+        getUsersReport(dateRange),
+        getCommissionsReport(dateRange),
       ])
+      
+      // Process sales report
+      if (salesResult.status === 'fulfilled' && salesResult.value?.success && salesResult.value?.data) {
+        setSalesReport(salesResult.value.data)
+      }
+      
+      // Process products report
+      if (productsResult.status === 'fulfilled' && productsResult.value?.success && productsResult.value?.data) {
+        setProductsReport(productsResult.value.data)
+      }
+      
+      // Process users report
+      if (usersResult.status === 'fulfilled' && usersResult.value?.success && usersResult.value?.data) {
+        setUsersReport(usersResult.value.data)
+      }
+      
+      // Process commissions report
+      if (commissionsResult.status === 'fulfilled' && commissionsResult.value?.success && commissionsResult.value?.data) {
+        setCommissionsReport(commissionsResult.value.data)
+      }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'حدث خطأ أثناء جلب التقارير'
       setError(message)
@@ -202,7 +229,7 @@ export function useReports(
     } finally {
       setIsLoading(false)
     }
-  }, [fetchSalesReport, fetchProductsReport, fetchUsersReport, fetchCommissionsReport])
+  }, [dateRange])
   
   // =================================================================
   // Export Function
@@ -251,10 +278,105 @@ export function useReports(
   
   // Initial fetch and fetch on date range change
   useEffect(() => {
-    // Fetch reports when date range changes
-    // Always fetch sales and products reports for the main reports page
-    fetchSalesReport()
-    fetchProductsReport()
+    // Fetch all reports when date range changes
+    // جلب جميع التقارير عند تغيير نطاق التاريخ
+    setIsLoading(true)
+    setError(null)
+    
+    const fetchAll = async () => {
+      try {
+        // Fetch all reports in parallel
+        const [salesResult, productsResult, usersResult, commissionsResult] = await Promise.allSettled([
+          getSalesReport(dateRange),
+          getProductsReport(dateRange),
+          getUsersReport(dateRange),
+          getCommissionsReport(dateRange),
+        ])
+        
+        // Process sales report
+        console.log('📊 Sales Result:', {
+          status: salesResult.status,
+          hasValue: !!salesResult.value,
+          success: salesResult.status === 'fulfilled' ? salesResult.value?.success : false,
+          hasData: salesResult.status === 'fulfilled' ? !!salesResult.value?.data : false,
+          message: salesResult.status === 'fulfilled' ? salesResult.value?.message : undefined,
+          fullResponse: salesResult.status === 'fulfilled' ? salesResult.value : salesResult.reason,
+        })
+        
+        if (salesResult.status === 'fulfilled' && salesResult.value?.success && salesResult.value?.data) {
+          console.log('✅ Sales report loaded:', salesResult.value.data)
+          setSalesReport(salesResult.value.data)
+        } else if (salesResult.status === 'rejected') {
+          console.error('❌ Sales report fetch error:', salesResult.reason)
+          setError(`خطأ في جلب تقرير المبيعات: ${salesResult.reason}`)
+        } else if (salesResult.status === 'fulfilled') {
+          console.warn('⚠️ Sales report response:', salesResult.value)
+          if (salesResult.value?.message) {
+            setError(salesResult.value.message)
+          }
+        }
+        
+        // Process products report
+        console.log('📦 Products Result:', {
+          status: productsResult.status,
+          hasValue: !!productsResult.value,
+          success: productsResult.status === 'fulfilled' ? productsResult.value?.success : false,
+          hasData: productsResult.status === 'fulfilled' ? !!productsResult.value?.data : false,
+          message: productsResult.status === 'fulfilled' ? productsResult.value?.message : undefined,
+        })
+        
+        if (productsResult.status === 'fulfilled' && productsResult.value?.success && productsResult.value?.data) {
+          console.log('✅ Products report loaded:', productsResult.value.data)
+          setProductsReport(productsResult.value.data)
+        } else if (productsResult.status === 'rejected') {
+          console.error('❌ Products report fetch error:', productsResult.reason)
+        } else if (productsResult.status === 'fulfilled') {
+          console.warn('⚠️ Products report response:', productsResult.value)
+        }
+        
+        // Process users report
+        console.log('👥 Users Result:', {
+          status: usersResult.status,
+          hasValue: !!usersResult.value,
+          success: usersResult.status === 'fulfilled' ? usersResult.value?.success : false,
+          hasData: usersResult.status === 'fulfilled' ? !!usersResult.value?.data : false,
+        })
+        
+        if (usersResult.status === 'fulfilled' && usersResult.value?.success && usersResult.value?.data) {
+          console.log('✅ Users report loaded:', usersResult.value.data)
+          setUsersReport(usersResult.value.data)
+        } else if (usersResult.status === 'rejected') {
+          console.error('❌ Users report fetch error:', usersResult.reason)
+        } else if (usersResult.status === 'fulfilled') {
+          console.warn('⚠️ Users report response:', usersResult.value)
+        }
+        
+        // Process commissions report
+        console.log('💰 Commissions Result:', {
+          status: commissionsResult.status,
+          hasValue: !!commissionsResult.value,
+          success: commissionsResult.status === 'fulfilled' ? commissionsResult.value?.success : false,
+          hasData: commissionsResult.status === 'fulfilled' ? !!commissionsResult.value?.data : false,
+        })
+        
+        if (commissionsResult.status === 'fulfilled' && commissionsResult.value?.success && commissionsResult.value?.data) {
+          console.log('✅ Commissions report loaded:', commissionsResult.value.data)
+          setCommissionsReport(commissionsResult.value.data)
+        } else if (commissionsResult.status === 'rejected') {
+          console.error('❌ Commissions report fetch error:', commissionsResult.reason)
+        } else if (commissionsResult.status === 'fulfilled') {
+          console.warn('⚠️ Commissions report response:', commissionsResult.value)
+        }
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'حدث خطأ أثناء جلب التقارير'
+        setError(message)
+        console.error('Reports fetch error:', err)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    
+    fetchAll()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dateRange])
   

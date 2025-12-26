@@ -121,12 +121,26 @@ export default function ReportsPage() {
     exportReportAsWord,
   } = useReports('30days', 'sales')
 
+  // Initial render debug
+  useEffect(() => {
+    console.log('🚀 ReportsPage Rendered!')
+    console.log('📊 Initial State:', {
+      isLoading,
+      hasSalesReport: !!salesReport,
+      hasProductsReport: !!productsReport,
+      hasUsersReport: !!usersReport,
+      hasCommissionsReport: !!commissionsReport,
+      error,
+      dateRange,
+    })
+  }, [])
+
   // Get data from reports
   const summaryData = salesReport ? {
-    totalRevenue: { value: Number(salesReport.total_revenue), change: salesReport.revenue_change },
-    totalOrders: { value: salesReport.total_orders, change: salesReport.orders_change },
-    avgOrderValue: { value: Number(salesReport.avg_order_value), change: salesReport.avg_order_value_change },
-    newUsers: { value: salesReport.new_users, change: salesReport.new_users_change },
+    totalRevenue: { value: Number(salesReport.total_revenue || 0), change: salesReport.revenue_change || 0 },
+    totalOrders: { value: salesReport.total_orders || 0, change: salesReport.orders_change || 0 },
+    avgOrderValue: { value: Number(salesReport.avg_order_value || 0), change: salesReport.avg_order_value_change || 0 },
+    newUsers: { value: salesReport.new_users || 0, change: salesReport.new_users_change || 0 },
   } : {
     totalRevenue: { value: 0, change: 0 },
     totalOrders: { value: 0, change: 0 },
@@ -137,6 +151,58 @@ export default function ReportsPage() {
   const dailySales = salesReport?.daily_sales || []
   const salesByCategory = productsReport?.sales_by_category || []
   const topProducts = productsReport?.top_products || []
+  
+  // Debug: Log data availability
+  useEffect(() => {
+    console.log('📈 Data Summary:', {
+      hasSalesReport: !!salesReport,
+      dailySalesCount: dailySales.length,
+      hasProductsReport: !!productsReport,
+      salesByCategoryCount: salesByCategory.length,
+      topProductsCount: topProducts.length,
+      summaryData,
+    })
+  }, [salesReport, productsReport, dailySales, salesByCategory, topProducts, summaryData])
+  
+  // Debug logs
+  useEffect(() => {
+    console.log('📊 Reports Page State:', {
+      isLoading,
+      hasSalesReport: !!salesReport,
+      hasProductsReport: !!productsReport,
+      hasUsersReport: !!usersReport,
+      hasCommissionsReport: !!commissionsReport,
+      error,
+      dateRange,
+    })
+    
+    if (salesReport) {
+      console.log('✅ Sales Report:', {
+        total_revenue: salesReport.total_revenue,
+        total_orders: salesReport.total_orders,
+        daily_sales_count: salesReport.daily_sales?.length || 0,
+        orders_count: salesReport.orders?.length || 0,
+      })
+    }
+    if (productsReport) {
+      console.log('✅ Products Report:', {
+        top_products_count: productsReport.top_products?.length || 0,
+        categories_count: productsReport.sales_by_category?.length || 0,
+      })
+    }
+    if (usersReport) {
+      console.log('✅ Users Report:', {
+        total_users: usersReport.total_users,
+        users_count: usersReport.users?.length || 0,
+      })
+    }
+    if (commissionsReport) {
+      console.log('✅ Commissions Report:', {
+        total_commissions: commissionsReport.total_commissions,
+        commissions_count: commissionsReport.commissions?.length || 0,
+      })
+    }
+  }, [isLoading, salesReport, productsReport, usersReport, commissionsReport, error, dateRange])
 
   const maxSales = dailySales.length > 0 
     ? Math.max(...dailySales.map(d => Number(d.sales))) 
@@ -291,19 +357,30 @@ export default function ReportsPage() {
         </motion.div>
       )}
 
-      {/* Loading State */}
-      {isLoading && !salesReport && (
+      {/* Loading State - Show only if no data at all */}
+      {isLoading && !salesReport && !productsReport && !usersReport && !commissionsReport && (
         <motion.div 
           variants={itemVariants}
           className="text-center py-12"
         >
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-historical-gold mb-4"></div>
           <p className="text-historical-charcoal/50">جاري تحميل البيانات...</p>
         </motion.div>
       )}
 
+      {/* No Data Message */}
+      {!isLoading && !salesReport && !productsReport && !usersReport && !commissionsReport && !error && (
+        <motion.div 
+          variants={itemVariants}
+          className="bg-blue-50 border border-blue-200 text-blue-700 px-6 py-8 rounded-xl text-center"
+        >
+          <p className="text-lg font-medium mb-2">لا توجد بيانات متاحة</p>
+          <p className="text-sm">يرجى اختيار فترة زمنية أخرى أو التحقق من وجود بيانات في النظام</p>
+        </motion.div>
+      )}
+
       {/* Charts Row */}
-      {salesReport && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Daily Sales Chart */}
           <motion.div
             variants={itemVariants}
@@ -343,7 +420,7 @@ export default function ReportsPage() {
             className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-historical-gold/10 shadow-soft"
           >
             <h3 className="text-lg font-bold text-historical-charcoal mb-6">المبيعات حسب الفئة</h3>
-            {productsReport && salesByCategory.length > 0 ? (
+            {salesByCategory.length > 0 ? (
               <div className="space-y-4">
                 {salesByCategory.map((cat, index) => (
               <div key={cat.category}>
@@ -368,11 +445,9 @@ export default function ReportsPage() {
               </div>
             )}
           </motion.div>
-        </div>
-      )}
+        </motion.div>
 
       {/* Top Products */}
-      {productsReport && (
         <motion.div
           variants={itemVariants}
           className="bg-white/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 shadow-soft overflow-hidden"
@@ -387,39 +462,239 @@ export default function ReportsPage() {
                   <tr>
                     <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">#</th>
                     <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">المنتج</th>
+                    <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">البائع</th>
+                    <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">الفئة</th>
                     <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">المبيعات</th>
                     <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">الإيرادات</th>
+                    <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">المخزون</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-historical-gold/5">
                   {topProducts.map((product, index) => (
-                <tr key={product.name} className="hover:bg-historical-gold/5 transition-colors">
-                  <td className="px-6 py-4">
-                    <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-                      index < 3 ? 'bg-historical-gold/20 text-historical-gold' : 'bg-historical-stone text-historical-charcoal/50'
-                    }`}>
-                      {index + 1}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="font-medium text-historical-charcoal">{product.name}</span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="text-sm text-historical-charcoal/70">{product.sales} وحدة</span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="font-bold text-historical-gold">{formatCurrency(Number(product.revenue))}</span>
-                  </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                    <tr key={product.id || product.name} className="hover:bg-historical-gold/5 transition-colors">
+                      <td className="px-6 py-4">
+                        <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                          index < 3 ? 'bg-historical-gold/20 text-historical-gold' : 'bg-historical-stone text-historical-charcoal/50'
+                        }`}>
+                          {index + 1}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="font-medium text-historical-charcoal">{product.name}</span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="text-sm text-historical-charcoal/70">{product.vendor_name || 'غير معروف'}</span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="text-sm text-historical-charcoal/70">{product.category_name || 'أخرى'}</span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="text-sm text-historical-charcoal/70">{product.sales} وحدة</span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="font-bold text-historical-gold">{formatCurrency(Number(product.revenue))}</span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`text-sm font-medium ${
+                          (product.stock_quantity || 0) < 10 ? 'text-red-600' : 'text-historical-charcoal/70'
+                        }`}>
+                          {product.stock_quantity || 0}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           ) : (
             <div className="px-6 py-12 text-center text-historical-charcoal/50">
               لا توجد بيانات
             </div>
           )}
+        </motion.div>
+
+      {/* Detailed Orders Table - Sales Report */}
+      {salesReport && salesReport.orders && salesReport.orders.length > 0 && (
+        <motion.div
+          variants={itemVariants}
+          className="bg-white/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 shadow-soft overflow-hidden"
+        >
+          <div className="px-6 py-4 border-b border-historical-gold/10">
+            <h3 className="text-lg font-bold text-historical-charcoal">قائمة الطلبات التفصيلية</h3>
+            <p className="text-sm text-historical-charcoal/50 mt-1">عرض {salesReport.orders.length} طلب</p>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-historical-stone/50">
+                <tr>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">رقم الطلب</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">العميل</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">الهاتف</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">الحالة</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">عدد العناصر</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">الإجمالي</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">التاريخ</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-historical-gold/5">
+                {salesReport.orders.map((order) => (
+                  <tr key={order.id} className="hover:bg-historical-gold/5 transition-colors">
+                    <td className="px-6 py-4">
+                      <span className="font-medium text-historical-charcoal">{order.order_number}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm text-historical-charcoal">{order.customer_name}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm text-historical-charcoal/70">{order.customer_phone || '-'}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`px-2 py-1 rounded-lg text-xs font-medium ${
+                        order.status === 'delivered' ? 'bg-green-100 text-green-700' :
+                        order.status === 'confirmed' ? 'bg-blue-100 text-blue-700' :
+                        order.status === 'shipped' ? 'bg-purple-100 text-purple-700' :
+                        order.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
+                        'bg-red-100 text-red-700'
+                      }`}>
+                        {order.status_display}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm text-historical-charcoal/70">{order.items_count} عنصر</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="font-bold text-historical-gold">{formatCurrency(Number(order.total))}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm text-historical-charcoal/70">
+                        {new Date(order.created_at).toLocaleDateString('ar-SY')}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Detailed Users Table - Users Report */}
+      {usersReport && usersReport.users && usersReport.users.length > 0 && (
+        <motion.div
+          variants={itemVariants}
+          className="bg-white/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 shadow-soft overflow-hidden"
+        >
+          <div className="px-6 py-4 border-b border-historical-gold/10">
+            <h3 className="text-lg font-bold text-historical-charcoal">قائمة المستخدمين التفصيلية</h3>
+            <p className="text-sm text-historical-charcoal/50 mt-1">عرض {usersReport.users.length} مستخدم</p>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-historical-stone/50">
+                <tr>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">الاسم</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">البريد</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">الهاتف</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">عدد الطلبات</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">إجمالي الإنفاق</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">تاريخ الانضمام</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">الحالة</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-historical-gold/5">
+                {usersReport.users.map((user) => (
+                  <tr key={user.id} className="hover:bg-historical-gold/5 transition-colors">
+                    <td className="px-6 py-4">
+                      <span className="font-medium text-historical-charcoal">
+                        {user.first_name} {user.last_name}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm text-historical-charcoal/70">{user.email}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm text-historical-charcoal/70">{user.phone || '-'}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm text-historical-charcoal/70">{user.orders_count} طلب</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="font-bold text-historical-gold">{formatCurrency(Number(user.total_spent))}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm text-historical-charcoal/70">
+                        {new Date(user.date_joined).toLocaleDateString('ar-SY')}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`px-2 py-1 rounded-lg text-xs font-medium ${
+                        user.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                      }`}>
+                        {user.is_active ? 'نشط' : 'غير نشط'}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Detailed Commissions Table - Commissions Report */}
+      {commissionsReport && commissionsReport.commissions && commissionsReport.commissions.length > 0 && (
+        <motion.div
+          variants={itemVariants}
+          className="bg-white/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 shadow-soft overflow-hidden"
+        >
+          <div className="px-6 py-4 border-b border-historical-gold/10">
+            <h3 className="text-lg font-bold text-historical-charcoal">قائمة العمولات التفصيلية</h3>
+            <p className="text-sm text-historical-charcoal/50 mt-1">عرض {commissionsReport.commissions.length} عمولة</p>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-historical-stone/50">
+                <tr>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">رقم الطلب</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">العميل</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">البائع</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">إجمالي الطلب</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">مبلغ العمولة</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">النسبة %</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">التاريخ</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-historical-gold/5">
+                {commissionsReport.commissions.map((commission) => (
+                  <tr key={commission.order_id} className="hover:bg-historical-gold/5 transition-colors">
+                    <td className="px-6 py-4">
+                      <span className="font-medium text-historical-charcoal">{commission.order_number}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm text-historical-charcoal">{commission.customer_name}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm text-historical-charcoal/70">{commission.vendor_name}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm text-historical-charcoal/70">{formatCurrency(Number(commission.order_total))}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="font-bold text-historical-gold">{formatCurrency(Number(commission.commission_amount))}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm text-historical-charcoal/70">{commission.commission_percentage}%</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm text-historical-charcoal/70">
+                        {new Date(commission.created_at).toLocaleDateString('ar-SY')}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </motion.div>
       )}
     </motion.div>

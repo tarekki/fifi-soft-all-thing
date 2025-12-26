@@ -434,22 +434,98 @@ export async function exportReport(
   reportType: ReportType,
   dateRange: DateRange = '30days'
 ): Promise<Blob> {
-  const accessToken = getAccessToken()
   const url = `${ADMIN_API_URL}/reports/export/?type=${reportType}&date_range=${dateRange}`
   
-  const response = await fetch(url, {
-    method: 'GET',
-    headers: {
-      'Authorization': accessToken ? `Bearer ${accessToken}` : '',
-    },
-  })
+  // Get access token
+  // الحصول على access token
+  let accessToken = getAccessToken()
   
-  if (!response.ok) {
-    const errorText = await response.text().catch(() => 'Unknown error')
-    throw new Error(`Failed to export report: ${response.status} ${response.statusText}. ${errorText}`)
+  // Check if token is expired and try to refresh
+  // التحقق من انتهاء التوكن ومحاولة التجديد
+  if (accessToken && isTokenExpired(accessToken)) {
+    const refreshToken = getRefreshToken()
+    if (refreshToken) {
+      try {
+        const refreshed = await refreshAccessToken(refreshToken)
+        if (refreshed) {
+          accessToken = refreshed
+        } else {
+          clearTokens()
+          throw new Error('Session expired. Please login again.')
+        }
+      } catch (err) {
+        clearTokens()
+        if (err instanceof Error) {
+          throw err
+        }
+        throw new Error('Session expired. Please login again.')
+      }
+    } else {
+      clearTokens()
+      throw new Error('Session expired. Please login again.')
+    }
   }
   
-  return response.blob()
+  if (!accessToken) {
+    throw new Error('Authentication required. Please login again.')
+  }
+  
+  // Build headers
+  // بناء الهيدرز
+  const headers: HeadersInit = {
+    'Authorization': `Bearer ${accessToken}`,
+  }
+  
+  try {
+    const response = await fetch(url, {
+      method: 'GET',
+      headers,
+    })
+    
+    // Handle 401 Unauthorized - try to refresh token once more
+    // معالجة 401 غير مصرح - محاولة تجديد التوكن مرة أخرى
+    if (response.status === 401) {
+      const refreshToken = getRefreshToken()
+      if (refreshToken) {
+        const refreshed = await refreshAccessToken(refreshToken)
+        if (refreshed) {
+          // Retry the request with new token
+          // إعادة المحاولة بالتوكن الجديد
+          const retryResponse = await fetch(url, {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${refreshed}`,
+            },
+          })
+          
+          if (!retryResponse.ok) {
+            const errorText = await retryResponse.text().catch(() => 'Unknown error')
+            throw new Error(`Failed to export report: ${retryResponse.status} ${retryResponse.statusText}. ${errorText}`)
+          }
+          
+          return retryResponse.blob()
+        } else {
+          clearTokens()
+          throw new Error('Session expired. Please login again.')
+        }
+      } else {
+        clearTokens()
+        throw new Error('Authentication required. Please login again.')
+      }
+    }
+    
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => 'Unknown error')
+      throw new Error(`Failed to export report: ${response.status} ${response.statusText}. ${errorText}`)
+    }
+    
+    return response.blob()
+  } catch (error) {
+    if (error instanceof Error) {
+      throw error
+    }
+    throw new Error('Network error. Please check your connection.')
+  }
 }
 
 // =============================================================================

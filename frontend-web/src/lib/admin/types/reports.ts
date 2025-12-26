@@ -27,6 +27,18 @@ export interface DailySales {
   sales: number
 }
 
+export interface OrderDetail {
+  id: number
+  order_number: string
+  customer_name: string
+  customer_phone: string
+  status: string
+  status_display: string
+  total: number
+  items_count: number
+  created_at: string
+}
+
 export interface SalesReport {
   total_revenue: number
   total_orders: number
@@ -37,6 +49,7 @@ export interface SalesReport {
   avg_order_value_change: number
   new_users_change: number
   daily_sales: DailySales[]
+  orders: OrderDetail[]
   date_from: string
   date_to: string
 }
@@ -47,9 +60,13 @@ export interface SalesReport {
 // =============================================================================
 
 export interface TopProduct {
+  id: number
   name: string
+  vendor_name: string
+  category_name: string
   sales: number
   revenue: number
+  stock_quantity: number
 }
 
 export interface CategorySales {
@@ -70,11 +87,25 @@ export interface ProductsReport {
 // تقرير المستخدمين
 // =============================================================================
 
+export interface UserDetail {
+  id: number
+  email: string
+  first_name: string
+  last_name: string
+  phone: string
+  orders_count: number
+  total_spent: number
+  date_joined: string
+  last_login: string | null
+  is_active: boolean
+}
+
 export interface UsersReport {
   new_users: number
   new_users_change: number
   total_users: number
   active_users: number
+  users: UserDetail[]
   date_from: string
   date_to: string
 }
@@ -84,11 +115,23 @@ export interface UsersReport {
 // تقرير العمولات
 // =============================================================================
 
+export interface CommissionDetail {
+  order_id: number
+  order_number: string
+  customer_name: string
+  vendor_name: string
+  order_total: number
+  commission_amount: number
+  commission_percentage: number
+  created_at: string
+}
+
 export interface CommissionsReport {
   total_commissions: number
   commissions_change: number
   total_orders: number
   avg_commission_per_order: number
+  commissions: CommissionDetail[]
   date_from: string
   date_to: string
 }
