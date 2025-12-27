@@ -807,7 +807,7 @@ function CreateUserModal({
           <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
             {/* Email */}
             <div>
-              <label className="block text-sm font-medium text-historical-charcoal mb-1">
+              <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 mb-1 transition-colors duration-300">
                 {t.admin.users.form.email} *
               </label>
               <input
@@ -819,13 +819,13 @@ function CreateUserModal({
                 required
               />
               {formErrors.email && (
-                <p className="text-sm text-red-600 mt-1">{formErrors.email}</p>
+                <p className="text-sm text-red-600 dark:text-red-400 mt-1 transition-colors duration-300">{formErrors.email}</p>
               )}
             </div>
 
             {/* Password */}
             <div>
-              <label className="block text-sm font-medium text-historical-charcoal mb-1">
+              <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 mb-1 transition-colors duration-300">
                 {t.admin.users.form.password} *
               </label>
               <input
@@ -836,13 +836,13 @@ function CreateUserModal({
                 required
               />
               {formErrors.password && (
-                <p className="text-sm text-red-600 mt-1">{formErrors.password}</p>
+                <p className="text-sm text-red-600 dark:text-red-400 mt-1 transition-colors duration-300">{formErrors.password}</p>
               )}
             </div>
 
             {/* Password Confirm */}
             <div>
-              <label className="block text-sm font-medium text-historical-charcoal mb-1">
+              <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 mb-1 transition-colors duration-300">
                 {t.admin.users.form.confirmPassword} *
               </label>
               <input
@@ -853,13 +853,13 @@ function CreateUserModal({
                 required
               />
               {formErrors.password_confirm && (
-                <p className="text-sm text-red-600 mt-1">{formErrors.password_confirm}</p>
+                <p className="text-sm text-red-600 dark:text-red-400 mt-1 transition-colors duration-300">{formErrors.password_confirm}</p>
               )}
             </div>
 
             {/* Full Name */}
             <div>
-              <label className="block text-sm font-medium text-historical-charcoal mb-1">
+              <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 mb-1 transition-colors duration-300">
                 {t.admin.users.form.name} *
               </label>
               <input
@@ -870,13 +870,13 @@ function CreateUserModal({
                 required
               />
               {formErrors.full_name && (
-                <p className="text-sm text-red-600 mt-1">{formErrors.full_name}</p>
+                <p className="text-sm text-red-600 dark:text-red-400 mt-1 transition-colors duration-300">{formErrors.full_name}</p>
               )}
             </div>
 
             {/* Phone */}
             <div>
-              <label className="block text-sm font-medium text-historical-charcoal mb-1">
+              <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 mb-1 transition-colors duration-300">
                 {t.admin.users.form.phone} *
               </label>
               <input
@@ -888,13 +888,13 @@ function CreateUserModal({
                 required
               />
               {formErrors.phone && (
-                <p className="text-sm text-red-600 mt-1">{formErrors.phone}</p>
+                <p className="text-sm text-red-600 dark:text-red-400 mt-1 transition-colors duration-300">{formErrors.phone}</p>
               )}
             </div>
 
             {/* Role */}
             <div>
-              <label className="block text-sm font-medium text-historical-charcoal mb-1">
+              <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 mb-1 transition-colors duration-300">
                 {t.admin.users.form.role}
               </label>
               <select
@@ -910,20 +910,20 @@ function CreateUserModal({
 
             {/* Address */}
             <div>
-              <label className="block text-sm font-medium text-historical-charcoal mb-1">
+              <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 mb-1 transition-colors duration-300">
                 {t.admin.users.form.address}
               </label>
               <textarea
                 value={formData.address}
                 onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                 rows={3}
-                className="w-full px-4 py-2.5 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 resize-none"
+                className="w-full px-4 py-2.5 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 text-historical-charcoal dark:text-gray-200 transition-colors duration-300 resize-none"
               />
             </div>
 
             {/* Preferred Language */}
             <div>
-              <label className="block text-sm font-medium text-historical-charcoal mb-1">
+              <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 mb-1 transition-colors duration-300">
                 {t.admin.users.form.preferredLanguage}
               </label>
               <select
@@ -943,28 +943,28 @@ function CreateUserModal({
                   type="checkbox"
                   checked={formData.is_active}
                   onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
-                  className="w-4 h-4 rounded border-historical-gold/30 text-historical-gold focus:ring-historical-gold"
+                  className="w-4 h-4 rounded border-historical-gold/30 dark:border-gray-600 bg-white dark:bg-gray-700 text-historical-gold dark:text-yellow-400 focus:ring-historical-gold dark:focus:ring-yellow-600 transition-colors duration-300"
                 />
-                <span className="text-sm text-historical-charcoal">{t.admin.users.form.isActive}</span>
+                <span className="text-sm text-historical-charcoal dark:text-gray-200 transition-colors duration-300">{t.admin.users.form.isActive}</span>
               </label>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={formData.is_staff}
                   onChange={(e) => setFormData({ ...formData, is_staff: e.target.checked })}
-                  className="w-4 h-4 rounded border-historical-gold/30 text-historical-gold focus:ring-historical-gold"
+                  className="w-4 h-4 rounded border-historical-gold/30 dark:border-gray-600 bg-white dark:bg-gray-700 text-historical-gold dark:text-yellow-400 focus:ring-historical-gold dark:focus:ring-yellow-600 transition-colors duration-300"
                 />
-                <span className="text-sm text-historical-charcoal">{t.admin.users.form.isStaff}</span>
+                <span className="text-sm text-historical-charcoal dark:text-gray-200 transition-colors duration-300">{t.admin.users.form.isStaff}</span>
               </label>
             </div>
           </form>
 
           {/* Footer */}
-          <div className="px-6 py-4 border-t border-historical-gold/10 bg-historical-stone/20 flex items-center justify-end gap-3">
+          <div className="px-6 py-4 border-t border-historical-gold/10 dark:border-gray-700 bg-historical-stone/20 dark:bg-gray-700/30 flex items-center justify-end gap-3 transition-colors duration-300">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2.5 rounded-xl border border-historical-gold/20 text-historical-charcoal hover:bg-historical-stone/50 transition-colors"
+              className="px-4 py-2.5 rounded-xl border border-historical-gold/20 dark:border-gray-600 text-historical-charcoal dark:text-gray-200 hover:bg-historical-stone/50 dark:hover:bg-gray-700/50 transition-colors duration-300"
             >
               {t.admin.users.form.cancel}
             </button>

@@ -34,7 +34,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="ar" dir="rtl">
+    <html lang="ar" dir="rtl" data-scroll-behavior="smooth">
       <body className="min-h-screen bg-historical-stone">
         {/* 
           SettingsProvider: Outermost provider for site-wide settings

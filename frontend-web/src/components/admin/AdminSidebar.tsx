@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useLanguage } from '@/lib/i18n/context'
+import { useAdminAuth } from '@/lib/admin/context'
 
 // =============================================================================
 // Types & Interfaces
@@ -321,6 +322,40 @@ function NavItemComponent({ item, isCollapsed, isActive, pathname }: NavItemComp
 
 export function AdminSidebar({ isCollapsed, onToggleCollapse }: AdminSidebarProps) {
   const pathname = usePathname()
+  const { user } = useAdminAuth()
+
+  // Get user initials for avatar
+  // الحصول على الأحرف الأولى للصورة الرمزية
+  const getInitials = () => {
+    if (user?.full_name) {
+      return user.full_name.charAt(0).toUpperCase()
+    }
+    if (user?.email) {
+      return user.email.charAt(0).toUpperCase()
+    }
+    return 'A'
+  }
+
+  // Get user display name
+  // الحصول على اسم المستخدم للعرض
+  const getUserDisplayName = () => {
+    if (user?.full_name) {
+      return user.full_name
+    }
+    if (user?.first_name && user?.last_name) {
+      return `${user.first_name} ${user.last_name}`
+    }
+    if (user?.first_name) {
+      return user.first_name
+    }
+    return 'Admin'
+  }
+
+  // Get user email
+  // الحصول على إيميل المستخدم
+  const getUserEmail = () => {
+    return user?.email || 'admin@yallabuy.com'
+  }
 
   return (
     <motion.aside
@@ -404,11 +439,11 @@ export function AdminSidebar({ isCollapsed, onToggleCollapse }: AdminSidebarProp
               className="flex items-center gap-3 px-3 py-2 rounded-xl bg-historical-gold/5 dark:bg-gray-700/50 transition-colors duration-300"
             >
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-historical-blue to-historical-charcoal flex items-center justify-center">
-                <span className="text-white text-sm font-medium">A</span>
+                <span className="text-white text-sm font-medium">{getInitials()}</span>
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-historical-charcoal dark:text-gray-200 truncate transition-colors duration-300">Admin</p>
-                <p className="text-xs text-historical-charcoal/50 dark:text-gray-400 truncate transition-colors duration-300">admin@yallabuy.com</p>
+                <p className="text-sm font-medium text-historical-charcoal dark:text-gray-200 truncate transition-colors duration-300">{getUserDisplayName()}</p>
+                <p className="text-xs text-historical-charcoal/50 dark:text-gray-400 truncate transition-colors duration-300">{getUserEmail()}</p>
               </div>
             </motion.div>
           )}
