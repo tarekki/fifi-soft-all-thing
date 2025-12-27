@@ -79,6 +79,14 @@ from .reports import (
     CommissionsReportView,
     ExportReportView,
 )
+from .notifications import (
+    NotificationListView,
+    UnreadCountView,
+    MarkAsReadView,
+    MarkMultipleAsReadView,
+    MarkAllAsReadView,
+    NotificationStatsView,
+)
 
 __all__ = [
     # Auth
@@ -144,5 +152,12 @@ __all__ = [
     'UsersReportView',
     'CommissionsReportView',
     'ExportReportView',
+    # Notifications
+    'NotificationListView',
+    'UnreadCountView',
+    'MarkAsReadView',
+    'MarkMultipleAsReadView',
+    'MarkAllAsReadView',
+    'NotificationStatsView',
 ]
 

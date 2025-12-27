@@ -83,6 +83,13 @@ from admin_api.views import (
     UsersReportView,
     CommissionsReportView,
     ExportReportView,
+    # Notifications
+    NotificationListView,
+    UnreadCountView,
+    MarkAsReadView,
+    MarkMultipleAsReadView,
+    MarkAllAsReadView,
+    NotificationStatsView,
 )
 
 
@@ -550,6 +557,61 @@ promotions_urlpatterns = [
 
 
 # =============================================================================
+# Notifications URL Patterns
+# أنماط URLs للإشعارات
+# =============================================================================
+notifications_urlpatterns = [
+    # GET /api/v1/admin/notifications/
+    # عرض قائمة الإشعارات
+    path(
+        '',
+        NotificationListView.as_view(),
+        name='list'
+    ),
+    
+    # GET /api/v1/admin/notifications/unread-count/
+    # عدد الإشعارات غير المقروءة
+    path(
+        'unread-count/',
+        UnreadCountView.as_view(),
+        name='unread-count'
+    ),
+    
+    # POST /api/v1/admin/notifications/{id}/mark-as-read/
+    # تحديد إشعار كمقروء
+    path(
+        '<int:pk>/mark-as-read/',
+        MarkAsReadView.as_view(),
+        name='mark-as-read'
+    ),
+    
+    # POST /api/v1/admin/notifications/mark-as-read/
+    # تحديد عدة إشعارات كمقروءة
+    path(
+        'mark-as-read/',
+        MarkMultipleAsReadView.as_view(),
+        name='mark-multiple-as-read'
+    ),
+    
+    # POST /api/v1/admin/notifications/mark-all-as-read/
+    # تحديد جميع الإشعارات كمقروءة
+    path(
+        'mark-all-as-read/',
+        MarkAllAsReadView.as_view(),
+        name='mark-all-as-read'
+    ),
+    
+    # GET /api/v1/admin/notifications/stats/
+    # إحصائيات الإشعارات
+    path(
+        'stats/',
+        NotificationStatsView.as_view(),
+        name='stats'
+    ),
+]
+
+
+# =============================================================================
 # Reports URL Patterns
 # أنماط URLs للتقارير
 # =============================================================================
@@ -642,6 +704,10 @@ urlpatterns = [
     
     # Settings Management
     # path('settings/', include('admin_api.urls.settings')),
+    
+    # Notifications endpoints
+    # نقاط نهاية الإشعارات
+    path('notifications/', include((notifications_urlpatterns, 'notifications'))),
     
     # Reports endpoints
     # نقاط نهاية التقارير

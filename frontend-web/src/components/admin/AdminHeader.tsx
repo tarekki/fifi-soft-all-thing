@@ -1,9 +1,11 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAdminAuth } from '@/lib/admin'
 import { useLanguage } from '@/lib/i18n/context'
+import { useNotifications } from '@/lib/admin/hooks/useNotifications'
+import type { Notification as NotificationType } from '@/lib/admin/types/notifications'
 
 // =============================================================================
 // Types & Interfaces
@@ -16,13 +18,7 @@ interface AdminHeaderProps {
   subtitleAr?: string
 }
 
-interface Notification {
-  id: string
-  type: 'order' | 'user' | 'vendor' | 'system'
-  message: string
-  time: string
-  isRead: boolean
-}
+// Notification interface is now imported from types
 
 // =============================================================================
 // Icons
@@ -87,15 +83,38 @@ const Icons = {
 }
 
 // =============================================================================
-// Mock Data (TODO: Replace with real data from API)
+// Helper Functions
+// دوال مساعدة
 // =============================================================================
 
-const mockNotifications: Notification[] = [
-  { id: '1', type: 'order', message: 'طلب جديد #1234 بانتظار المراجعة', time: 'منذ 5 دقائق', isRead: false },
-  { id: '2', type: 'vendor', message: 'بائع جديد "متجر الأناقة" بانتظار الموافقة', time: 'منذ 15 دقيقة', isRead: false },
-  { id: '3', type: 'user', message: 'تسجيل 25 مستخدم جديد اليوم', time: 'منذ ساعة', isRead: true },
-  { id: '4', type: 'system', message: 'تم تحديث النظام بنجاح', time: 'منذ 3 ساعات', isRead: true },
-]
+/**
+ * Format timestamp to relative time
+ * تنسيق الطابع الزمني إلى وقت نسبي
+ */
+function formatRelativeTime(timestamp: string, language: string): string {
+  const date = new Date(timestamp)
+  const now = new Date()
+  const diffMs = now.getTime() - date.getTime()
+  const diffMins = Math.floor(diffMs / 60000)
+  const diffHours = Math.floor(diffMs / 3600000)
+  const diffDays = Math.floor(diffMs / 86400000)
+  
+  if (language === 'ar') {
+    if (diffMins < 1) return 'الآن'
+    if (diffMins < 60) return `منذ ${diffMins} دقيقة`
+    if (diffHours < 24) return `منذ ${diffHours} ساعة`
+    if (diffDays === 1) return 'أمس'
+    if (diffDays < 7) return `منذ ${diffDays} أيام`
+    return date.toLocaleDateString('ar-SY')
+  } else {
+    if (diffMins < 1) return 'Just now'
+    if (diffMins < 60) return `${diffMins} min ago`
+    if (diffHours < 24) return `${diffHours} hr ago`
+    if (diffDays === 1) return 'Yesterday'
+    if (diffDays < 7) return `${diffDays} days ago`
+    return date.toLocaleDateString('en-US')
+  }
+}
 
 // =============================================================================
 // Sub-Components
@@ -143,32 +162,61 @@ function SearchBar() {
 function NotificationDropdown() {
   const { t, language } = useLanguage()
   const [isOpen, setIsOpen] = useState(false)
-  const [notifications, setNotifications] = useState(mockNotifications)
+  
+  // Use notifications hook with auto-refresh every 30 seconds
+  const {
+    notifications,
+    unreadCount,
+    isLoading,
+    isRefreshing,
+    markAsRead: markAsReadAPI,
+    markAllAsRead: markAllAsReadAPI,
+    refreshNotifications,
+  } = useNotifications(30000, { limit: 20 })
 
-  const unreadCount = notifications.filter(n => !n.isRead).length
+  // Refresh when dropdown opens
+  useEffect(() => {
+    if (isOpen) {
+      refreshNotifications()
+    }
+  }, [isOpen, refreshNotifications])
 
-  const markAsRead = useCallback((id: string) => {
-    setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n))
-  }, [])
+  const markAsRead = useCallback(async (id: string | number) => {
+    await markAsReadAPI(id)
+  }, [markAsReadAPI])
 
-  const markAllAsRead = useCallback(() => {
-    setNotifications(prev => prev.map(n => ({ ...n, isRead: true })))
-  }, [])
+  const markAllAsRead = useCallback(async () => {
+    await markAllAsReadAPI()
+  }, [markAllAsReadAPI])
 
-  const getNotificationIcon = (type: Notification['type']) => {
+  const getNotificationIcon = (type: NotificationType['type']) => {
     switch (type) {
       case 'order': return Icons.order
       case 'user': return Icons.user
       case 'vendor': return Icons.user
+      case 'product': 
+        return (
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+          </svg>
+        )
+      case 'category':
+        return (
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z" />
+          </svg>
+        )
       default: return Icons.notification
     }
   }
 
-  const getNotificationColor = (type: Notification['type']) => {
+  const getNotificationColor = (type: NotificationType['type']) => {
     switch (type) {
       case 'order': return 'bg-blue-500/10 text-blue-600'
       case 'user': return 'bg-green-500/10 text-green-600'
       case 'vendor': return 'bg-purple-500/10 text-purple-600'
+      case 'product': return 'bg-orange-500/10 text-orange-600'
+      case 'category': return 'bg-indigo-500/10 text-indigo-600'
       default: return 'bg-historical-gold/10 text-historical-gold'
     }
   }
@@ -226,38 +274,50 @@ function NotificationDropdown() {
 
               {/* Notifications List */}
               <div className="max-h-80 overflow-y-auto custom-scrollbar">
-                {notifications.length === 0 ? (
+                {isLoading && notifications.length === 0 ? (
+                  <div className="p-8 text-center text-historical-charcoal/50">
+                    <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-historical-gold mb-2"></div>
+                    <p>{language === 'ar' ? 'جاري التحميل...' : 'Loading...'}</p>
+                  </div>
+                ) : notifications.length === 0 ? (
                   <div className="p-8 text-center text-historical-charcoal/50">
                     <p>{t.admin.header.noNotifications}</p>
                   </div>
                 ) : (
-                  notifications.map(notification => (
-                    <motion.div
-                      key={notification.id}
-                      layout
-                      className={`
-                        flex items-start gap-3 px-4 py-3 border-b border-historical-gold/5
-                        hover:bg-historical-gold/5 transition-colors cursor-pointer
-                        ${!notification.isRead ? 'bg-historical-gold/5' : ''}
-                      `}
-                      onClick={() => markAsRead(notification.id)}
-                    >
-                      <div className={`p-2 rounded-lg ${getNotificationColor(notification.type)}`}>
-                        {getNotificationIcon(notification.type)}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className={`text-sm ${!notification.isRead ? 'font-medium' : ''} text-historical-charcoal`}>
-                          {notification.message}
-                        </p>
-                        <p className="text-xs text-historical-charcoal/50 mt-0.5">
-                          {notification.time}
-                        </p>
-                      </div>
-                      {!notification.isRead && (
-                        <span className="w-2 h-2 rounded-full bg-historical-gold mt-2" />
-                      )}
-                    </motion.div>
-                  ))
+                  notifications.map(notification => {
+                    // Use Arabic message if available and language is Arabic
+                    const message = (language === 'ar' && notification.message_ar) 
+                      ? notification.message_ar 
+                      : notification.message
+                    
+                    return (
+                      <motion.div
+                        key={notification.id}
+                        layout
+                        className={`
+                          flex items-start gap-3 px-4 py-3 border-b border-historical-gold/5
+                          hover:bg-historical-gold/5 transition-colors cursor-pointer
+                          ${!notification.is_read ? 'bg-historical-gold/5' : ''}
+                        `}
+                        onClick={() => markAsRead(notification.id)}
+                      >
+                        <div className={`p-2 rounded-lg ${getNotificationColor(notification.type)}`}>
+                          {getNotificationIcon(notification.type)}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className={`text-sm ${!notification.is_read ? 'font-medium' : ''} text-historical-charcoal`}>
+                            {message}
+                          </p>
+                          <p className="text-xs text-historical-charcoal/50 mt-0.5">
+                            {formatRelativeTime(notification.timestamp, language)}
+                          </p>
+                        </div>
+                        {!notification.is_read && (
+                          <span className="w-2 h-2 rounded-full bg-historical-gold mt-2" />
+                        )}
+                      </motion.div>
+                    )
+                  })
                 )}
               </div>
 

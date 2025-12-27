@@ -69,6 +69,7 @@ INSTALLED_APPS = [
     "orders",         # Order management
     "promotions",     # Promotions (Banners, Stories, Coupons)
     "settings_app",   # Site settings and configuration
+    "notifications",  # Notifications for admin users
     "admin_api",      # Admin Dashboard API - إدارة لوحة التحكم
 ]
 
