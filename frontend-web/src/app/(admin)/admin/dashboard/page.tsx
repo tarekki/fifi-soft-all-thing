@@ -263,15 +263,15 @@ function KPICardComponent({ card, isLoading }: { card: KPICard; isLoading?: bool
     return (
       <motion.div
         variants={itemVariants}
-        className="relative overflow-hidden rounded-2xl p-6 bg-white/80 backdrop-blur-sm border border-historical-gold/10 shadow-soft"
+        className="relative overflow-hidden rounded-2xl p-6 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-historical-gold/10 dark:border-gray-700 shadow-soft transition-colors duration-300"
       >
         <div className="animate-pulse">
           <div className="flex items-center justify-between mb-4">
-            <div className="w-12 h-12 rounded-xl bg-gray-200" />
-            <div className="w-16 h-5 rounded bg-gray-200" />
+            <div className="w-12 h-12 rounded-xl bg-gray-200 dark:bg-gray-700" />
+            <div className="w-16 h-5 rounded bg-gray-200 dark:bg-gray-700" />
           </div>
-          <div className="w-24 h-8 rounded bg-gray-200 mb-2" />
-          <div className="w-20 h-4 rounded bg-gray-200" />
+          <div className="w-24 h-8 rounded bg-gray-200 dark:bg-gray-700 mb-2" />
+          <div className="w-20 h-4 rounded bg-gray-200 dark:bg-gray-700" />
         </div>
       </motion.div>
     )
@@ -282,8 +282,8 @@ function KPICardComponent({ card, isLoading }: { card: KPICard; isLoading?: bool
       variants={itemVariants}
       className={`
         relative overflow-hidden rounded-2xl p-6
-        bg-white/80 backdrop-blur-sm border ${colors.border}
-        shadow-soft hover:shadow-soft-lg transition-shadow duration-300
+        bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border ${colors.border} dark:border-gray-700
+        shadow-soft dark:shadow-soft-lg hover:shadow-soft-lg transition-all duration-300
       `}
     >
       {/* Background Gradient */}
@@ -305,13 +305,13 @@ function KPICardComponent({ card, isLoading }: { card: KPICard; isLoading?: bool
         </div>
 
         {/* Value */}
-        <p className="text-3xl font-bold text-historical-charcoal mb-1">
+        <p className="text-3xl font-bold text-historical-charcoal dark:text-gray-100 mb-1 transition-colors duration-300">
           {card.value}
         </p>
 
         {/* Title & Change Label */}
-        <p className="text-sm text-historical-charcoal/60">{card.title}</p>
-        <p className="text-xs text-historical-charcoal/40 mt-1">{card.changeLabel}</p>
+        <p className="text-sm text-historical-charcoal/60 dark:text-gray-300 transition-colors duration-300">{card.title}</p>
+        <p className="text-xs text-historical-charcoal/40 dark:text-gray-400 mt-1 transition-colors duration-300">{card.changeLabel}</p>
       </div>
     </motion.div>
   )
@@ -350,19 +350,19 @@ function SalesChart({
   return (
     <motion.div
       variants={itemVariants}
-      className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-historical-gold/10 shadow-soft"
+      className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 border border-historical-gold/10 dark:border-gray-700 shadow-soft transition-colors duration-300"
     >
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h3 className="text-lg font-bold text-historical-charcoal">{t.admin.dashboard.salesTrend}</h3>
-          <p className="text-sm text-historical-charcoal/50">
+          <h3 className="text-lg font-bold text-historical-charcoal dark:text-gray-100 transition-colors duration-300">{t.admin.dashboard.salesTrend}</h3>
+          <p className="text-sm text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">
             {period === 'week' ? periodLabels.week : period === 'month' ? periodLabels.month : periodLabels.year}
           </p>
         </div>
         <select
           value={period}
           onChange={(e) => onPeriodChange(e.target.value as 'week' | 'month' | 'year')}
-          className="text-sm bg-historical-stone/50 border border-historical-gold/10 rounded-lg px-3 py-2 text-historical-charcoal"
+          className="text-sm bg-historical-stone/50 dark:bg-gray-700/50 border border-historical-gold/10 dark:border-gray-600 rounded-lg px-3 py-2 text-historical-charcoal dark:text-gray-200 transition-colors duration-300"
         >
           <option value="week">{periodLabels.week}</option>
           <option value="month">{periodLabels.month}</option>
@@ -375,16 +375,16 @@ function SalesChart({
         <div className="flex items-end justify-between gap-2 h-48 animate-pulse">
           {Array.from({ length: 7 }).map((_, i) => (
             <div key={i} className="flex-1 flex flex-col items-center gap-2">
-              <div 
-                className="w-full bg-gray-200 rounded-t-lg"
+                <div 
+                className="w-full bg-gray-200 dark:bg-gray-700 rounded-t-lg"
                 style={{ height: `${Math.random() * 80 + 20}%` }}
               />
-              <div className="w-8 h-3 bg-gray-200 rounded" />
+              <div className="w-8 h-3 bg-gray-200 dark:bg-gray-700 rounded" />
             </div>
           ))}
         </div>
       ) : chartData.length === 0 ? (
-        <div className="flex items-center justify-center h-48 text-historical-charcoal/40">
+        <div className="flex items-center justify-center h-48 text-historical-charcoal/40 dark:text-gray-500 transition-colors duration-300">
           {t.admin.reports.noData}
         </div>
       ) : (
@@ -395,16 +395,16 @@ function SalesChart({
                 initial={{ height: 0 }}
                 animate={{ height: `${(item.value / maxValue) * 100}%` }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="w-full bg-gradient-to-t from-historical-gold to-historical-gold/50 rounded-t-lg relative group min-h-[4px]"
+                className="w-full bg-gradient-to-t from-historical-gold dark:from-yellow-600 to-historical-gold/50 dark:to-yellow-700/50 rounded-t-lg relative group min-h-[4px] transition-colors duration-300"
               >
                 {/* Tooltip */}
                 <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
-                  <div className="bg-historical-charcoal text-white text-xs px-2 py-1 rounded-lg whitespace-nowrap">
+                  <div className="bg-historical-charcoal dark:bg-gray-700 text-white dark:text-gray-200 text-xs px-2 py-1 rounded-lg whitespace-nowrap transition-colors duration-300">
                     {formatCurrency(item.value)}
                   </div>
                 </div>
               </motion.div>
-              <span className="text-xs text-historical-charcoal/50 truncate max-w-full">
+              <span className="text-xs text-historical-charcoal/50 dark:text-gray-400 truncate max-w-full transition-colors duration-300">
                 {item.label.split('-').pop()}
               </span>
             </div>
@@ -431,33 +431,33 @@ function RecentOrdersTable({
   return (
     <motion.div
       variants={itemVariants}
-      className="bg-white/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 shadow-soft overflow-hidden"
+      className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 dark:border-gray-700 shadow-soft overflow-hidden transition-colors duration-300"
     >
-      <div className="flex items-center justify-between p-6 border-b border-historical-gold/10">
+      <div className="flex items-center justify-between p-6 border-b border-historical-gold/10 dark:border-gray-700 transition-colors duration-300">
         <div>
-          <h3 className="text-lg font-bold text-historical-charcoal">{t.admin.dashboard.recentOrders}</h3>
-          <p className="text-sm text-historical-charcoal/50">
+          <h3 className="text-lg font-bold text-historical-charcoal dark:text-gray-100 transition-colors duration-300">{t.admin.dashboard.recentOrders}</h3>
+          <p className="text-sm text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">
             {isLoading ? t.admin.dashboard.loading : (t.admin.dashboard.ordersCount || '').replace('{count}', orders.length.toString())}
           </p>
         </div>
-        <button className="text-sm text-historical-gold hover:text-historical-red transition-colors font-medium">
+        <button className="text-sm text-historical-gold dark:text-yellow-400 hover:text-historical-red dark:hover:text-yellow-300 transition-colors font-medium">
           {t.admin.dashboard.viewAll}
         </button>
       </div>
 
       <div className="overflow-x-auto">
         <table className="w-full">
-          <thead className="bg-historical-stone/50">
+          <thead className="bg-historical-stone/50 dark:bg-gray-700/50 transition-colors duration-300">
             <tr>
-              <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">{t.admin.reports.orderNumber}</th>
-              <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">{t.admin.reports.customer}</th>
-              <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">{t.admin.reports.total}</th>
-              <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">{t.admin.reports.status}</th>
-              <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">{t.admin.reports.date}</th>
-              <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3"></th>
+              <th className="text-right text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-6 py-3 transition-colors duration-300">{t.admin.reports.orderNumber}</th>
+              <th className="text-right text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-6 py-3 transition-colors duration-300">{t.admin.reports.customer}</th>
+              <th className="text-right text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-6 py-3 transition-colors duration-300">{t.admin.reports.total}</th>
+              <th className="text-right text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-6 py-3 transition-colors duration-300">{t.admin.reports.status}</th>
+              <th className="text-right text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-6 py-3 transition-colors duration-300">{t.admin.reports.date}</th>
+              <th className="text-right text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-6 py-3 transition-colors duration-300"></th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-historical-gold/5">
+          <tbody className="divide-y divide-historical-gold/5 dark:divide-gray-700/50 transition-colors duration-300">
             {isLoading ? (
               Array.from({ length: 5 }).map((_, i) => (
                 <tr key={i} className="animate-pulse">
@@ -524,12 +524,12 @@ function RecentActivityList({
   return (
     <motion.div
       variants={itemVariants}
-      className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-historical-gold/10 shadow-soft h-full"
+      className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 border border-historical-gold/10 dark:border-gray-700 shadow-soft h-full transition-colors duration-300"
     >
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h3 className="text-lg font-bold text-historical-charcoal">{t.admin.dashboard.recentActivity}</h3>
-          <p className="text-sm text-historical-charcoal/50">{t.admin.dashboard.recentActivity}</p>
+          <h3 className="text-lg font-bold text-historical-charcoal dark:text-gray-100 transition-colors duration-300">{t.admin.dashboard.recentActivity}</h3>
+          <p className="text-sm text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{t.admin.dashboard.recentActivity}</p>
         </div>
       </div>
 
@@ -537,15 +537,15 @@ function RecentActivityList({
         {isLoading ? (
           Array.from({ length: 5 }).map((_, i) => (
             <div key={i} className="flex items-start gap-3 animate-pulse">
-              <div className="w-8 h-8 bg-gray-200 rounded-lg" />
+              <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-lg" />
               <div className="flex-1">
-                <div className="w-full h-4 bg-gray-200 rounded mb-2" />
-                <div className="w-20 h-3 bg-gray-200 rounded" />
+                <div className="w-full h-4 bg-gray-200 dark:bg-gray-700 rounded mb-2" />
+                <div className="w-20 h-3 bg-gray-200 dark:bg-gray-700 rounded" />
               </div>
             </div>
           ))
         ) : activities.length === 0 ? (
-          <div className="text-center text-historical-charcoal/40 py-8">
+          <div className="text-center text-historical-charcoal/40 dark:text-gray-500 py-8 transition-colors duration-300">
             {t.admin.dashboard.noActivity}
           </div>
         ) : (
@@ -553,13 +553,13 @@ function RecentActivityList({
             <div key={activity.id} className="flex items-start gap-3">
               {getActivityIcon(activity.target_type)}
               <div className="flex-1 min-w-0">
-                <p className="text-sm text-historical-charcoal">
+                <p className="text-sm text-historical-charcoal dark:text-gray-200 transition-colors duration-300">
                   {activity.action_display}
                   {activity.target_name && (
                     <span className="font-medium"> - {activity.target_name}</span>
                   )}
                 </p>
-                <p className="text-xs text-historical-charcoal/40 mt-0.5">
+                <p className="text-xs text-historical-charcoal/40 dark:text-gray-400 mt-0.5 transition-colors duration-300">
                   {formatRelativeDate(activity.timestamp, t)}
                 </p>
               </div>
@@ -568,7 +568,7 @@ function RecentActivityList({
         )}
       </div>
 
-      <button className="w-full mt-6 text-center text-sm text-historical-gold hover:text-historical-red transition-colors font-medium">
+      <button className="w-full mt-6 text-center text-sm text-historical-gold dark:text-yellow-400 hover:text-historical-red dark:hover:text-yellow-300 transition-colors font-medium">
         {t.admin.dashboard.viewAllActivity}
       </button>
     </motion.div>
@@ -648,8 +648,8 @@ export default function AdminDashboardPage() {
       {/* Page Header */}
       <motion.div variants={itemVariants} className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-historical-charcoal">{t.admin.dashboard.title}</h1>
-          <p className="text-historical-charcoal/50 mt-1">
+          <h1 className="text-2xl font-bold text-historical-charcoal dark:text-gray-100 transition-colors duration-300">{t.admin.dashboard.title}</h1>
+          <p className="text-historical-charcoal/50 dark:text-gray-400 mt-1 transition-colors duration-300">
             {t.admin.dashboard.subtitle}
           </p>
         </div>
@@ -660,8 +660,8 @@ export default function AdminDashboardPage() {
           disabled={isRefreshing}
           className={`
             flex items-center gap-2 px-4 py-2 rounded-xl
-            bg-historical-gold/10 text-historical-gold
-            hover:bg-historical-gold/20 transition-colors
+            bg-historical-gold/10 dark:bg-yellow-900/20 text-historical-gold dark:text-yellow-400
+            hover:bg-historical-gold/20 dark:hover:bg-yellow-900/30 transition-colors
             disabled:opacity-50
           `}
         >
@@ -678,7 +678,7 @@ export default function AdminDashboardPage() {
       {error && (
         <motion.div
           variants={itemVariants}
-          className="bg-red-50 border border-red-200 rounded-xl p-4 text-red-700 text-sm"
+          className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 text-red-700 dark:text-red-400 text-sm transition-colors duration-300"
         >
           {error}
         </motion.div>

@@ -137,10 +137,10 @@ function CategoryItem({
       <motion.div
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
-        className={`
+          className={`
           group flex items-center gap-3 px-4 py-3 rounded-xl
-          hover:bg-historical-gold/5 transition-colors
-          ${level > 0 ? 'mr-6 border-r-2 border-historical-gold/10' : ''}
+          hover:bg-historical-gold/5 dark:hover:bg-gray-700/50 transition-colors
+          ${level > 0 ? 'mr-6 border-r-2 border-historical-gold/10 dark:border-gray-700' : ''}
           ${!category.is_active ? 'opacity-50' : ''}
         `}
       >
@@ -148,7 +148,7 @@ function CategoryItem({
         {hasChildren ? (
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="p-1 rounded-lg hover:bg-historical-gold/10 transition-colors"
+            className="p-1 rounded-lg hover:bg-historical-gold/10 dark:hover:bg-gray-700 transition-colors text-historical-charcoal dark:text-gray-300"
           >
             <motion.div
               animate={{ rotate: isExpanded ? 0 : -90 }}
@@ -165,16 +165,16 @@ function CategoryItem({
         <span className="text-xl">{category.icon || '📁'}</span>
 
         {/* Folder Icon */}
-        <span className="text-historical-gold">
+        <span className="text-historical-gold dark:text-yellow-400">
           {hasChildren && isExpanded ? Icons.folderOpen : Icons.folder}
         </span>
 
         {/* Name */}
         <div className="flex-1 min-w-0">
-          <p className="font-medium text-historical-charcoal truncate">{category.name_ar}</p>
-          <p className="text-xs text-historical-charcoal/50">
+          <p className="font-medium text-historical-charcoal dark:text-gray-200 truncate transition-colors duration-300">{category.name_ar}</p>
+          <p className="text-xs text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">
             {category.name} • {category.products_count} {t.admin.categories.product}
-            {!category.is_active && <span className="text-red-500 mr-2">{t.admin.categories.disabled}</span>}
+            {!category.is_active && <span className="text-red-500 dark:text-red-400 mr-2 transition-colors duration-300">{t.admin.categories.disabled}</span>}
           </p>
         </div>
 
@@ -183,8 +183,8 @@ function CategoryItem({
           onClick={() => onToggleFeatured(category.id, !category.is_featured)}
           className={`p-1.5 rounded-lg transition-colors ${
             category.is_featured
-              ? 'text-yellow-500 hover:bg-yellow-50'
-              : 'text-historical-charcoal/20 hover:text-yellow-500 hover:bg-yellow-50'
+              ? 'text-yellow-500 dark:text-yellow-400 hover:bg-yellow-50 dark:hover:bg-yellow-900/20'
+              : 'text-historical-charcoal/20 dark:text-gray-600 hover:text-yellow-500 dark:hover:text-yellow-400 hover:bg-yellow-50 dark:hover:bg-yellow-900/20'
           }`}
           title={category.is_featured ? t.admin.categories.removeFeatured : t.admin.categories.addFeatured}
         >
@@ -196,8 +196,8 @@ function CategoryItem({
           onClick={() => onToggleActive(category.id, !category.is_active)}
           className={`px-2 py-1 text-xs rounded-lg transition-colors ${
             category.is_active
-              ? 'bg-green-100 text-green-700 hover:bg-green-200'
-              : 'bg-red-100 text-red-700 hover:bg-red-200'
+              ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/40'
+              : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/40'
           }`}
         >
           {category.is_active ? t.admin.categories.enabled : t.admin.categories.disabledStatus}
@@ -207,7 +207,7 @@ function CategoryItem({
         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
           <button
             onClick={() => onEdit(category)}
-            className="p-2 rounded-lg text-historical-charcoal/50 hover:text-historical-charcoal hover:bg-historical-gold/10 transition-colors"
+            className="p-2 rounded-lg text-historical-charcoal/50 dark:text-gray-500 hover:text-historical-charcoal dark:hover:text-gray-200 hover:bg-historical-gold/10 dark:hover:bg-gray-700 transition-colors"
             title={t.admin.categories.edit}
           >
             {Icons.edit}
@@ -215,7 +215,7 @@ function CategoryItem({
           <button
             onClick={() => onDelete(category)}
             disabled={isDeleting}
-            className="p-2 rounded-lg text-historical-charcoal/50 hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-50"
+            className="p-2 rounded-lg text-historical-charcoal/50 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-50"
             title={t.admin.categories.delete}
           >
             {isDeleting ? Icons.loading : Icons.delete}
@@ -323,18 +323,18 @@ function CategoryModal({ isOpen, onClose, category, categories, onSave, isLoadin
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          className="w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
+          className="w-full max-w-lg bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col transition-colors duration-300"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-historical-gold/10 bg-historical-stone/30">
-            <h2 className="text-lg font-bold text-historical-charcoal">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-historical-gold/10 dark:border-gray-700 bg-historical-stone/30 dark:bg-gray-700/30 transition-colors duration-300">
+            <h2 className="text-lg font-bold text-historical-charcoal dark:text-gray-100 transition-colors duration-300">
               {category ? t.admin.categories.editCategory : t.admin.categories.addNewCategory}
             </h2>
             <button
               onClick={onClose}
               disabled={isLoading}
-              className="p-2 rounded-lg text-historical-charcoal/50 hover:text-historical-charcoal hover:bg-historical-gold/10 transition-colors disabled:opacity-50"
+              className="p-2 rounded-lg text-historical-charcoal/50 dark:text-gray-400 hover:text-historical-charcoal dark:hover:text-gray-200 hover:bg-historical-gold/10 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
             >
               {Icons.close}
             </button>
@@ -343,35 +343,35 @@ function CategoryModal({ isOpen, onClose, category, categories, onSave, isLoadin
           {/* Form */}
           <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto">
             {error && (
-              <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm">
+              <div className="p-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 text-sm transition-colors duration-300">
                 {error}
               </div>
             )}
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-historical-charcoal mb-2">
-                  {t.admin.categories.nameAr} <span className="text-red-500">*</span>
+                <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 mb-2 transition-colors duration-300">
+                  {t.admin.categories.nameAr} <span className="text-red-500 dark:text-red-400">*</span>
                 </label>
                 <input
                   type="text"
                   value={formData.name_ar}
                   onChange={(e) => setFormData({ ...formData, name_ar: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 bg-white/50 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+                  className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white/50 dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 text-historical-charcoal dark:text-gray-200 transition-colors duration-300"
                   placeholder="مثال: إلكترونيات"
                   required
                   disabled={isLoading}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-historical-charcoal mb-2">
-                  {t.admin.categories.nameEn} <span className="text-red-500">*</span>
+                <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 mb-2 transition-colors duration-300">
+                  {t.admin.categories.nameEn} <span className="text-red-500 dark:text-red-400">*</span>
                 </label>
                 <input
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 bg-white/50 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+                  className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white/50 dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 text-historical-charcoal dark:text-gray-200 transition-colors duration-300"
                   placeholder="e.g. Electronics"
                   dir="ltr"
                   required
@@ -389,7 +389,7 @@ function CategoryModal({ isOpen, onClose, category, categories, onSave, isLoadin
                   type="text"
                   value={formData.slug}
                   onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 bg-white/50 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+                  className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white/50 dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 text-historical-charcoal dark:text-gray-200 transition-colors duration-300"
                   placeholder="electronics (تلقائي)"
                   dir="ltr"
                   disabled={isLoading}
@@ -450,7 +450,7 @@ function CategoryModal({ isOpen, onClose, category, categories, onSave, isLoadin
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div className="flex items-center gap-3 p-4 rounded-xl border border-historical-gold/10 bg-historical-stone/30">
+              <div className="flex items-center gap-3 p-4 rounded-xl border border-historical-gold/10 dark:border-gray-700 bg-historical-stone/30 dark:bg-gray-700/30 transition-colors duration-300">
                 <input
                   type="checkbox"
                   id="is_active"
@@ -459,7 +459,7 @@ function CategoryModal({ isOpen, onClose, category, categories, onSave, isLoadin
                   className="w-5 h-5 rounded border-historical-gold/30 text-historical-gold focus:ring-historical-gold"
                   disabled={isLoading}
                 />
-                <label htmlFor="is_active" className="text-sm text-historical-charcoal">
+                <label htmlFor="is_active" className="text-sm text-historical-charcoal dark:text-gray-200 transition-colors duration-300">
                   {t.admin.categories.categoryEnabled}
                 </label>
               </div>
@@ -534,11 +534,11 @@ function DeleteModal({ isOpen, onClose, onConfirm, categoryName, isLoading }: De
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.95 }}
-          className="w-full max-w-md bg-white rounded-2xl shadow-2xl p-6"
+          className="w-full max-w-md bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-6 transition-colors duration-300"
           onClick={(e) => e.stopPropagation()}
         >
-          <h3 className="text-lg font-bold text-historical-charcoal mb-2">{t.admin.categories.confirmDelete}</h3>
-          <p className="text-historical-charcoal/70 mb-6">
+          <h3 className="text-lg font-bold text-historical-charcoal dark:text-gray-100 mb-2 transition-colors duration-300">{t.admin.categories.confirmDelete}</h3>
+          <p className="text-historical-charcoal/70 dark:text-gray-300 mb-6 transition-colors duration-300">
             {t.admin.categories.confirmDeleteMessage.replace('{name}', categoryName)}
           </p>
           <div className="flex items-center justify-end gap-3">
@@ -708,14 +708,14 @@ export default function CategoriesPage() {
       {/* Page Header */}
       <motion.div variants={itemVariants} className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-historical-charcoal">{t.admin.categories.title}</h1>
-          <p className="text-historical-charcoal/50 mt-1">{t.admin.categories.subtitle}</p>
+          <h1 className="text-2xl font-bold text-historical-charcoal dark:text-gray-100 transition-colors duration-300">{t.admin.categories.title}</h1>
+          <p className="text-historical-charcoal/50 dark:text-gray-400 mt-1 transition-colors duration-300">{t.admin.categories.subtitle}</p>
         </div>
         <div className="flex items-center gap-3">
           <button
             onClick={refresh}
             disabled={isLoading}
-            className="p-2.5 rounded-xl border border-historical-gold/20 text-historical-charcoal/50 hover:text-historical-charcoal hover:bg-historical-gold/10 transition-colors disabled:opacity-50"
+            className="p-2.5 rounded-xl border border-historical-gold/20 dark:border-gray-600 text-historical-charcoal/50 dark:text-gray-400 hover:text-historical-charcoal dark:hover:text-gray-200 hover:bg-historical-gold/10 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
             title={t.admin.dashboard.refresh}
           >
             {isLoading ? Icons.loading : Icons.refresh}
@@ -733,7 +733,7 @@ export default function CategoriesPage() {
       {/* Search & Filters */}
       <motion.div variants={itemVariants} className="flex items-center gap-4 flex-wrap">
         <div className="flex-1 relative min-w-[200px]">
-          <span className="absolute right-4 top-1/2 -translate-y-1/2 text-historical-charcoal/30">
+          <span className="absolute right-4 top-1/2 -translate-y-1/2 text-historical-charcoal/30 dark:text-gray-500 transition-colors duration-300">
             {Icons.search}
           </span>
           <input
@@ -741,7 +741,7 @@ export default function CategoriesPage() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={t.admin.categories.searchPlaceholder}
-            className="w-full pr-12 pl-4 py-3 rounded-xl border border-historical-gold/20 bg-white/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+            className="w-full pr-12 pl-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 text-historical-charcoal dark:text-gray-200 transition-colors duration-300"
           />
         </div>
         
@@ -749,7 +749,7 @@ export default function CategoriesPage() {
         <select
           value={filterParent || ''}
           onChange={(e) => setFilterParent(e.target.value ? Number(e.target.value) : null)}
-          className="px-4 py-3 rounded-xl border border-historical-gold/20 bg-white/80 backdrop-blur-sm text-sm focus:outline-none focus:ring-2 focus:ring-historical-gold/30 min-w-[150px]"
+          className="px-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm text-sm focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 min-w-[150px] text-historical-charcoal dark:text-gray-200 transition-colors duration-300"
         >
           <option value="">{t.admin.categories.allCategories || 'كل الفئات'}</option>
           {mainCategories.map((cat) => (
@@ -763,26 +763,26 @@ export default function CategoriesPage() {
         <select
           value={filterStatus}
           onChange={(e) => setFilterStatus(e.target.value)}
-          className="px-4 py-3 rounded-xl border border-historical-gold/20 bg-white/80 backdrop-blur-sm text-sm focus:outline-none focus:ring-2 focus:ring-historical-gold/30 min-w-[150px]"
+          className="px-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm text-sm focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 min-w-[150px] text-historical-charcoal dark:text-gray-200 transition-colors duration-300"
         >
           <option value="">{t.admin.categories.allStatuses || 'كل الحالات'}</option>
           <option value="active">{t.admin.categories.enabled || 'نشط'}</option>
           <option value="inactive">{t.admin.categories.disabledStatus || 'غير نشط'}</option>
         </select>
-        <div className="flex items-center gap-4 px-4 py-3 rounded-xl bg-white/80 backdrop-blur-sm border border-historical-gold/10">
+        <div className="flex items-center gap-4 px-4 py-3 rounded-xl bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-historical-gold/10 dark:border-gray-700 transition-colors duration-300">
           <div className="text-center">
-            <p className="text-2xl font-bold text-historical-charcoal">{totalCount}</p>
-            <p className="text-xs text-historical-charcoal/50">{t.admin.categories.totalCategories}</p>
+            <p className="text-2xl font-bold text-historical-charcoal dark:text-gray-100 transition-colors duration-300">{totalCount}</p>
+            <p className="text-xs text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{t.admin.categories.totalCategories}</p>
           </div>
-          <div className="w-px h-10 bg-historical-gold/20" />
+          <div className="w-px h-10 bg-historical-gold/20 dark:bg-gray-600 transition-colors duration-300" />
           <div className="text-center">
-            <p className="text-2xl font-bold text-historical-charcoal">{mainCategoriesCount}</p>
-            <p className="text-xs text-historical-charcoal/50">{t.admin.categories.mainCategories}</p>
+            <p className="text-2xl font-bold text-historical-charcoal dark:text-gray-100 transition-colors duration-300">{mainCategoriesCount}</p>
+            <p className="text-xs text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{t.admin.categories.mainCategories}</p>
           </div>
-          <div className="w-px h-10 bg-historical-gold/20" />
+          <div className="w-px h-10 bg-historical-gold/20 dark:bg-gray-600 transition-colors duration-300" />
           <div className="text-center">
-            <p className="text-2xl font-bold text-historical-gold">{subCategoriesCount}</p>
-            <p className="text-xs text-historical-charcoal/50">{t.admin.categories.subCategories}</p>
+            <p className="text-2xl font-bold text-historical-gold dark:text-yellow-400 transition-colors duration-300">{subCategoriesCount}</p>
+            <p className="text-xs text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{t.admin.categories.subCategories}</p>
           </div>
         </div>
       </motion.div>
@@ -790,14 +790,14 @@ export default function CategoriesPage() {
       {/* Categories List */}
       <motion.div
         variants={itemVariants}
-        className="bg-white/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 shadow-soft overflow-hidden"
+        className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 dark:border-gray-700 shadow-soft overflow-hidden transition-colors duration-300"
       >
         {isLoading && categories.length === 0 ? (
           <LoadingSkeleton />
         ) : categories.length === 0 ? (
-          <div className="text-center py-12 text-historical-charcoal/50">
-            <p className="text-lg mb-2">{t.admin.categories.noCategories}</p>
-            <p className="text-sm">{t.admin.categories.startAdding}</p>
+          <div className="text-center py-12 text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">
+            <p className="text-lg mb-2 dark:text-gray-300 transition-colors duration-300">{t.admin.categories.noCategories}</p>
+            <p className="text-sm dark:text-gray-400 transition-colors duration-300">{t.admin.categories.startAdding}</p>
           </div>
         ) : (
           <div className="p-2">

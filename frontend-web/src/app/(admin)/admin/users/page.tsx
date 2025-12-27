@@ -305,8 +305,8 @@ export default function UsersPage() {
       {/* Page Header */}
       <motion.div variants={itemVariants} className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-historical-charcoal">{t.admin.users.title}</h1>
-          <p className="text-historical-charcoal/50 mt-1">{t.admin.users.subtitle}</p>
+          <h1 className="text-2xl font-bold text-historical-charcoal dark:text-gray-100 transition-colors duration-300">{t.admin.users.title}</h1>
+          <p className="text-historical-charcoal/50 dark:text-gray-400 mt-1 transition-colors duration-300">{t.admin.users.subtitle}</p>
         </div>
         <div className="flex items-center gap-3">
           <button
@@ -330,7 +330,7 @@ export default function UsersPage() {
       {error && (
         <motion.div
           variants={itemVariants}
-          className="bg-red-50 border border-red-200 rounded-xl p-4 text-red-700"
+          className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 text-red-700 dark:text-red-400 transition-colors duration-300"
         >
           {error}
         </motion.div>
@@ -338,47 +338,47 @@ export default function UsersPage() {
 
       {/* Stats Cards */}
       <motion.div variants={itemVariants} className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-historical-gold/10">
+        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-historical-gold/10 dark:border-gray-700 transition-colors duration-300">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-historical-gold/10 text-historical-gold">
+            <div className="p-2 rounded-lg bg-historical-gold/10 dark:bg-yellow-900/30 text-historical-gold dark:text-yellow-400">
               {Icons.users}
             </div>
             <div>
-              <p className="text-2xl font-bold text-historical-charcoal">{stats?.total || 0}</p>
-              <p className="text-xs text-historical-charcoal/50">{t.admin.users.totalUsers}</p>
+              <p className="text-2xl font-bold text-historical-charcoal dark:text-gray-100 transition-colors duration-300">{stats?.total || 0}</p>
+              <p className="text-xs text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{t.admin.users.totalUsers}</p>
             </div>
           </div>
         </div>
-        <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-blue-200">
+        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-blue-200 dark:border-blue-800 transition-colors duration-300">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-blue-100 text-blue-600">
+            <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
               {Icons.user}
             </div>
             <div>
-              <p className="text-2xl font-bold text-blue-600">{stats?.customers || 0}</p>
-              <p className="text-xs text-historical-charcoal/50">{t.admin.users.customers}</p>
+              <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{stats?.customers || 0}</p>
+              <p className="text-xs text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{t.admin.users.customers}</p>
             </div>
           </div>
         </div>
-        <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-purple-200">
+        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-purple-200 dark:border-purple-800 transition-colors duration-300">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-purple-100 text-purple-600">
+            <div className="p-2 rounded-lg bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400">
               {Icons.store}
             </div>
             <div>
-              <p className="text-2xl font-bold text-purple-600">{stats?.vendors || 0}</p>
-              <p className="text-xs text-historical-charcoal/50">{t.admin.users.vendors}</p>
+              <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">{stats?.vendors || 0}</p>
+              <p className="text-xs text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{t.admin.users.vendors}</p>
             </div>
           </div>
         </div>
-        <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-historical-gold/30">
+        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-historical-gold/30 dark:border-yellow-800 transition-colors duration-300">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-lg bg-historical-gold/20 text-historical-gold">
               {Icons.shield}
             </div>
             <div>
               <p className="text-2xl font-bold text-historical-gold">{stats?.admins || 0}</p>
-              <p className="text-xs text-historical-charcoal/50">{t.admin.users.admins}</p>
+              <p className="text-xs text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{t.admin.users.admins}</p>
             </div>
           </div>
         </div>
@@ -387,7 +387,7 @@ export default function UsersPage() {
       {/* Search & Filters */}
       <motion.div variants={itemVariants} className="flex flex-wrap items-center gap-4">
         <div className="flex-1 min-w-[280px] relative">
-          <span className="absolute right-4 top-1/2 -translate-y-1/2 text-historical-charcoal/30">
+          <span className="absolute right-4 top-1/2 -translate-y-1/2 text-historical-charcoal/30 dark:text-gray-500 transition-colors duration-300">
             {Icons.search}
           </span>
           <input
@@ -395,14 +395,14 @@ export default function UsersPage() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={t.admin.users.searchPlaceholder}
-            className="w-full pr-12 pl-4 py-3 rounded-xl border border-historical-gold/20 bg-white/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+            className="w-full pr-12 pl-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 text-historical-charcoal dark:text-gray-200 transition-colors duration-300"
           />
         </div>
 
         <select
           value={filterRole}
           onChange={(e) => setFilterRole(e.target.value as UserRole | '')}
-          className="px-4 py-3 rounded-xl border border-historical-gold/20 bg-white/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-historical-gold/30 min-w-[150px]"
+          className="px-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 min-w-[150px] text-historical-charcoal dark:text-gray-200 transition-colors duration-300"
         >
           <option value="">{t.admin.users.all}</option>
           <option value="customer">{t.admin.users.role.customer}</option>
@@ -413,7 +413,7 @@ export default function UsersPage() {
         <select
           value={filterStatus === '' ? '' : filterStatus ? 'active' : 'inactive'}
           onChange={(e) => setFilterStatus(e.target.value === '' ? '' : e.target.value === 'active')}
-          className="px-4 py-3 rounded-xl border border-historical-gold/20 bg-white/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-historical-gold/30 min-w-[150px]"
+          className="px-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 min-w-[150px] text-historical-charcoal dark:text-gray-200 transition-colors duration-300"
         >
           <option value="">{t.admin.users.all}</option>
           <option value="active">{t.admin.users.active}</option>
@@ -428,9 +428,9 @@ export default function UsersPage() {
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="flex items-center gap-4 p-4 rounded-xl bg-historical-gold/10 border border-historical-gold/20"
+            className="flex items-center gap-4 p-4 rounded-xl bg-historical-gold/10 dark:bg-yellow-900/20 border border-historical-gold/20 dark:border-yellow-800 transition-colors duration-300"
           >
-            <span className="text-sm font-medium text-historical-charcoal">
+            <span className="text-sm font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300">
               {t.admin.users.selectedCount.replace('{count}', selectedUsers.length.toString())}
             </span>
             <div className="flex items-center gap-2">
@@ -463,22 +463,22 @@ export default function UsersPage() {
       {/* Users Table */}
       <motion.div
         variants={itemVariants}
-        className="bg-white/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 shadow-soft overflow-hidden"
+        className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 dark:border-gray-700 shadow-soft overflow-hidden transition-colors duration-300"
       >
         {isLoading && users.length === 0 ? (
           <div className="flex items-center justify-center py-12">
             {Icons.loader}
-            <span className="mr-2 text-historical-charcoal/50">{t.admin.users.loading}</span>
+            <span className="mr-2 text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{t.admin.users.loading}</span>
           </div>
         ) : users.length === 0 ? (
           <div className="text-center py-12">
             <div className="text-4xl mb-4">👥</div>
-            <p className="text-historical-charcoal/50">{t.admin.users.noUsers}</p>
+            <p className="text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{t.admin.users.noUsers}</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-historical-stone/50">
+              <thead className="bg-historical-stone/50 dark:bg-gray-700/50 transition-colors duration-300">
                 <tr>
                   <th className="w-12 px-4 py-4">
                     <input
@@ -488,23 +488,23 @@ export default function UsersPage() {
                       className="w-4 h-4 rounded border-historical-gold/30 text-historical-gold focus:ring-historical-gold"
                     />
                   </th>
-                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-4 py-4">{t.admin.users.user}</th>
-                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-4 py-4">{t.admin.users.phone}</th>
-                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-4 py-4">{t.admin.users.roleLabel}</th>
-                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-4 py-4">{t.admin.users.orders}</th>
-                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-4 py-4">{t.admin.users.spending}</th>
-                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-4 py-4">{t.admin.users.status}</th>
-                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-4 py-4">{t.admin.users.lastActivity}</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-4 py-4 transition-colors duration-300">{t.admin.users.user}</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-4 py-4 transition-colors duration-300">{t.admin.users.phone}</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-4 py-4 transition-colors duration-300">{t.admin.users.roleLabel}</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-4 py-4 transition-colors duration-300">{t.admin.users.orders}</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-4 py-4 transition-colors duration-300">{t.admin.users.spending}</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-4 py-4 transition-colors duration-300">{t.admin.users.status}</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-4 py-4 transition-colors duration-300">{t.admin.users.lastActivity}</th>
                   <th className="w-24 px-4 py-4"></th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-historical-gold/5">
+              <tbody className="divide-y divide-historical-gold/5 dark:divide-gray-700/50 transition-colors duration-300">
                 {users.map((user) => (
                   <motion.tr
                     key={user.id}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    className="hover:bg-historical-gold/5 transition-colors group"
+                    className="hover:bg-historical-gold/5 dark:hover:bg-gray-700/50 transition-colors group"
                   >
                     <td className="px-4 py-3">
                       <input
@@ -527,14 +527,14 @@ export default function UsersPage() {
                         </div>
                         <div className="min-w-0">
                           <div className="flex items-center gap-2">
-                            <p className="font-medium text-historical-charcoal truncate">{user.full_name || user.email}</p>
+                            <p className="font-medium text-historical-charcoal dark:text-gray-200 truncate transition-colors duration-300">{user.full_name || user.email}</p>
                           </div>
-                          <p className="text-xs text-historical-charcoal/50 truncate" dir="ltr">{user.email}</p>
+                          <p className="text-xs text-historical-charcoal/50 dark:text-gray-400 truncate transition-colors duration-300" dir="ltr">{user.email}</p>
                         </div>
                       </div>
                     </td>
                     <td className="px-4 py-3">
-                      <span className="text-sm text-historical-charcoal/70" dir="ltr">{user.phone}</span>
+                      <span className="text-sm text-historical-charcoal/70 dark:text-gray-300 transition-colors duration-300" dir="ltr">{user.phone}</span>
                     </td>
                     <td className="px-4 py-3">
                       <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${getRoleStyle(user.role)}`}>
@@ -543,22 +543,22 @@ export default function UsersPage() {
                       </span>
                     </td>
                     <td className="px-4 py-3">
-                      <span className="text-sm font-medium text-historical-charcoal">{user.orders_count}</span>
+                      <span className="text-sm font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300">{user.orders_count}</span>
                     </td>
                     <td className="px-4 py-3">
-                      <span className="text-sm font-medium text-historical-gold">{user.total_spent.toFixed(2)} SYP</span>
+                      <span className="text-sm font-medium text-historical-gold dark:text-yellow-400 transition-colors duration-300">{user.total_spent.toFixed(2)} SYP</span>
                     </td>
                     <td className="px-4 py-3">
                       <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${
                         user.is_active 
-                          ? 'bg-green-100 text-green-700' 
-                          : 'bg-red-100 text-red-700'
-                      }`}>
+                          ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' 
+                          : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
+                      } transition-colors duration-300`}>
                         {user.is_active ? t.admin.users.active : t.admin.users.inactive}
                       </span>
                     </td>
                     <td className="px-4 py-3">
-                      <span className="text-sm text-historical-charcoal/50">
+                      <span className="text-sm text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">
                         {formatDate(user.last_login)}
                       </span>
                     </td>
@@ -570,7 +570,7 @@ export default function UsersPage() {
                             await fetchUserDetails(user.id)
                             setIsViewModalOpen(true)
                           }}
-                          className="p-2 rounded-lg text-historical-charcoal/50 hover:text-historical-charcoal hover:bg-historical-gold/10 transition-colors"
+                          className="p-2 rounded-lg text-historical-charcoal/50 dark:text-gray-500 hover:text-historical-charcoal dark:hover:text-gray-200 hover:bg-historical-gold/10 dark:hover:bg-gray-700 transition-colors"
                           title={t.admin.users.view}
                         >
                           {Icons.eye}
@@ -581,7 +581,7 @@ export default function UsersPage() {
                             await fetchUserDetails(user.id)
                             setIsEditModalOpen(true)
                           }}
-                          className="p-2 rounded-lg text-historical-charcoal/50 hover:text-historical-charcoal hover:bg-historical-gold/10 transition-colors"
+                          className="p-2 rounded-lg text-historical-charcoal/50 dark:text-gray-500 hover:text-historical-charcoal dark:hover:text-gray-200 hover:bg-historical-gold/10 dark:hover:bg-gray-700 transition-colors"
                           title={t.admin.users.edit}
                         >
                           {Icons.edit}
@@ -591,8 +591,8 @@ export default function UsersPage() {
                           disabled={isProcessing}
                           className={`p-2 rounded-lg transition-colors disabled:opacity-50 ${
                             user.is_active
-                              ? 'text-historical-charcoal/50 hover:text-red-500 hover:bg-red-50'
-                              : 'text-green-500 hover:bg-green-50'
+                              ? 'text-historical-charcoal/50 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20'
+                              : 'text-green-500 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20'
                           }`}
                           title={user.is_active ? t.admin.users.deactivate : t.admin.users.activate}
                         >
@@ -609,15 +609,15 @@ export default function UsersPage() {
 
         {/* Pagination */}
         {(hasNextPage || hasPreviousPage) && (
-          <div className="flex items-center justify-between px-6 py-4 border-t border-historical-gold/10 bg-historical-stone/30">
-            <p className="text-sm text-historical-charcoal/50">
+          <div className="flex items-center justify-between px-6 py-4 border-t border-historical-gold/10 dark:border-gray-700 bg-historical-stone/30 dark:bg-gray-700/30 transition-colors duration-300">
+            <p className="text-sm text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">
               {t.admin.users.showingUsers.replace('{start}', users.length.toString()).replace('{total}', total.toString())}
             </p>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => handlePageChange('prev')}
                 disabled={!hasPreviousPage || isLoading}
-                className="p-2 rounded-lg border border-historical-gold/20 text-historical-charcoal/50 hover:text-historical-charcoal hover:bg-historical-gold/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="p-2 rounded-lg border border-historical-gold/20 dark:border-gray-600 text-historical-charcoal/50 dark:text-gray-400 hover:text-historical-charcoal dark:hover:text-gray-200 hover:bg-historical-gold/10 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {Icons.chevronRight}
               </button>
@@ -627,7 +627,7 @@ export default function UsersPage() {
               <button
                 onClick={() => handlePageChange('next')}
                 disabled={!hasNextPage || isLoading}
-                className="p-2 rounded-lg border border-historical-gold/20 text-historical-charcoal/50 hover:text-historical-charcoal hover:bg-historical-gold/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="p-2 rounded-lg border border-historical-gold/20 dark:border-gray-600 text-historical-charcoal/50 dark:text-gray-400 hover:text-historical-charcoal dark:hover:text-gray-200 hover:bg-historical-gold/10 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {Icons.chevronLeft}
               </button>
@@ -789,15 +789,15 @@ function CreateUserModal({
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          className="w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden my-8"
+          className="w-full max-w-2xl bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden my-8 transition-colors duration-300"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-historical-gold/10 bg-historical-stone/30">
-            <h2 className="text-lg font-bold text-historical-charcoal">{t.admin.users.addNewUser}</h2>
+          <div className="flex items-center justify-between px-6 py-4 border-b border-historical-gold/10 dark:border-gray-700 bg-historical-stone/30 dark:bg-gray-700/30 transition-colors duration-300">
+            <h2 className="text-lg font-bold text-historical-charcoal dark:text-gray-100 transition-colors duration-300">{t.admin.users.addNewUser}</h2>
             <button
               onClick={onClose}
-              className="p-2 rounded-lg text-historical-charcoal/50 hover:text-historical-charcoal hover:bg-historical-gold/10 transition-colors"
+              className="p-2 rounded-lg text-historical-charcoal/50 dark:text-gray-400 hover:text-historical-charcoal dark:hover:text-gray-200 hover:bg-historical-gold/10 dark:hover:bg-gray-700 transition-colors"
             >
               {Icons.close}
             </button>
@@ -814,7 +814,7 @@ function CreateUserModal({
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="w-full px-4 py-2.5 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+                className="w-full px-4 py-2.5 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 text-historical-charcoal dark:text-gray-200 transition-colors duration-300"
                 dir="ltr"
                 required
               />
@@ -832,7 +832,7 @@ function CreateUserModal({
                 type="password"
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="w-full px-4 py-2.5 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+                className="w-full px-4 py-2.5 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 text-historical-charcoal dark:text-gray-200 transition-colors duration-300"
                 required
               />
               {formErrors.password && (
@@ -849,7 +849,7 @@ function CreateUserModal({
                 type="password"
                 value={formData.password_confirm}
                 onChange={(e) => setFormData({ ...formData, password_confirm: e.target.value })}
-                className="w-full px-4 py-2.5 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+                className="w-full px-4 py-2.5 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 text-historical-charcoal dark:text-gray-200 transition-colors duration-300"
                 required
               />
               {formErrors.password_confirm && (
@@ -866,7 +866,7 @@ function CreateUserModal({
                 type="text"
                 value={formData.full_name}
                 onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-                className="w-full px-4 py-2.5 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+                className="w-full px-4 py-2.5 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 text-historical-charcoal dark:text-gray-200 transition-colors duration-300"
                 required
               />
               {formErrors.full_name && (
@@ -883,7 +883,7 @@ function CreateUserModal({
                 type="tel"
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                className="w-full px-4 py-2.5 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+                className="w-full px-4 py-2.5 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 text-historical-charcoal dark:text-gray-200 transition-colors duration-300"
                 dir="ltr"
                 required
               />
@@ -900,7 +900,7 @@ function CreateUserModal({
               <select
                 value={formData.role}
                 onChange={(e) => setFormData({ ...formData, role: e.target.value as UserRole })}
-                className="w-full px-4 py-2.5 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+                className="w-full px-4 py-2.5 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 text-historical-charcoal dark:text-gray-200 transition-colors duration-300"
               >
                 <option value="customer">{t.admin.users.role.customer}</option>
                 <option value="vendor">{t.admin.users.role.vendor}</option>
@@ -929,7 +929,7 @@ function CreateUserModal({
               <select
                 value={formData.preferred_language}
                 onChange={(e) => setFormData({ ...formData, preferred_language: e.target.value as 'ar' | 'en' })}
-                className="w-full px-4 py-2.5 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+                className="w-full px-4 py-2.5 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 text-historical-charcoal dark:text-gray-200 transition-colors duration-300"
               >
                 <option value="ar">{t.admin.users.form.arabic}</option>
                 <option value="en">{t.admin.users.form.english}</option>
@@ -1018,7 +1018,7 @@ function ViewUserModal({
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          className="w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden my-8"
+          className="w-full max-w-2xl bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden my-8 transition-colors duration-300"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
@@ -1052,16 +1052,16 @@ function ViewUserModal({
                 </h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-sm text-historical-charcoal/50">{t.admin.users.form.name}</label>
-                    <p className="font-medium text-historical-charcoal">{user.full_name || '-'}</p>
+                    <label className="text-sm text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{t.admin.users.form.name}</label>
+                    <p className="font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300">{user.full_name || '-'}</p>
                   </div>
                   <div>
-                    <label className="text-sm text-historical-charcoal/50">{t.admin.users.form.email}</label>
-                    <p className="font-medium text-historical-charcoal" dir="ltr">{user.email}</p>
+                    <label className="text-sm text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{t.admin.users.form.email}</label>
+                    <p className="font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300" dir="ltr">{user.email}</p>
                   </div>
                   <div>
-                    <label className="text-sm text-historical-charcoal/50">{t.admin.users.form.phone}</label>
-                    <p className="font-medium text-historical-charcoal" dir="ltr">{user.phone}</p>
+                    <label className="text-sm text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{t.admin.users.form.phone}</label>
+                    <p className="font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300" dir="ltr">{user.phone}</p>
                   </div>
                   <div>
                     <label className="text-sm text-historical-charcoal/50">{t.admin.users.form.role}</label>
@@ -1073,7 +1073,7 @@ function ViewUserModal({
                   <div>
                     <label className="text-sm text-historical-charcoal/50">{t.admin.users.status}</label>
                     <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${
-                      user.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                      user.is_active ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
                     }`}>
                       {user.is_active ? t.admin.users.active : t.admin.users.inactive}
                     </span>
@@ -1081,7 +1081,7 @@ function ViewUserModal({
                   <div>
                     <label className="text-sm text-historical-charcoal/50">{t.admin.users.staff}</label>
                     <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${
-                      user.is_staff ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'
+                      user.is_staff ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
                     }`}>
                       {user.is_staff ? t.admin.users.yes : t.admin.users.no}
                     </span>
@@ -1092,7 +1092,7 @@ function ViewUserModal({
               {/* Profile Info */}
               {user.profile && (
                 <div className="space-y-4 border-t border-historical-gold/10 pt-4">
-                  <h3 className="font-bold text-historical-charcoal">{t.admin.users.profileInfo}</h3>
+                  <h3 className="font-bold text-historical-charcoal dark:text-gray-100 transition-colors duration-300">{t.admin.users.profileInfo}</h3>
                   <div className="grid grid-cols-2 gap-4">
                     {user.profile.address && (
                       <div className="col-span-2">
@@ -1266,7 +1266,7 @@ function EditUserModal({
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          className="w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden my-8"
+          className="w-full max-w-2xl bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden my-8 transition-colors duration-300"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
@@ -1301,7 +1301,7 @@ function EditUserModal({
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+                  className="w-full px-4 py-2.5 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 text-historical-charcoal dark:text-gray-200 transition-colors duration-300"
                   dir="ltr"
                   required
                 />
@@ -1319,7 +1319,7 @@ function EditUserModal({
                   type="text"
                   value={formData.full_name}
                   onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+                  className="w-full px-4 py-2.5 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 text-historical-charcoal dark:text-gray-200 transition-colors duration-300"
                   required
                 />
                 {formErrors.full_name && (
@@ -1336,7 +1336,7 @@ function EditUserModal({
                   type="tel"
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+                  className="w-full px-4 py-2.5 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 text-historical-charcoal dark:text-gray-200 transition-colors duration-300"
                   dir="ltr"
                   required
                 />
@@ -1353,7 +1353,7 @@ function EditUserModal({
                 <select
                   value={formData.role}
                   onChange={(e) => setFormData({ ...formData, role: e.target.value as UserRole })}
-                  className="w-full px-4 py-2.5 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+                  className="w-full px-4 py-2.5 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 text-historical-charcoal dark:text-gray-200 transition-colors duration-300"
                 >
                   <option value="customer">{t.admin.users.role.customer}</option>
                   <option value="vendor">{t.admin.users.role.vendor}</option>
@@ -1382,7 +1382,7 @@ function EditUserModal({
                 <select
                   value={formData.preferred_language}
                   onChange={(e) => setFormData({ ...formData, preferred_language: e.target.value as 'ar' | 'en' })}
-                  className="w-full px-4 py-2.5 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+                  className="w-full px-4 py-2.5 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 text-historical-charcoal dark:text-gray-200 transition-colors duration-300"
                 >
                   <option value="ar">{t.admin.users.form.arabic}</option>
                   <option value="en">{t.admin.users.form.english}</option>

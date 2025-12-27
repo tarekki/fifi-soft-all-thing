@@ -208,8 +208,16 @@ export function useProducts(initialFilters?: ProductFilters): UseProductsReturn 
         await fetchProducts(currentFilters)
         return response.data
       } else {
-        setError(response.message || 'فشل في إنشاء المنتج')
-        console.error('Failed to create product:', response.message)
+        // Show detailed error message
+        let errorMsg = response.message || 'فشل في إنشاء المنتج'
+        if (response.errors) {
+          const errorDetails = Object.entries(response.errors)
+            .map(([key, value]) => `${key}: ${Array.isArray(value) ? value.join(', ') : value}`)
+            .join('\n')
+          errorMsg = `${errorMsg}\n${errorDetails}`
+        }
+        setError(errorMsg)
+        console.error('Failed to create product:', response.message, response.errors)
         return null
       }
     } catch (err) {

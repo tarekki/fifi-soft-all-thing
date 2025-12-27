@@ -169,13 +169,13 @@ function VendorCard({ vendor, onEdit, onToggleStatus, onDelete, isUpdating }: Ve
   return (
     <motion.div
       variants={itemVariants}
-      className="bg-white/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 shadow-soft overflow-hidden hover:shadow-soft-lg transition-shadow group"
+      className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 dark:border-gray-700 shadow-soft overflow-hidden hover:shadow-soft-lg transition-all duration-300 group"
     >
       {/* Header */}
-      <div className="relative p-4 border-b border-historical-gold/10 bg-gradient-to-l from-historical-gold/5 to-transparent">
+      <div className="relative p-4 border-b border-historical-gold/10 dark:border-gray-700 bg-gradient-to-l from-historical-gold/5 dark:from-gray-700/30 to-transparent transition-colors duration-300">
         <div className="flex items-center gap-4">
           <div
-            className="w-16 h-16 rounded-xl overflow-hidden border-2 border-white shadow-lg flex-shrink-0 flex items-center justify-center"
+            className="w-16 h-16 rounded-xl overflow-hidden border-2 border-white dark:border-gray-700 shadow-lg flex-shrink-0 flex items-center justify-center transition-colors duration-300"
             style={{ backgroundColor: vendor.primary_color || '#f5f5f5' }}
           >
             {vendor.logo_url ? (
@@ -187,8 +187,8 @@ function VendorCard({ vendor, onEdit, onToggleStatus, onDelete, isUpdating }: Ve
             )}
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="font-bold text-historical-charcoal truncate">{vendor.name}</h3>
-            <p className="text-sm text-historical-charcoal/50 truncate">{vendor.slug}</p>
+            <h3 className="font-bold text-historical-charcoal dark:text-gray-100 truncate transition-colors duration-300">{vendor.name}</h3>
+            <p className="text-sm text-historical-charcoal/50 dark:text-gray-400 truncate transition-colors duration-300">{vendor.slug}</p>
             <span className={`inline-flex mt-1 px-2 py-0.5 rounded-full text-xs font-medium ${
               vendor.is_active
                 ? 'bg-green-100 text-green-700'

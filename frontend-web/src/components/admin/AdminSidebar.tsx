@@ -220,8 +220,8 @@ function NavItemComponent({ item, isCollapsed, isActive, pathname }: NavItemComp
 
   // Active/Hover styles
   const activeStyles = isActive || isChildActive
-    ? 'bg-gradient-to-l from-historical-gold/20 to-historical-gold/5 text-historical-charcoal border-r-2 border-historical-gold'
-    : 'text-historical-charcoal/70 hover:bg-historical-gold/10 hover:text-historical-charcoal'
+    ? 'bg-gradient-to-l from-historical-gold/20 dark:from-historical-gold/30 to-historical-gold/5 dark:to-gray-700/50 text-historical-charcoal dark:text-gray-100 border-r-2 border-historical-gold dark:border-gray-600'
+    : 'text-historical-charcoal/70 dark:text-gray-300 hover:bg-historical-gold/10 dark:hover:bg-gray-700/50 hover:text-historical-charcoal dark:hover:text-gray-100'
 
   if (hasChildren) {
     return (
@@ -266,7 +266,7 @@ function NavItemComponent({ item, isCollapsed, isActive, pathname }: NavItemComp
               transition={{ duration: 0.2 }}
               className="overflow-hidden"
             >
-              <div className="mr-4 mt-1 border-r-2 border-historical-gold/20 pr-2 space-y-1">
+              <div className="mr-4 mt-1 border-r-2 border-historical-gold/20 dark:border-gray-700/50 pr-2 space-y-1">
                 {item.children.map(child => (
                   <Link
                     key={child.id}
@@ -275,8 +275,8 @@ function NavItemComponent({ item, isCollapsed, isActive, pathname }: NavItemComp
                       flex items-center gap-2 px-3 py-2 rounded-lg text-sm
                       transition-all duration-150
                       ${pathname === child.href
-                        ? 'bg-historical-gold/15 text-historical-charcoal font-medium'
-                        : 'text-historical-charcoal/60 hover:bg-historical-gold/8 hover:text-historical-charcoal'
+                        ? 'bg-historical-gold/15 dark:bg-gray-700/50 text-historical-charcoal dark:text-gray-100 font-medium'
+                        : 'text-historical-charcoal/60 dark:text-gray-400 hover:bg-historical-gold/8 dark:hover:bg-gray-700/30 hover:text-historical-charcoal dark:hover:text-gray-200'
                       }
                     `}
                   >
@@ -327,10 +327,10 @@ export function AdminSidebar({ isCollapsed, onToggleCollapse }: AdminSidebarProp
       initial={false}
       animate={{ width: isCollapsed ? 80 : 280 }}
       transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
-      className="h-screen sticky top-0 flex flex-col bg-white/80 backdrop-blur-xl border-l border-historical-gold/20 shadow-soft-xl overflow-hidden"
+      className="h-screen sticky top-0 flex flex-col bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border-l border-historical-gold/20 dark:border-gray-700 shadow-soft-xl overflow-hidden transition-colors duration-300"
     >
       {/* Logo Section */}
-      <div className="flex items-center justify-between p-4 border-b border-historical-gold/10">
+      <div className="flex items-center justify-between p-4 border-b border-historical-gold/10 dark:border-gray-700 transition-colors duration-300">
         <AnimatePresence mode="wait">
           {!isCollapsed ? (
             <motion.div
@@ -344,8 +344,8 @@ export function AdminSidebar({ isCollapsed, onToggleCollapse }: AdminSidebarProp
                 <span className="text-white font-bold text-lg">Y</span>
               </div>
               <div>
-                <h1 className="font-bold text-historical-charcoal text-lg leading-tight">Yalla Buy</h1>
-                <p className="text-xs text-historical-charcoal/50">لوحة التحكم</p>
+                <h1 className="font-bold text-historical-charcoal dark:text-gray-100 text-lg leading-tight transition-colors duration-300">Yalla Buy</h1>
+                <p className="text-xs text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">لوحة التحكم</p>
               </div>
             </motion.div>
           ) : (
@@ -365,8 +365,8 @@ export function AdminSidebar({ isCollapsed, onToggleCollapse }: AdminSidebarProp
         <button
           onClick={onToggleCollapse}
           className={`
-            p-2 rounded-lg text-historical-charcoal/50 hover:text-historical-charcoal
-            hover:bg-historical-gold/10 transition-all duration-200
+            p-2 rounded-lg text-historical-charcoal/50 dark:text-gray-400 hover:text-historical-charcoal dark:hover:text-gray-200
+            hover:bg-historical-gold/10 dark:hover:bg-gray-700 transition-all duration-200
             ${isCollapsed ? 'mx-auto mt-2' : ''}
           `}
           title={isCollapsed ? 'توسيع القائمة' : 'تصغير القائمة'}
@@ -394,21 +394,21 @@ export function AdminSidebar({ isCollapsed, onToggleCollapse }: AdminSidebarProp
       </nav>
 
       {/* Footer */}
-      <div className="p-3 border-t border-historical-gold/10">
+      <div className="p-3 border-t border-historical-gold/10 dark:border-gray-700 transition-colors duration-300">
         <AnimatePresence>
           {!isCollapsed && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="flex items-center gap-3 px-3 py-2 rounded-xl bg-historical-gold/5"
+              className="flex items-center gap-3 px-3 py-2 rounded-xl bg-historical-gold/5 dark:bg-gray-700/50 transition-colors duration-300"
             >
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-historical-blue to-historical-charcoal flex items-center justify-center">
                 <span className="text-white text-sm font-medium">A</span>
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-historical-charcoal truncate">Admin</p>
-                <p className="text-xs text-historical-charcoal/50 truncate">admin@yallabuy.com</p>
+                <p className="text-sm font-medium text-historical-charcoal dark:text-gray-200 truncate transition-colors duration-300">Admin</p>
+                <p className="text-xs text-historical-charcoal/50 dark:text-gray-400 truncate transition-colors duration-300">admin@yallabuy.com</p>
               </div>
             </motion.div>
           )}

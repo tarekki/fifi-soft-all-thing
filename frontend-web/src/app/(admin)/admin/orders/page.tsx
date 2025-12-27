@@ -137,13 +137,13 @@ const itemVariants = {
  */
 const getStatusStyle = (status: OrderStatus) => {
   const styles: Record<OrderStatus, string> = {
-    pending: 'bg-yellow-100 text-yellow-700',
-    confirmed: 'bg-blue-100 text-blue-700',
-    shipped: 'bg-purple-100 text-purple-700',
-    delivered: 'bg-green-100 text-green-700',
-    cancelled: 'bg-red-100 text-red-700',
+    pending: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400',
+    confirmed: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400',
+    shipped: 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400',
+    delivered: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400',
+    cancelled: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400',
   }
-  return styles[status] || 'bg-gray-100 text-gray-700'
+  return styles[status] || 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
 }
 
 /**
@@ -226,28 +226,28 @@ function OrderDetailModal({
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          className="w-full max-w-2xl max-h-[90vh] bg-white rounded-2xl shadow-2xl overflow-hidden"
+          className="w-full max-w-2xl max-h-[90vh] bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden transition-colors duration-300"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-historical-gold/10 bg-historical-stone/30">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-historical-gold/10 dark:border-gray-700 bg-historical-stone/30 dark:bg-gray-700/30 transition-colors duration-300">
             <div>
-              <h2 className="text-lg font-bold text-historical-charcoal">
+              <h2 className="text-lg font-bold text-historical-charcoal dark:text-gray-100 transition-colors duration-300">
                 {isLoading ? 'جاري التحميل...' : `تفاصيل الطلب ${order?.order_number || ''}`}
               </h2>
               {order && (
-                <p className="text-sm text-historical-charcoal/50">
+                <p className="text-sm text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">
                   {new Date(order.created_at).toLocaleDateString('ar-SY', { dateStyle: 'full' })}
                 </p>
               )}
             </div>
             <div className="flex items-center gap-2">
-              <button className="p-2 rounded-lg text-historical-charcoal/50 hover:text-historical-charcoal hover:bg-historical-gold/10 transition-colors">
+              <button className="p-2 rounded-lg text-historical-charcoal/50 dark:text-gray-400 hover:text-historical-charcoal dark:hover:text-gray-200 hover:bg-historical-gold/10 dark:hover:bg-gray-700 transition-colors">
                 {Icons.print}
               </button>
               <button
                 onClick={onClose}
-                className="p-2 rounded-lg text-historical-charcoal/50 hover:text-historical-charcoal hover:bg-historical-gold/10 transition-colors"
+                className="p-2 rounded-lg text-historical-charcoal/50 dark:text-gray-400 hover:text-historical-charcoal dark:hover:text-gray-200 hover:bg-historical-gold/10 dark:hover:bg-gray-700 transition-colors"
               >
                 {Icons.close}
               </button>
@@ -259,22 +259,22 @@ function OrderDetailModal({
             {isLoading ? (
               <div className="flex items-center justify-center py-12">
                 {Icons.loader}
-                <span className="mr-2 text-historical-charcoal/50">{t.admin.orders.loadingDetails}</span>
+                <span className="mr-2 text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{t.admin.orders.loadingDetails}</span>
               </div>
             ) : order ? (
               <>
                 {/* Status */}
                 <div className="flex items-center gap-4">
                   <div className="flex-1">
-                    <p className="text-sm text-historical-charcoal/50 mb-2">{t.admin.orders.orderStatus}</p>
-                    <span className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium ${getStatusStyle(order.status)}`}>
+                    <p className="text-sm text-historical-charcoal/50 dark:text-gray-400 mb-2 transition-colors duration-300">{t.admin.orders.orderStatus}</p>
+                    <span className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition-colors duration-300 ${getStatusStyle(order.status)}`}>
                       {getStatusIcon(order.status)}
                       {getStatusLabel(order.status, t)}
                     </span>
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm text-historical-charcoal/50 mb-2">{t.admin.orders.orderType}</p>
-                    <span className="inline-flex px-3 py-1.5 rounded-full text-sm font-medium bg-gray-100 text-gray-700">
+                    <p className="text-sm text-historical-charcoal/50 dark:text-gray-400 mb-2 transition-colors duration-300">{t.admin.orders.orderType}</p>
+                    <span className="inline-flex px-3 py-1.5 rounded-full text-sm font-medium bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 transition-colors duration-300">
                       {order.order_type_display}
                     </span>
                   </div>
@@ -283,7 +283,7 @@ function OrderDetailModal({
                 {/* Update Status - Only show available transitions */}
                 {order.available_statuses.length > 0 && (
                   <div>
-                    <p className="text-sm text-historical-charcoal/50 mb-2">{t.admin.orders.updateStatus}</p>
+                    <p className="text-sm text-historical-charcoal/50 dark:text-gray-400 mb-2 transition-colors duration-300">{t.admin.orders.updateStatus}</p>
                     <div className="flex flex-wrap gap-2">
                       {order.available_statuses.map(({ value, label }) => (
                         <button
@@ -292,8 +292,8 @@ function OrderDetailModal({
                           disabled={isUpdating}
                           className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                             isUpdating
-                              ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                              : 'bg-historical-stone hover:bg-historical-gold/20 text-historical-charcoal'
+                              ? 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
+                              : 'bg-historical-stone dark:bg-gray-700 hover:bg-historical-gold/20 dark:hover:bg-gray-600 text-historical-charcoal dark:text-gray-200'
                           }`}
                         >
                           {isUpdating ? Icons.loader : null}
@@ -305,25 +305,25 @@ function OrderDetailModal({
                 )}
 
                 {/* Customer Info */}
-                <div className="bg-historical-stone/50 rounded-xl p-4">
-                  <h3 className="font-medium text-historical-charcoal mb-3">{t.admin.orders.customerInfo}</h3>
+                <div className="bg-historical-stone/50 dark:bg-gray-700/50 rounded-xl p-4 transition-colors duration-300">
+                  <h3 className="font-medium text-historical-charcoal dark:text-gray-100 mb-3 transition-colors duration-300">{t.admin.orders.customerInfo}</h3>
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
-                      <p className="text-historical-charcoal/50">{t.admin.orders.name}</p>
-                      <p className="font-medium text-historical-charcoal">{order.customer_name}</p>
+                      <p className="text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{t.admin.orders.name}</p>
+                      <p className="font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300">{order.customer_name}</p>
                     </div>
                     <div>
-                      <p className="text-historical-charcoal/50">{t.admin.orders.phone}</p>
-                      <p className="font-medium text-historical-charcoal" dir="ltr">{order.customer_phone}</p>
+                      <p className="text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{t.admin.orders.phone}</p>
+                      <p className="font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300" dir="ltr">{order.customer_phone}</p>
                     </div>
                     <div className="col-span-2">
-                      <p className="text-historical-charcoal/50">{t.admin.orders.shippingAddress}</p>
-                      <p className="font-medium text-historical-charcoal">{order.customer_address}</p>
+                      <p className="text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{t.admin.orders.shippingAddress}</p>
+                      <p className="font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300">{order.customer_address}</p>
                     </div>
                     {order.user_email && (
                       <div className="col-span-2">
-                        <p className="text-historical-charcoal/50">{t.admin.orders.email}</p>
-                        <p className="font-medium text-historical-charcoal">{order.user_email}</p>
+                        <p className="text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{t.admin.orders.email}</p>
+                        <p className="font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300">{order.user_email}</p>
                       </div>
                     )}
                   </div>
@@ -331,11 +331,11 @@ function OrderDetailModal({
 
                 {/* Items */}
                 <div>
-                  <h3 className="font-medium text-historical-charcoal mb-3">{t.admin.orders.products} ({order.items.length})</h3>
+                  <h3 className="font-medium text-historical-charcoal dark:text-gray-100 mb-3 transition-colors duration-300">{t.admin.orders.products} ({order.items.length})</h3>
                   <div className="space-y-3">
                     {order.items.map(item => (
-                      <div key={item.id} className="flex items-center gap-4 p-3 bg-historical-stone/30 rounded-xl">
-                        <div className="w-16 h-16 bg-historical-stone rounded-lg flex-shrink-0 overflow-hidden">
+                      <div key={item.id} className="flex items-center gap-4 p-3 bg-historical-stone/30 dark:bg-gray-700/30 rounded-xl transition-colors duration-300">
+                        <div className="w-16 h-16 bg-historical-stone dark:bg-gray-700 rounded-lg flex-shrink-0 overflow-hidden transition-colors duration-300">
                           {item.product_image ? (
                             <img
                               src={item.product_image}
@@ -343,22 +343,22 @@ function OrderDetailModal({
                               className="w-full h-full object-cover"
                             />
                           ) : (
-                            <div className="w-full h-full flex items-center justify-center text-historical-charcoal/30">
+                            <div className="w-full h-full flex items-center justify-center text-historical-charcoal/30 dark:text-gray-600">
                               {Icons.package}
                             </div>
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-medium text-historical-charcoal truncate">{item.product_name}</p>
+                          <p className="font-medium text-historical-charcoal dark:text-gray-200 truncate transition-colors duration-300">{item.product_name}</p>
                           {item.variant_info && (
-                            <p className="text-sm text-historical-charcoal/50">{item.variant_info}</p>
+                            <p className="text-sm text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{item.variant_info}</p>
                           )}
                           {item.vendor_name && (
-                            <p className="text-xs text-historical-charcoal/40">{t.admin.orders.vendor} {item.vendor_name}</p>
+                            <p className="text-xs text-historical-charcoal/40 dark:text-gray-500 transition-colors duration-300">{t.admin.orders.vendor} {item.vendor_name}</p>
                           )}
-                          <p className="text-sm text-historical-charcoal/50">{t.admin.orders.quantity} {item.quantity}</p>
+                          <p className="text-sm text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{t.admin.orders.quantity} {item.quantity}</p>
                         </div>
-                        <p className="font-bold text-historical-charcoal">{formatCurrency(item.subtotal)}</p>
+                        <p className="font-bold text-historical-charcoal dark:text-gray-200 transition-colors duration-300">{formatCurrency(item.subtotal)}</p>
                       </div>
                     ))}
                   </div>
@@ -397,7 +397,7 @@ function OrderDetailModal({
                 </div>
               </>
             ) : (
-              <div className="text-center py-12 text-historical-charcoal/50">
+              <div className="text-center py-12 text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">
                 {t.admin.orders.orderNotFound}
               </div>
             )}
@@ -571,8 +571,8 @@ export default function OrdersPage() {
       {/* Page Header */}
       <motion.div variants={itemVariants} className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-historical-charcoal">{t.admin.orders.title}</h1>
-          <p className="text-historical-charcoal/50 mt-1">{t.admin.orders.subtitle}</p>
+          <h1 className="text-2xl font-bold text-historical-charcoal dark:text-gray-100 transition-colors duration-300">{t.admin.orders.title}</h1>
+          <p className="text-historical-charcoal/50 dark:text-gray-400 mt-1 transition-colors duration-300">{t.admin.orders.subtitle}</p>
         </div>
         <button
           onClick={refresh}
@@ -588,7 +588,7 @@ export default function OrdersPage() {
       {error && (
         <motion.div
           variants={itemVariants}
-          className="bg-red-50 border border-red-200 rounded-xl p-4 text-red-700"
+          className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 text-red-700 dark:text-red-400 transition-colors duration-300"
         >
           {error}
         </motion.div>
@@ -596,68 +596,68 @@ export default function OrdersPage() {
 
       {/* Stats Cards */}
       <motion.div variants={itemVariants} className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-yellow-200">
+        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-yellow-200 dark:border-yellow-800 transition-colors duration-300">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-yellow-100 text-yellow-600">
+            <div className="p-2 rounded-lg bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400">
               {Icons.clock}
             </div>
             <div>
-              <p className="text-2xl font-bold text-yellow-600">
+              <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400 transition-colors duration-300">
                 {stats?.by_status.pending || 0}
               </p>
-              <p className="text-xs text-historical-charcoal/50">{t.admin.orders.status.pending}</p>
+              <p className="text-xs text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{t.admin.orders.status.pending}</p>
             </div>
           </div>
         </div>
-        <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-blue-200">
+        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-blue-200 dark:border-blue-800 transition-colors duration-300">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-blue-100 text-blue-600">
+            <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
               {Icons.package}
             </div>
             <div>
-              <p className="text-2xl font-bold text-blue-600">
+              <p className="text-2xl font-bold text-blue-600 dark:text-blue-400 transition-colors duration-300">
                 {stats?.by_status.confirmed || 0}
               </p>
-              <p className="text-xs text-historical-charcoal/50">{t.admin.orders.status.confirmed}</p>
+              <p className="text-xs text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{t.admin.orders.status.confirmed}</p>
             </div>
           </div>
         </div>
-        <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-purple-200">
+        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-purple-200 dark:border-purple-800 transition-colors duration-300">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-purple-100 text-purple-600">
+            <div className="p-2 rounded-lg bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400">
               {Icons.truck}
             </div>
             <div>
-              <p className="text-2xl font-bold text-purple-600">
+              <p className="text-2xl font-bold text-purple-600 dark:text-purple-400 transition-colors duration-300">
                 {stats?.by_status.shipped || 0}
               </p>
-              <p className="text-xs text-historical-charcoal/50">{t.admin.orders.shipping}</p>
+              <p className="text-xs text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{t.admin.orders.shipping}</p>
             </div>
           </div>
         </div>
-        <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-green-200">
+        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-green-200 dark:border-green-800 transition-colors duration-300">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-green-100 text-green-600">
+            <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400">
               {Icons.check}
             </div>
             <div>
-              <p className="text-2xl font-bold text-green-600">
+              <p className="text-2xl font-bold text-green-600 dark:text-green-400 transition-colors duration-300">
                 {stats?.by_status.delivered || 0}
               </p>
-              <p className="text-xs text-historical-charcoal/50">{t.admin.orders.delivered}</p>
+              <p className="text-xs text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{t.admin.orders.delivered}</p>
             </div>
           </div>
         </div>
-        <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-red-200">
+        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-red-200 dark:border-red-800 transition-colors duration-300">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-red-100 text-red-600">
+            <div className="p-2 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400">
               {Icons.x}
             </div>
             <div>
-              <p className="text-2xl font-bold text-red-600">
+              <p className="text-2xl font-bold text-red-600 dark:text-red-400 transition-colors duration-300">
                 {stats?.by_status.cancelled || 0}
               </p>
-              <p className="text-xs text-historical-charcoal/50">{t.admin.orders.cancelled}</p>
+              <p className="text-xs text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{t.admin.orders.cancelled}</p>
             </div>
           </div>
         </div>
@@ -666,7 +666,7 @@ export default function OrdersPage() {
       {/* Search & Filters */}
       <motion.div variants={itemVariants} className="flex flex-wrap items-center gap-4">
         <div className="flex-1 min-w-[280px] relative">
-          <span className="absolute right-4 top-1/2 -translate-y-1/2 text-historical-charcoal/30">
+          <span className="absolute right-4 top-1/2 -translate-y-1/2 text-historical-charcoal/30 dark:text-gray-500 transition-colors duration-300">
             {Icons.search}
           </span>
           <input
@@ -674,14 +674,14 @@ export default function OrdersPage() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={t.admin.orders.searchPlaceholder}
-            className="w-full pr-12 pl-4 py-3 rounded-xl border border-historical-gold/20 bg-white/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+            className="w-full pr-12 pl-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 text-historical-charcoal dark:text-gray-200 transition-colors duration-300"
           />
         </div>
 
         <select
           value={filterStatus}
           onChange={(e) => setFilterStatus(e.target.value as OrderStatus | '')}
-          className="px-4 py-3 rounded-xl border border-historical-gold/20 bg-white/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-historical-gold/30 min-w-[150px]"
+          className="px-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 min-w-[150px] text-historical-charcoal dark:text-gray-200 transition-colors duration-300"
         >
           <option value="">{t.admin.orders.allStatuses}</option>
           <option value="pending">{t.admin.orders.status.pending}</option>
@@ -722,15 +722,15 @@ export default function OrdersPage() {
       {/* Orders Table */}
       <motion.div
         variants={itemVariants}
-        className="bg-white/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 shadow-soft overflow-hidden"
+        className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 dark:border-gray-700 shadow-soft overflow-hidden transition-colors duration-300"
       >
         {isLoading && orders.length === 0 ? (
           <div className="flex items-center justify-center py-12">
             {Icons.loader}
-            <span className="mr-2 text-historical-charcoal/50">{t.admin.orders.loading}</span>
+            <span className="mr-2 text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{t.admin.orders.loading}</span>
           </div>
         ) : orders.length === 0 ? (
-          <div className="text-center py-12 text-historical-charcoal/50">
+          <div className="text-center py-12 text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">
             <div className="text-4xl mb-4">📦</div>
             {t.admin.orders.noOrders}
           </div>
@@ -738,7 +738,7 @@ export default function OrdersPage() {
           <>
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-historical-stone/50">
+                <thead className="bg-historical-stone/50 dark:bg-gray-700/50 transition-colors duration-300">
                   <tr>
                     <th className="w-12 px-4 py-4">
                       <input
@@ -748,23 +748,23 @@ export default function OrdersPage() {
                         className="w-4 h-4 rounded border-historical-gold/30 text-historical-gold focus:ring-historical-gold"
                       />
                     </th>
-                    <th className="text-right text-xs font-medium text-historical-charcoal/50 px-4 py-4">{t.admin.orders.orderNumber}</th>
-                    <th className="text-right text-xs font-medium text-historical-charcoal/50 px-4 py-4">{t.admin.orders.customer}</th>
-                    <th className="text-right text-xs font-medium text-historical-charcoal/50 px-4 py-4">{t.admin.orders.type}</th>
-                    <th className="text-right text-xs font-medium text-historical-charcoal/50 px-4 py-4">{t.admin.orders.amount}</th>
-                    <th className="text-right text-xs font-medium text-historical-charcoal/50 px-4 py-4">{t.admin.orders.status}</th>
-                    <th className="text-right text-xs font-medium text-historical-charcoal/50 px-4 py-4">{t.admin.orders.items}</th>
-                    <th className="text-right text-xs font-medium text-historical-charcoal/50 px-4 py-4">{t.admin.orders.date}</th>
+                    <th className="text-right text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-4 py-4 transition-colors duration-300">{t.admin.orders.orderNumber}</th>
+                    <th className="text-right text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-4 py-4 transition-colors duration-300">{t.admin.orders.customer}</th>
+                    <th className="text-right text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-4 py-4 transition-colors duration-300">{t.admin.orders.type}</th>
+                    <th className="text-right text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-4 py-4 transition-colors duration-300">{t.admin.orders.amount}</th>
+                    <th className="text-right text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-4 py-4 transition-colors duration-300">{t.admin.orders.status}</th>
+                    <th className="text-right text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-4 py-4 transition-colors duration-300">{t.admin.orders.items}</th>
+                    <th className="text-right text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-4 py-4 transition-colors duration-300">{t.admin.orders.date}</th>
                     <th className="w-16 px-4 py-4"></th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-historical-gold/5">
+                <tbody className="divide-y divide-historical-gold/5 dark:divide-gray-700/50 transition-colors duration-300">
                   {orders.map((order) => (
                     <motion.tr
                       key={order.id}
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      className="hover:bg-historical-gold/5 transition-colors group"
+                      className="hover:bg-historical-gold/5 dark:hover:bg-gray-700/50 transition-colors group"
                     >
                       <td className="px-4 py-3">
                         <input
@@ -775,41 +775,41 @@ export default function OrdersPage() {
                         />
                       </td>
                       <td className="px-4 py-3">
-                        <span className="font-medium text-historical-charcoal">{order.order_number}</span>
+                        <span className="font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300">{order.order_number}</span>
                         {order.is_guest_order && (
-                          <span className="mr-2 px-1.5 py-0.5 text-[10px] bg-gray-100 text-gray-500 rounded">{t.admin.orders.guest}</span>
+                          <span className="mr-2 px-1.5 py-0.5 text-[10px] bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 rounded transition-colors duration-300">{t.admin.orders.guest}</span>
                         )}
                       </td>
                       <td className="px-4 py-3">
                         <div>
-                          <p className="font-medium text-historical-charcoal">{order.customer_name}</p>
-                          <p className="text-xs text-historical-charcoal/50" dir="ltr">{order.customer_phone}</p>
+                          <p className="font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300">{order.customer_name}</p>
+                          <p className="text-xs text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300" dir="ltr">{order.customer_phone}</p>
                         </div>
                       </td>
                       <td className="px-4 py-3">
-                        <span className="text-sm text-historical-charcoal/70">{order.order_type_display}</span>
+                        <span className="text-sm text-historical-charcoal/70 dark:text-gray-300 transition-colors duration-300">{order.order_type_display}</span>
                       </td>
                       <td className="px-4 py-3">
-                        <span className="font-bold text-historical-charcoal">{formatCurrency(order.total)}</span>
+                        <span className="font-bold text-historical-charcoal dark:text-gray-200 transition-colors duration-300">{formatCurrency(order.total)}</span>
                       </td>
                       <td className="px-4 py-3">
-                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${getStatusStyle(order.status)}`}>
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-colors duration-300 ${getStatusStyle(order.status)}`}>
                           {getStatusIcon(order.status)}
                           {getStatusLabel(order.status, t)}
                         </span>
                       </td>
                       <td className="px-4 py-3">
-                        <span className="text-sm text-historical-charcoal/70">{t.admin.orders.itemsCount.replace('{count}', order.items_count.toString())}</span>
+                        <span className="text-sm text-historical-charcoal/70 dark:text-gray-300 transition-colors duration-300">{t.admin.orders.itemsCount.replace('{count}', order.items_count.toString())}</span>
                       </td>
                       <td className="px-4 py-3">
-                        <span className="text-sm text-historical-charcoal/50">
+                        <span className="text-sm text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">
                           {new Date(order.created_at).toLocaleDateString('ar-SY')}
                         </span>
                       </td>
                       <td className="px-4 py-3">
                         <button
                           onClick={() => handleViewOrder(order)}
-                          className="p-2 rounded-lg text-historical-charcoal/50 hover:text-historical-charcoal hover:bg-historical-gold/10 transition-colors opacity-0 group-hover:opacity-100"
+                          className="p-2 rounded-lg text-historical-charcoal/50 dark:text-gray-500 hover:text-historical-charcoal dark:hover:text-gray-200 hover:bg-historical-gold/10 dark:hover:bg-gray-700 transition-colors opacity-0 group-hover:opacity-100"
                           title={t.admin.orders.viewDetails}
                         >
                           {Icons.eye}
@@ -823,24 +823,24 @@ export default function OrdersPage() {
 
             {/* Pagination */}
             <div className="flex items-center justify-between px-6 py-4 border-t border-historical-gold/10 bg-historical-stone/30">
-              <p className="text-sm text-historical-charcoal/50">
+              <p className="text-sm text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">
                 {t.admin.orders.showingOrders.replace('{count}', orders.length.toString()).replace('{total}', total.toString())}
               </p>
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => handlePageChange('prev')}
                   disabled={!hasPreviousPage || isLoading}
-                  className="p-2 rounded-lg border border-historical-gold/20 text-historical-charcoal/50 hover:text-historical-charcoal hover:bg-historical-gold/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="p-2 rounded-lg border border-historical-gold/20 dark:border-gray-600 text-historical-charcoal/50 dark:text-gray-400 hover:text-historical-charcoal dark:hover:text-gray-200 hover:bg-historical-gold/10 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   {Icons.chevronRight}
                 </button>
-                <span className="px-4 py-2 text-sm text-historical-charcoal">
+                <span className="px-4 py-2 text-sm text-historical-charcoal dark:text-gray-200 transition-colors duration-300">
                   {t.admin.orders.page} {currentPage}
                 </span>
                 <button
                   onClick={() => handlePageChange('next')}
                   disabled={!hasNextPage || isLoading}
-                  className="p-2 rounded-lg border border-historical-gold/20 text-historical-charcoal/50 hover:text-historical-charcoal hover:bg-historical-gold/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="p-2 rounded-lg border border-historical-gold/20 dark:border-gray-600 text-historical-charcoal/50 dark:text-gray-400 hover:text-historical-charcoal dark:hover:text-gray-200 hover:bg-historical-gold/10 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   {Icons.chevronLeft}
                 </button>

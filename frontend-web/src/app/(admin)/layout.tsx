@@ -24,6 +24,7 @@ import { usePathname } from 'next/navigation'
 import { AdminSidebar, AdminHeader } from '@/components/admin'
 import { AdminAuthProvider, ProtectedRoute } from '@/lib/admin'
 import { LanguageProvider, useLanguage } from '@/lib/i18n/context'
+import { ThemeInitializer } from '@/components/admin/ThemeInitializer'
 
 interface AdminLayoutProps {
   children: ReactNode
@@ -58,7 +59,9 @@ function AdminLayoutContentInner({
   const { direction } = useLanguage()
 
   return (
-    <div className="min-h-screen flex bg-historical-stone" dir={direction}>
+    <>
+      <ThemeInitializer />
+      <div className="min-h-screen flex bg-historical-stone dark:bg-gray-900 transition-colors duration-300" dir={direction}>
       {/* Sidebar */}
       <AdminSidebar
         isCollapsed={isSidebarCollapsed}
@@ -71,21 +74,22 @@ function AdminLayoutContentInner({
         <AdminHeader />
 
         {/* Page Content */}
-        <main className="flex-1 p-6 overflow-auto">
+        <main className="flex-1 p-6 overflow-auto dark:bg-gray-900 transition-colors duration-300">
           <div className="max-w-7xl mx-auto">
             {children}
           </div>
         </main>
 
         {/* Footer */}
-        <footer className="border-t border-historical-gold/10 bg-white/50 backdrop-blur-sm px-6 py-4">
-          <div className="flex items-center justify-between text-sm text-historical-charcoal/50">
+        <footer className="border-t border-historical-gold/10 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm px-6 py-4 transition-colors duration-300">
+          <div className="flex items-center justify-between text-sm text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">
             <p>© 2024 Yalla Buy. جميع الحقوق محفوظة.</p>
             <p>الإصدار 1.0.0</p>
           </div>
         </footer>
       </div>
     </div>
+    </>
   )
 }
 

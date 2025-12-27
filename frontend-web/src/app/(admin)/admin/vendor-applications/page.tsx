@@ -124,9 +124,9 @@ const itemVariants = {
 
 const getStatusStyle = (status: VendorApplicationStatus) => {
   const styles = {
-    pending: 'bg-yellow-100 text-yellow-700',
-    approved: 'bg-green-100 text-green-700',
-    rejected: 'bg-red-100 text-red-700',
+    pending: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400',
+    approved: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400',
+    rejected: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400',
   }
   return styles[status]
 }
@@ -191,20 +191,20 @@ function ApplicationDetailModal({
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          className="w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden my-8"
+          className="w-full max-w-2xl bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden my-8 transition-colors duration-300"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-historical-gold/10 bg-historical-stone/30">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-historical-gold/10 dark:border-gray-700 bg-historical-stone/30 dark:bg-gray-700/30 transition-colors duration-300">
             <div>
-              <h2 className="text-lg font-bold text-historical-charcoal">{t.admin.vendorApplications.view}</h2>
-              <span className={`inline-flex mt-1 px-3 py-1 rounded-full text-xs font-medium ${getStatusStyle(application.status)}`}>
+              <h2 className="text-lg font-bold text-historical-charcoal dark:text-gray-100 transition-colors duration-300">{t.admin.vendorApplications.view}</h2>
+              <span className={`inline-flex mt-1 px-3 py-1 rounded-full text-xs font-medium transition-colors duration-300 ${getStatusStyle(application.status)}`}>
                 {application.status_display}
               </span>
             </div>
             <button
               onClick={onClose}
-              className="p-2 rounded-lg text-historical-charcoal/50 hover:text-historical-charcoal hover:bg-historical-gold/10 transition-colors"
+              className="p-2 rounded-lg text-historical-charcoal/50 dark:text-gray-400 hover:text-historical-charcoal dark:hover:text-gray-200 hover:bg-historical-gold/10 dark:hover:bg-gray-700 transition-colors"
             >
               {Icons.close}
             </button>
@@ -214,78 +214,78 @@ function ApplicationDetailModal({
           <div className="p-6 space-y-6 max-h-[60vh] overflow-y-auto">
             {/* Store Info */}
             <div className="space-y-4">
-              <h3 className="font-bold text-historical-charcoal flex items-center gap-2">
+              <h3 className="font-bold text-historical-charcoal dark:text-gray-100 flex items-center gap-2 transition-colors duration-300">
                 {Icons.store}
                 {t.admin.vendorApplications.storeInfo}
               </h3>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm text-historical-charcoal/50">{t.admin.vendorApplications.storeName}</label>
-                  <p className="font-medium text-historical-charcoal">{application.store_name}</p>
+                  <label className="text-sm text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{t.admin.vendorApplications.storeName}</label>
+                  <p className="font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300">{application.store_name}</p>
                 </div>
                 <div>
-                  <label className="text-sm text-historical-charcoal/50">{t.admin.vendorApplications.businessType}</label>
-                  <p className="font-medium text-historical-charcoal">{application.business_type_display}</p>
+                  <label className="text-sm text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{t.admin.vendorApplications.businessType}</label>
+                  <p className="font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300">{application.business_type_display}</p>
                 </div>
               </div>
               {application.store_description && (
                 <div>
-                  <label className="text-sm text-historical-charcoal/50">{t.admin.vendorApplications.description}</label>
-                  <p className="text-historical-charcoal">{application.store_description}</p>
+                  <label className="text-sm text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{t.admin.vendorApplications.description}</label>
+                  <p className="text-historical-charcoal dark:text-gray-200 transition-colors duration-300">{application.store_description}</p>
                 </div>
               )}
               {application.business_address && (
                 <div>
-                  <label className="text-sm text-historical-charcoal/50">{t.admin.vendorApplications.address}</label>
-                  <p className="text-historical-charcoal">{application.business_address}</p>
+                  <label className="text-sm text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{t.admin.vendorApplications.address}</label>
+                  <p className="text-historical-charcoal dark:text-gray-200 transition-colors duration-300">{application.business_address}</p>
                 </div>
               )}
             </div>
 
             {/* Applicant Info */}
-            <div className="space-y-4 border-t border-historical-gold/10 pt-4">
-              <h3 className="font-bold text-historical-charcoal flex items-center gap-2">
+            <div className="space-y-4 border-t border-historical-gold/10 dark:border-gray-700 pt-4 transition-colors duration-300">
+              <h3 className="font-bold text-historical-charcoal dark:text-gray-100 flex items-center gap-2 transition-colors duration-300">
                 {Icons.user}
                 {t.admin.vendorApplications.applicantInfo}
               </h3>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm text-historical-charcoal/50">{t.admin.vendorApplications.name}</label>
-                  <p className="font-medium text-historical-charcoal">{application.applicant_name}</p>
+                  <label className="text-sm text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{t.admin.vendorApplications.name}</label>
+                  <p className="font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300">{application.applicant_name}</p>
                 </div>
                 <div>
-                  <label className="text-sm text-historical-charcoal/50">{t.admin.vendorApplications.emailFull}</label>
-                  <p className="font-medium text-historical-charcoal" dir="ltr">{application.applicant_email}</p>
+                  <label className="text-sm text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{t.admin.vendorApplications.emailFull}</label>
+                  <p className="font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300" dir="ltr">{application.applicant_email}</p>
                 </div>
                 <div>
-                  <label className="text-sm text-historical-charcoal/50">{t.admin.vendorApplications.phone}</label>
-                  <p className="font-medium text-historical-charcoal" dir="ltr">{application.applicant_phone}</p>
+                  <label className="text-sm text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{t.admin.vendorApplications.phone}</label>
+                  <p className="font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300" dir="ltr">{application.applicant_phone}</p>
                 </div>
                 <div>
-                  <label className="text-sm text-historical-charcoal/50">{t.admin.vendorApplications.submissionDate}</label>
-                  <p className="font-medium text-historical-charcoal">{formatDate(application.created_at)}</p>
+                  <label className="text-sm text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{t.admin.vendorApplications.submissionDate}</label>
+                  <p className="font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300">{formatDate(application.created_at)}</p>
                 </div>
               </div>
             </div>
 
             {/* Review Info (if reviewed) */}
             {application.reviewed_at && (
-              <div className="space-y-4 border-t border-historical-gold/10 pt-4">
-                <h3 className="font-bold text-historical-charcoal">{t.admin.vendorApplications.reviewInfo}</h3>
+              <div className="space-y-4 border-t border-historical-gold/10 dark:border-gray-700 pt-4 transition-colors duration-300">
+                <h3 className="font-bold text-historical-charcoal dark:text-gray-100 transition-colors duration-300">{t.admin.vendorApplications.reviewInfo}</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-sm text-historical-charcoal/50">{t.admin.vendorApplications.reviewedBy}</label>
-                    <p className="font-medium text-historical-charcoal">{application.reviewed_by_name || '-'}</p>
+                    <label className="text-sm text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{t.admin.vendorApplications.reviewedBy}</label>
+                    <p className="font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300">{application.reviewed_by_name || '-'}</p>
                   </div>
                   <div>
-                    <label className="text-sm text-historical-charcoal/50">{t.admin.vendorApplications.reviewDate}</label>
-                    <p className="font-medium text-historical-charcoal">{formatDate(application.reviewed_at)}</p>
+                    <label className="text-sm text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{t.admin.vendorApplications.reviewDate}</label>
+                    <p className="font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300">{formatDate(application.reviewed_at)}</p>
                   </div>
                 </div>
                 {application.rejection_reason && (
                   <div>
-                    <label className="text-sm text-historical-charcoal/50">{t.admin.vendorApplications.rejectionReason}</label>
-                    <p className="text-red-600">{application.rejection_reason}</p>
+                    <label className="text-sm text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{t.admin.vendorApplications.rejectionReason}</label>
+                    <p className="text-red-600 dark:text-red-400 transition-colors duration-300">{application.rejection_reason}</p>
                   </div>
                 )}
               </div>
@@ -293,17 +293,17 @@ function ApplicationDetailModal({
 
             {/* Rejection Form */}
             {showRejectForm && application.status === 'pending' && (
-              <div className="space-y-4 border-t border-historical-gold/10 pt-4">
-                <h3 className="font-bold text-red-600">{t.admin.vendorApplications.rejectApplication}</h3>
+              <div className="space-y-4 border-t border-historical-gold/10 dark:border-gray-700 pt-4 transition-colors duration-300">
+                <h3 className="font-bold text-red-600 dark:text-red-400 transition-colors duration-300">{t.admin.vendorApplications.rejectApplication}</h3>
                 <div>
-                  <label className="block text-sm font-medium text-historical-charcoal mb-1">
+                  <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 mb-1 transition-colors duration-300">
                     {t.admin.vendorApplications.rejectionReason} *
                   </label>
                   <textarea
                     value={rejectionReason}
                     onChange={(e) => setRejectionReason(e.target.value)}
                     rows={3}
-                    className="w-full px-4 py-2.5 rounded-xl border border-red-200 focus:outline-none focus:ring-2 focus:ring-red-300 resize-none"
+                    className="w-full px-4 py-2.5 rounded-xl border border-red-200 dark:border-red-800 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-red-300 dark:focus:ring-red-600 resize-none text-historical-charcoal dark:text-gray-200 transition-colors duration-300"
                     placeholder={t.admin.vendorApplications.rejectionReasonPlaceholder}
                   />
                 </div>
@@ -313,12 +313,12 @@ function ApplicationDetailModal({
 
           {/* Actions */}
           {application.status === 'pending' && (
-            <div className="px-6 py-4 border-t border-historical-gold/10 bg-historical-stone/20">
+            <div className="px-6 py-4 border-t border-historical-gold/10 dark:border-gray-700 bg-historical-stone/20 dark:bg-gray-700/20 transition-colors duration-300">
               {!showRejectForm ? (
                 <div className="space-y-4">
                   {/* Commission Rate */}
                   <div className="flex items-center gap-4">
-                    <label className="text-sm text-historical-charcoal/70 whitespace-nowrap">{t.admin.vendorApplications.commissionRate}</label>
+                    <label className="text-sm text-historical-charcoal/70 dark:text-gray-300 whitespace-nowrap transition-colors duration-300">{t.admin.vendorApplications.commissionRate}</label>
                     <input
                       type="number"
                       value={commissionRate}
@@ -326,9 +326,9 @@ function ApplicationDetailModal({
                       min={0}
                       max={100}
                       step={0.5}
-                      className="w-24 px-3 py-2 rounded-lg border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+                      className="w-24 px-3 py-2 rounded-lg border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 text-historical-charcoal dark:text-gray-200 transition-colors duration-300"
                     />
-                    <span className="text-sm text-historical-charcoal/50">%</span>
+                    <span className="text-sm text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">%</span>
                   </div>
                   
                   {/* Buttons */}
@@ -355,7 +355,7 @@ function ApplicationDetailModal({
                 <div className="flex items-center gap-3">
                   <button
                     onClick={() => setShowRejectForm(false)}
-                    className="flex-1 px-4 py-2.5 rounded-xl border border-historical-gold/20 text-historical-charcoal hover:bg-historical-stone/50 transition-colors"
+                    className="flex-1 px-4 py-2.5 rounded-xl border border-historical-gold/20 dark:border-gray-600 text-historical-charcoal dark:text-gray-200 hover:bg-historical-stone/50 dark:hover:bg-gray-700 transition-colors"
                   >
                     {t.admin.users.form.cancel}
                   </button>
@@ -477,13 +477,13 @@ export default function VendorApplicationsPage() {
       {/* Page Header */}
       <motion.div variants={itemVariants} className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-historical-charcoal">{t.admin.vendorApplications.title}</h1>
-          <p className="text-historical-charcoal/50 mt-1">{t.admin.vendorApplications.subtitle}</p>
+          <h1 className="text-2xl font-bold text-historical-charcoal dark:text-gray-100 transition-colors duration-300">{t.admin.vendorApplications.title}</h1>
+          <p className="text-historical-charcoal/50 dark:text-gray-400 mt-1 transition-colors duration-300">{t.admin.vendorApplications.subtitle}</p>
         </div>
         <button
           onClick={refresh}
           disabled={isLoading}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-historical-gold/10 text-historical-gold hover:bg-historical-gold/20 transition-colors disabled:opacity-50"
+          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-historical-gold/10 dark:bg-yellow-900/20 text-historical-gold dark:text-yellow-400 hover:bg-historical-gold/20 dark:hover:bg-yellow-900/30 transition-colors disabled:opacity-50"
         >
           {isLoading ? Icons.loader : Icons.refresh}
         </button>
@@ -493,7 +493,7 @@ export default function VendorApplicationsPage() {
       {error && (
         <motion.div
           variants={itemVariants}
-          className="bg-red-50 border border-red-200 rounded-xl p-4 text-red-700"
+          className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 text-red-700 dark:text-red-400 transition-colors duration-300"
         >
           {error}
         </motion.div>
@@ -501,47 +501,47 @@ export default function VendorApplicationsPage() {
 
       {/* Stats Cards */}
       <motion.div variants={itemVariants} className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-historical-gold/10">
+        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-historical-gold/10 dark:border-gray-700 transition-colors duration-300">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-historical-gold/10 text-historical-gold">
+            <div className="p-2 rounded-lg bg-historical-gold/10 dark:bg-yellow-900/30 text-historical-gold dark:text-yellow-400">
               {Icons.store}
             </div>
             <div>
-              <p className="text-2xl font-bold text-historical-charcoal">{stats?.total || 0}</p>
-              <p className="text-xs text-historical-charcoal/50">{t.admin.vendorApplications.totalApplications}</p>
+              <p className="text-2xl font-bold text-historical-charcoal dark:text-gray-100 transition-colors duration-300">{stats?.total || 0}</p>
+              <p className="text-xs text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{t.admin.vendorApplications.totalApplications}</p>
             </div>
           </div>
         </div>
-        <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-yellow-200">
+        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-yellow-200 dark:border-yellow-800 transition-colors duration-300">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-yellow-100 text-yellow-600">
+            <div className="p-2 rounded-lg bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400">
               {Icons.clock}
             </div>
             <div>
-              <p className="text-2xl font-bold text-yellow-600">{stats?.pending || 0}</p>
-              <p className="text-xs text-historical-charcoal/50">{t.admin.vendorApplications.underReview}</p>
+              <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400 transition-colors duration-300">{stats?.pending || 0}</p>
+              <p className="text-xs text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{t.admin.vendorApplications.underReview}</p>
             </div>
           </div>
         </div>
-        <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-green-200">
+        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-green-200 dark:border-green-800 transition-colors duration-300">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-green-100 text-green-600">
+            <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400">
               {Icons.check}
             </div>
             <div>
-              <p className="text-2xl font-bold text-green-600">{stats?.approved || 0}</p>
-              <p className="text-xs text-historical-charcoal/50">{t.admin.vendorApplications.approved}</p>
+              <p className="text-2xl font-bold text-green-600 dark:text-green-400 transition-colors duration-300">{stats?.approved || 0}</p>
+              <p className="text-xs text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{t.admin.vendorApplications.approved}</p>
             </div>
           </div>
         </div>
-        <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-red-200">
+        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-red-200 dark:border-red-800 transition-colors duration-300">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-red-100 text-red-600">
+            <div className="p-2 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400">
               {Icons.x}
             </div>
             <div>
-              <p className="text-2xl font-bold text-red-600">{stats?.rejected || 0}</p>
-              <p className="text-xs text-historical-charcoal/50">{t.admin.vendorApplications.rejected}</p>
+              <p className="text-2xl font-bold text-red-600 dark:text-red-400 transition-colors duration-300">{stats?.rejected || 0}</p>
+              <p className="text-xs text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{t.admin.vendorApplications.rejected}</p>
             </div>
           </div>
         </div>
@@ -550,7 +550,7 @@ export default function VendorApplicationsPage() {
       {/* Search & Filters */}
       <motion.div variants={itemVariants} className="flex flex-wrap items-center gap-4">
         <div className="flex-1 min-w-[280px] relative">
-          <span className="absolute right-4 top-1/2 -translate-y-1/2 text-historical-charcoal/30">
+          <span className="absolute right-4 top-1/2 -translate-y-1/2 text-historical-charcoal/30 dark:text-gray-500 transition-colors duration-300">
             {Icons.search}
           </span>
           <input
@@ -558,14 +558,14 @@ export default function VendorApplicationsPage() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={t.admin.vendorApplications.searchPlaceholder}
-            className="w-full pr-12 pl-4 py-3 rounded-xl border border-historical-gold/20 bg-white/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+            className="w-full pr-12 pl-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 text-historical-charcoal dark:text-gray-200 transition-colors duration-300"
           />
         </div>
 
         <select
           value={filterStatus}
           onChange={(e) => setFilterStatus(e.target.value as VendorApplicationStatus | '')}
-          className="px-4 py-3 rounded-xl border border-historical-gold/20 bg-white/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-historical-gold/30 min-w-[150px]"
+          className="px-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 min-w-[150px] text-historical-charcoal dark:text-gray-200 transition-colors duration-300"
         >
           <option value="">{t.admin.vendorApplications.allStatuses}</option>
           <option value="pending">{t.admin.vendorApplications.underReview}</option>
@@ -575,60 +575,71 @@ export default function VendorApplicationsPage() {
       </motion.div>
 
       {/* Applications Table */}
-      <motion.div variants={itemVariants} className="bg-white/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 overflow-hidden">
+      <motion.div variants={itemVariants} className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 dark:border-gray-700 overflow-hidden transition-colors duration-300">
         {isLoading && applications.length === 0 ? (
           <div className="flex items-center justify-center py-12">
             {Icons.loader}
-            <span className="mr-2 text-historical-charcoal/50">{t.admin.vendorApplications.loading}</span>
+            <span className="mr-2 text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{t.admin.vendorApplications.loading}</span>
           </div>
         ) : applications.length === 0 ? (
           <div className="text-center py-12">
             <div className="text-4xl mb-4">📋</div>
-            <p className="text-historical-charcoal/50">{t.admin.vendorApplications.noApplications}</p>
+            <p className="text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{t.admin.vendorApplications.noApplications}</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-historical-stone/30 border-b border-historical-gold/10">
+              <thead className="bg-historical-stone/30 dark:bg-gray-700/50 border-b border-historical-gold/10 dark:border-gray-700 transition-colors duration-300">
                 <tr>
-                  <th className="text-right px-6 py-4 text-sm font-medium text-historical-charcoal/70">{t.admin.vendorApplications.store}</th>
-                  <th className="text-right px-6 py-4 text-sm font-medium text-historical-charcoal/70">{t.admin.vendorApplications.applicant}</th>
-                  <th className="text-right px-6 py-4 text-sm font-medium text-historical-charcoal/70">{t.admin.vendorApplications.businessType}</th>
-                  <th className="text-right px-6 py-4 text-sm font-medium text-historical-charcoal/70">{t.admin.vendorApplications.status}</th>
-                  <th className="text-right px-6 py-4 text-sm font-medium text-historical-charcoal/70">{t.admin.vendorApplications.date}</th>
-                  <th className="text-right px-6 py-4 text-sm font-medium text-historical-charcoal/70">{t.admin.vendorApplications.actions}</th>
+                  <th className="text-right px-6 py-4 text-sm font-medium text-historical-charcoal/70 dark:text-gray-400 transition-colors duration-300">{t.admin.vendorApplications.store}</th>
+                  <th className="text-right px-6 py-4 text-sm font-medium text-historical-charcoal/70 dark:text-gray-400 transition-colors duration-300">{t.admin.vendorApplications.applicant}</th>
+                  <th className="text-right px-6 py-4 text-sm font-medium text-historical-charcoal/70 dark:text-gray-400 transition-colors duration-300">{t.admin.vendorApplications.businessType}</th>
+                  <th className="text-right px-6 py-4 text-sm font-medium text-historical-charcoal/70 dark:text-gray-400 transition-colors duration-300">{t.admin.vendorApplications.status}</th>
+                  <th className="text-right px-6 py-4 text-sm font-medium text-historical-charcoal/70 dark:text-gray-400 transition-colors duration-300">{t.admin.vendorApplications.date}</th>
+                  <th className="text-right px-6 py-4 text-sm font-medium text-historical-charcoal/70 dark:text-gray-400 transition-colors duration-300">{t.admin.vendorApplications.actions}</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-historical-gold/10">
+              <tbody className="divide-y divide-historical-gold/10 dark:divide-gray-700/50 transition-colors duration-300">
                 {applications.map((app) => (
-                  <tr key={app.id} className="hover:bg-historical-stone/20 transition-colors">
+                  <tr key={app.id} className="hover:bg-historical-stone/20 dark:hover:bg-gray-700/50 transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <div
-                          className="w-10 h-10 rounded-lg bg-historical-gold/10 flex items-center justify-center text-historical-gold font-bold"
+                          className="w-10 h-10 rounded-lg bg-historical-gold/10 dark:bg-yellow-900/30 flex items-center justify-center text-historical-gold dark:text-yellow-400 font-bold transition-colors duration-300"
                         >
                           {app.store_name.charAt(0)}
                         </div>
-                        <span className="font-medium text-historical-charcoal">{app.store_name}</span>
+                        <span className="font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300">{app.store_name}</span>
                       </div>
                     </td>
                     <td className="px-6 py-4">
                       <div>
-                        <p className="font-medium text-historical-charcoal">{app.applicant_name}</p>
-                        <p className="text-sm text-historical-charcoal/50" dir="ltr">{app.applicant_email}</p>
+                        <p className="font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300">{app.applicant_name}</p>
+                        <p className="text-sm text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300" dir="ltr">{app.applicant_email}</p>
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm text-historical-charcoal">{app.business_type_display}</span>
+                      <span className="text-sm text-historical-charcoal dark:text-gray-200 transition-colors duration-300">{app.business_type_display}</span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`inline-flex px-3 py-1 rounded-full text-xs font-medium ${getStatusStyle(app.status)}`}>
+                      <span className={`inline-flex px-3 py-1 rounded-full text-xs font-medium transition-colors duration-300 ${getStatusStyle(app.status)}`}>
                         {app.status_display}
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm text-historical-charcoal/70">{formatDate(app.created_at)}</span>
+                      <span className="text-sm text-historical-charcoal/70 dark:text-gray-300 transition-colors duration-300">{formatDate(app.created_at)}</span>
                     </td>
+                    <td className="px-6 py-4">
+                      <button
+                        onClick={() => handleViewDetails(app.id)}
+                        disabled={isLoadingDetails}
+                        className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-historical-gold dark:text-yellow-400 bg-historical-gold/10 dark:bg-yellow-900/20 hover:bg-historical-gold/20 dark:hover:bg-yellow-900/30 transition-colors"
+                      >
+                        {Icons.eye}
+                        <span className="text-sm">{t.admin.vendorApplications.view}</span>
+                      </button>
+                    </td>
+                  </tr>
                     <td className="px-6 py-4">
                       <button
                         onClick={() => handleViewDetails(app.id)}
@@ -648,19 +659,19 @@ export default function VendorApplicationsPage() {
 
         {/* Pagination */}
         {(hasNextPage || hasPreviousPage) && (
-          <div className="flex items-center justify-center gap-4 p-4 border-t border-historical-gold/10">
+          <div className="flex items-center justify-center gap-4 p-4 border-t border-historical-gold/10 dark:border-gray-700 transition-colors duration-300">
             <button
               onClick={() => handlePageChange('prev')}
               disabled={!hasPreviousPage || isLoading}
-              className="px-4 py-2 rounded-xl border border-historical-gold/20 text-historical-charcoal/70 hover:bg-historical-gold/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="px-4 py-2 rounded-xl border border-historical-gold/20 dark:border-gray-600 text-historical-charcoal/70 dark:text-gray-400 hover:bg-historical-gold/10 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {t.admin.vendorApplications.previousPage}
             </button>
-            <span className="text-historical-charcoal/50">{t.admin.vendorApplications.page} {currentPage}</span>
+            <span className="text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{t.admin.vendorApplications.page} {currentPage}</span>
             <button
               onClick={() => handlePageChange('next')}
               disabled={!hasNextPage || isLoading}
-              className="px-4 py-2 rounded-xl border border-historical-gold/20 text-historical-charcoal/70 hover:bg-historical-gold/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="px-4 py-2 rounded-xl border border-historical-gold/20 dark:border-gray-600 text-historical-charcoal/70 dark:text-gray-400 hover:bg-historical-gold/10 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {t.admin.vendorApplications.nextPage}
             </button>

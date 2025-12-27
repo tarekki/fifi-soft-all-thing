@@ -94,18 +94,38 @@ export const useUIStore = create<UIStore>((set) => ({
     set({ theme })
     // Apply theme to document
     // تطبيق المظهر على المستند
-    if (theme === 'dark') {
-      document.documentElement.classList.add('dark')
-    } else if (theme === 'light') {
-      document.documentElement.classList.remove('dark')
-    } else {
-      // System theme
-      // مظهر النظام
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-      if (prefersDark) {
+    if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+      if (theme === 'dark') {
         document.documentElement.classList.add('dark')
-      } else {
+        // Save to localStorage
+        try {
+          localStorage.setItem('ui-store-theme', 'dark')
+        } catch (e) {
+          console.warn('Failed to save theme to localStorage:', e)
+        }
+      } else if (theme === 'light') {
         document.documentElement.classList.remove('dark')
+        // Save to localStorage
+        try {
+          localStorage.setItem('ui-store-theme', 'light')
+        } catch (e) {
+          console.warn('Failed to save theme to localStorage:', e)
+        }
+      } else {
+        // System theme
+        // مظهر النظام
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (prefersDark) {
+          document.documentElement.classList.add('dark')
+        } else {
+          document.documentElement.classList.remove('dark')
+        }
+        // Save to localStorage
+        try {
+          localStorage.setItem('ui-store-theme', 'system')
+        } catch (e) {
+          console.warn('Failed to save theme to localStorage:', e)
+        }
       }
     }
   },

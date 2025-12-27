@@ -15,7 +15,7 @@
 
 import { useState, useCallback, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useProducts, useCategories } from '@/lib/admin'
+import { useProducts, useCategories, useVendors } from '@/lib/admin'
 import type { Product, ProductStatus, ProductFilters, ProductCreatePayload } from '@/lib/admin'
 import { useLanguage } from '@/lib/i18n/context'
 
@@ -137,9 +137,9 @@ const itemVariants = {
 
 const getStatusStyle = (status: ProductStatus) => {
   const styles = {
-    active: 'bg-green-100 text-green-700',
-    draft: 'bg-gray-100 text-gray-700',
-    out_of_stock: 'bg-red-100 text-red-700',
+    active: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400',
+    draft: 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300',
+    out_of_stock: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400',
   }
   return styles[status]
 }
@@ -175,6 +175,7 @@ interface ProductModalProps {
 }
 
 function ProductModal({ isOpen, onClose, onSave, product, categories, isSubmitting }: ProductModalProps) {
+  const { t } = useLanguage()
   const [formData, setFormData] = useState<ProductFormData>({
     name: '',
     description: '',
@@ -223,13 +224,13 @@ function ProductModal({ isOpen, onClose, onSave, product, categories, isSubmitti
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
-        className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl p-6 mx-4"
+        className="relative w-full max-w-lg bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-6 mx-4 transition-colors duration-300"
       >
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-historical-charcoal">
+          <h2 className="text-xl font-bold text-historical-charcoal dark:text-gray-100 transition-colors duration-300">
             {product ? t.admin.products.edit : t.admin.products.addProduct}
           </h2>
-          <button onClick={onClose} className="p-2 rounded-lg hover:bg-gray-100 transition-colors">
+          <button onClick={onClose} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-historical-charcoal dark:text-gray-200">
             {Icons.close}
           </button>
         </div>
@@ -243,7 +244,7 @@ function ProductModal({ isOpen, onClose, onSave, product, categories, isSubmitti
               type="text"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+              className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 text-historical-charcoal dark:text-gray-200 transition-colors duration-300"
               required
             />
           </div>
@@ -269,7 +270,7 @@ function ProductModal({ isOpen, onClose, onSave, product, categories, isSubmitti
                 type="number"
                 value={formData.base_price}
                 onChange={(e) => setFormData({ ...formData, base_price: Number(e.target.value) })}
-                className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+                className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 text-historical-charcoal dark:text-gray-200 transition-colors duration-300"
                 min={0}
                 required
               />
@@ -282,7 +283,7 @@ function ProductModal({ isOpen, onClose, onSave, product, categories, isSubmitti
               <select
                 value={formData.category_id || ''}
                 onChange={(e) => setFormData({ ...formData, category_id: e.target.value ? Number(e.target.value) : null })}
-                className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+                className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 text-historical-charcoal dark:text-gray-200 transition-colors duration-300"
               >
                 <option value="">{t.admin.products.noCategory}</option>
                 {categories.map((cat) => (
@@ -319,7 +320,7 @@ function ProductModal({ isOpen, onClose, onSave, product, categories, isSubmitti
             <button
               type="button"
               onClick={onClose}
-              className="px-5 py-3 rounded-xl border border-historical-gold/20 text-historical-charcoal font-medium hover:bg-historical-gold/5 transition-colors"
+              className="px-5 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 text-historical-charcoal dark:text-gray-200 font-medium hover:bg-historical-gold/5 dark:hover:bg-gray-700 transition-colors"
             >
               {t.admin.users.form.cancel}
             </button>
@@ -353,10 +354,10 @@ function DeleteModal({ isOpen, onClose, onConfirm, productName, isSubmitting }: 
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
-        className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl p-6 mx-4"
+        className="relative w-full max-w-md bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-6 mx-4 transition-colors duration-300"
       >
-        <h2 className="text-xl font-bold text-historical-charcoal mb-4">{t.admin.products.confirmDelete}</h2>
-        <p className="text-historical-charcoal/70 mb-6">
+        <h2 className="text-xl font-bold text-historical-charcoal dark:text-gray-100 mb-4 transition-colors duration-300">{t.admin.products.confirmDelete}</h2>
+        <p className="text-historical-charcoal/70 dark:text-gray-300 mb-6 transition-colors duration-300">
           {t.admin.products.confirmDeleteMessage.replace('{name}', productName)}
         </p>
         <div className="flex gap-3">
@@ -370,13 +371,138 @@ function DeleteModal({ isOpen, onClose, onConfirm, productName, isSubmitting }: 
           </button>
           <button
             onClick={onClose}
-            className="px-5 py-3 rounded-xl border border-historical-gold/20 text-historical-charcoal font-medium hover:bg-historical-gold/5 transition-colors"
+            className="px-5 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 text-historical-charcoal dark:text-gray-200 font-medium hover:bg-historical-gold/5 dark:hover:bg-gray-700 transition-colors"
           >
             {t.admin.users.form.cancel}
           </button>
         </div>
       </motion.div>
     </div>
+  )
+}
+
+// =============================================================================
+// View Product Modal Component
+// =============================================================================
+
+interface ViewProductModalProps {
+  isOpen: boolean
+  onClose: () => void
+  product: Product | null
+}
+
+function ViewProductModal({ isOpen, onClose, product }: ViewProductModalProps) {
+  const { t } = useLanguage()
+  if (!isOpen || !product) return null
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+        onClick={onClose}
+      >
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.95, y: 20 }}
+          className="w-full max-w-2xl bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col transition-colors duration-300"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between px-6 py-4 border-b border-historical-gold/10 dark:border-gray-700 bg-historical-stone/30 dark:bg-gray-700/30 transition-colors duration-300">
+            <h2 className="text-lg font-bold text-historical-charcoal dark:text-gray-100 transition-colors duration-300">
+              {t.admin.products.viewProduct || 'عرض المنتج'}
+            </h2>
+            <button
+              onClick={onClose}
+              className="p-2 rounded-lg text-historical-charcoal/50 dark:text-gray-400 hover:text-historical-charcoal dark:hover:text-gray-200 hover:bg-historical-gold/10 dark:hover:bg-gray-700 transition-colors"
+            >
+              {Icons.close}
+            </button>
+          </div>
+
+          {/* Content */}
+          <div className="p-6 space-y-6 overflow-y-auto">
+            {/* Product Image */}
+            {product.main_image && (
+              <div className="w-full h-64 rounded-xl overflow-hidden bg-historical-stone dark:bg-gray-700">
+                <img src={product.main_image} alt={product.name} className="w-full h-full object-cover" />
+              </div>
+            )}
+
+            {/* Product Info */}
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-xl font-bold text-historical-charcoal dark:text-gray-100 mb-2 transition-colors duration-300">
+                  {product.name}
+                </h3>
+                <p className="text-sm text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">
+                  {product.category_name_ar || product.category_name || '-'}
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="p-4 rounded-xl bg-historical-stone/30 dark:bg-gray-700/30 border border-historical-gold/10 dark:border-gray-700 transition-colors duration-300">
+                  <p className="text-xs text-historical-charcoal/50 dark:text-gray-400 mb-1 transition-colors duration-300">
+                    {t.admin.products.price}
+                  </p>
+                  <p className="text-lg font-bold text-historical-charcoal dark:text-gray-100 transition-colors duration-300">
+                    {formatPrice(product.base_price)}
+                  </p>
+                </div>
+                <div className="p-4 rounded-xl bg-historical-stone/30 dark:bg-gray-700/30 border border-historical-gold/10 dark:border-gray-700 transition-colors duration-300">
+                  <p className="text-xs text-historical-charcoal/50 dark:text-gray-400 mb-1 transition-colors duration-300">
+                    {t.admin.products.stock}
+                  </p>
+                  <p className={`text-lg font-bold transition-colors duration-300 ${
+                    product.total_stock === 0 
+                      ? 'text-red-500 dark:text-red-400' 
+                      : product.total_stock < 10 
+                        ? 'text-yellow-600 dark:text-yellow-400' 
+                        : 'text-historical-charcoal dark:text-gray-100'
+                  }`}>
+                    {product.total_stock}
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-4 rounded-xl bg-historical-stone/30 dark:bg-gray-700/30 border border-historical-gold/10 dark:border-gray-700 transition-colors duration-300">
+                <p className="text-xs text-historical-charcoal/50 dark:text-gray-400 mb-2 transition-colors duration-300">
+                  {t.admin.products.status}
+                </p>
+                <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${getStatusStyle(product.status)}`}>
+                  {getStatusLabel(product.status, t)}
+                </span>
+              </div>
+
+              {product.vendor_name && (
+                <div className="p-4 rounded-xl bg-historical-stone/30 dark:bg-gray-700/30 border border-historical-gold/10 dark:border-gray-700 transition-colors duration-300">
+                  <p className="text-xs text-historical-charcoal/50 dark:text-gray-400 mb-1 transition-colors duration-300">
+                    {t.admin.products.vendor}
+                  </p>
+                  <p className="text-sm font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300">
+                    {product.vendor_name}
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-historical-gold/10 dark:border-gray-700 bg-historical-stone/30 dark:bg-gray-700/30 transition-colors duration-300">
+            <button
+              onClick={onClose}
+              className="px-6 py-2.5 rounded-xl text-historical-charcoal/70 dark:text-gray-300 hover:bg-historical-gold/10 dark:hover:bg-gray-700 transition-colors"
+            >
+              {t.admin.users.form.cancel || 'إغلاق'}
+            </button>
+          </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
   )
 }
 
@@ -404,6 +530,14 @@ export default function ProductsPage() {
   } = useProducts({ page_size: 10 })
 
   const { categories } = useCategories()
+  const { vendors, fetchVendors } = useVendors()
+  
+  // Fetch vendors on mount
+  useEffect(() => {
+    fetchVendors().catch(err => {
+      console.error('Error fetching vendors:', err)
+    })
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Local State
   const [searchQuery, setSearchQuery] = useState('')
@@ -419,6 +553,8 @@ export default function ProductsPage() {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [deletingProduct, setDeletingProduct] = useState<Product | null>(null)
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false)
+  const [viewingProduct, setViewingProduct] = useState<Product | null>(null)
 
   // Debounced search
   useEffect(() => {
@@ -474,16 +610,32 @@ export default function ProductsPage() {
     setIsDeleteModalOpen(true)
   }
 
+  const handleViewClick = (product: Product) => {
+    setViewingProduct(product)
+    setIsViewModalOpen(true)
+  }
+
   const handleSaveProduct = async (formData: ProductFormData) => {
+    // Validate required fields
+    if (!formData.name || !formData.name.trim()) {
+      alert(t.admin.products.nameRequired || 'اسم المنتج مطلوب')
+      return
+    }
+    
+    if (!formData.base_price || formData.base_price <= 0) {
+      alert(t.admin.products.priceRequired || 'السعر مطلوب ويجب أن يكون أكبر من صفر')
+      return
+    }
+
     // For creating new products, we need vendor_id
     // For now, we'll just use a dummy vendor_id of 1 if not editing
     // In a real app, you'd have a vendor selector
     if (editingProduct) {
       const result = await editProduct(editingProduct.id, {
-        name: formData.name,
-        description: formData.description,
+        name: formData.name.trim(),
+        description: formData.description?.trim() || '',
         base_price: formData.base_price,
-        category_id: formData.category_id,
+        category_id: formData.category_id || null,
         is_active: formData.is_active,
       })
       if (result) {
@@ -491,17 +643,48 @@ export default function ProductsPage() {
         setEditingProduct(null)
       }
     } else {
-      const payload: ProductCreatePayload = {
-        name: formData.name,
-        description: formData.description,
-        base_price: formData.base_price,
-        vendor_id: formData.vendor_id || 1, // Default to vendor 1
-        category_id: formData.category_id,
-        is_active: formData.is_active,
+      // For new products, vendor_id is required
+      // Use first available vendor if not provided, otherwise use default vendor_id = 1
+      // TODO: Add vendor selector to the form
+      let vendorId = formData.vendor_id
+      if (!vendorId) {
+        if (vendors && vendors.length > 0) {
+          vendorId = vendors[0].id
+        } else {
+          // Fallback to vendor_id = 1 if no vendors are loaded
+          // This is a temporary solution until vendor selector is added
+          vendorId = 1
+          console.warn('No vendors loaded, using default vendor_id = 1')
+        }
       }
-      const result = await addProduct(payload)
-      if (result) {
-        setIsModalOpen(false)
+
+      const payload: ProductCreatePayload = {
+        name: formData.name.trim(),
+        base_price: formData.base_price,
+        vendor_id: vendorId,
+        is_active: formData.is_active ?? true,
+      }
+      
+      // Add optional fields only if they have values
+      if (formData.description?.trim()) {
+        payload.description = formData.description.trim()
+      }
+      if (formData.category_id) {
+        payload.category_id = formData.category_id
+      }
+      
+      console.log('Creating product with payload:', payload)
+      try {
+        const result = await addProduct(payload)
+        if (result) {
+          setIsModalOpen(false)
+        } else {
+          // Error is already set by addProduct hook
+          console.error('Failed to create product')
+        }
+      } catch (err) {
+        console.error('Error in handleSaveProduct:', err)
+        alert(err instanceof Error ? err.message : 'حدث خطأ غير متوقع')
       }
     }
   }
@@ -567,7 +750,7 @@ export default function ProductsPage() {
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="p-4 rounded-xl bg-red-50 border border-red-200 text-red-600"
+          className="p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 transition-colors duration-300"
         >
           {error}
         </motion.div>
@@ -602,7 +785,7 @@ export default function ProductsPage() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={t.admin.products.searchPlaceholder}
-            className="w-full pr-12 pl-4 py-3 rounded-xl border border-historical-gold/20 bg-white/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+            className="w-full pr-12 pl-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 text-historical-charcoal dark:text-gray-200 transition-colors duration-300"
           />
         </div>
 
@@ -610,7 +793,7 @@ export default function ProductsPage() {
         <select
           value={filterCategory}
           onChange={(e) => setFilterCategory(e.target.value ? Number(e.target.value) : '')}
-          className="px-4 py-3 rounded-xl border border-historical-gold/20 bg-white/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-historical-gold/30 min-w-[150px]"
+          className="px-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-800 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 min-w-[150px] text-historical-charcoal dark:text-gray-100 transition-colors duration-300"
         >
           <option value="">{t.admin.products.allCategories}</option>
           {categories.map((cat) => (
@@ -624,7 +807,7 @@ export default function ProductsPage() {
         <select
           value={filterStatus}
           onChange={(e) => setFilterStatus(e.target.value as ProductStatus | '')}
-          className="px-4 py-3 rounded-xl border border-historical-gold/20 bg-white/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-historical-gold/30 min-w-[150px]"
+          className="px-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-800 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 min-w-[150px] text-historical-charcoal dark:text-gray-100 transition-colors duration-300"
         >
           <option value="">{t.admin.products.allStatuses}</option>
           <option value="active">{t.admin.products.status.active}</option>
@@ -633,7 +816,7 @@ export default function ProductsPage() {
         </select>
 
         {/* View Mode Toggle */}
-        <div className="flex items-center bg-white/80 backdrop-blur-sm rounded-xl border border-historical-gold/20 p-1">
+        <div className="flex items-center bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl border border-historical-gold/20 dark:border-gray-700 p-1 transition-colors duration-300">
           <button
             onClick={() => setViewMode('table')}
             className={`p-2 rounded-lg transition-colors ${viewMode === 'table' ? 'bg-historical-gold/20 text-historical-gold' : 'text-historical-charcoal/50'}`}
@@ -656,7 +839,7 @@ export default function ProductsPage() {
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="flex items-center gap-4 p-4 rounded-xl bg-historical-gold/10 border border-historical-gold/20"
+            className="flex items-center gap-4 p-4 rounded-xl bg-historical-gold/10 dark:bg-yellow-900/20 border border-historical-gold/20 dark:border-yellow-800 transition-colors duration-300"
           >
             <span className="text-sm font-medium text-historical-charcoal">
               {t.admin.products.selectedCount.replace('{count}', selectedProducts.length.toString())}
@@ -691,7 +874,7 @@ export default function ProductsPage() {
       {/* Products Table */}
       <motion.div
         variants={itemVariants}
-        className="bg-white/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 shadow-soft overflow-hidden"
+        className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 dark:border-gray-700 shadow-soft overflow-hidden transition-colors duration-300"
       >
         {products.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16">
@@ -708,7 +891,7 @@ export default function ProductsPage() {
           <>
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-historical-stone/50">
+                <thead className="bg-historical-stone/50 dark:bg-gray-700/50 transition-colors duration-300">
                   <tr>
                     <th className="w-12 px-4 py-4">
                       <input
@@ -718,32 +901,32 @@ export default function ProductsPage() {
                         className="w-4 h-4 rounded border-historical-gold/30 text-historical-gold focus:ring-historical-gold"
                       />
                     </th>
-                    <th className="text-right text-xs font-medium text-historical-charcoal/50 px-4 py-4">{t.admin.products.name}</th>
-                    <th className="text-right text-xs font-medium text-historical-charcoal/50 px-4 py-4">{t.admin.products.category}</th>
-                    <th className="text-right text-xs font-medium text-historical-charcoal/50 px-4 py-4">{t.admin.products.vendor}</th>
-                    <th className="text-right text-xs font-medium text-historical-charcoal/50 px-4 py-4">
+                    <th className="text-right text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-4 py-4 transition-colors duration-300">{t.admin.products.name}</th>
+                    <th className="text-right text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-4 py-4 transition-colors duration-300">{t.admin.products.category}</th>
+                    <th className="text-right text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-4 py-4 transition-colors duration-300">{t.admin.products.vendor}</th>
+                    <th className="text-right text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-4 py-4 transition-colors duration-300">
                       <button onClick={() => handleSort('price')} className="flex items-center group">
                         {t.admin.products.price}
                         <SortIcon field="price" />
                       </button>
                     </th>
-                    <th className="text-right text-xs font-medium text-historical-charcoal/50 px-4 py-4">
+                    <th className="text-right text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-4 py-4 transition-colors duration-300">
                       <button onClick={() => handleSort('stock')} className="flex items-center group">
                         {t.admin.products.stock}
                         <SortIcon field="stock" />
                       </button>
                     </th>
-                    <th className="text-right text-xs font-medium text-historical-charcoal/50 px-4 py-4">{t.admin.products.status}</th>
+                    <th className="text-right text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-4 py-4 transition-colors duration-300">{t.admin.products.status}</th>
                     <th className="text-right text-xs font-medium text-historical-charcoal/50 px-4 py-4 w-20"></th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-historical-gold/5">
+                <tbody className="divide-y divide-historical-gold/5 dark:divide-gray-700/50 transition-colors duration-300">
                   {products.map((product) => (
                     <motion.tr
                       key={product.id}
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      className="hover:bg-historical-gold/5 transition-colors group"
+                      className="hover:bg-historical-gold/5 dark:hover:bg-gray-700/50 transition-colors group"
                     >
                       <td className="px-4 py-3">
                         <input
@@ -759,36 +942,36 @@ export default function ProductsPage() {
                             {product.main_image ? (
                               <img src={product.main_image} alt="" className="w-full h-full object-cover" />
                             ) : (
-                              <div className="w-full h-full flex items-center justify-center text-historical-charcoal/30">
+                              <div className="w-full h-full flex items-center justify-center text-historical-charcoal/30 dark:text-gray-600">
                                 📦
                               </div>
                             )}
                           </div>
                           <div className="min-w-0">
-                            <p className="font-medium text-historical-charcoal truncate">{product.name}</p>
-                            <p className="text-xs text-historical-charcoal/50 truncate">
+                            <p className="font-medium text-historical-charcoal dark:text-gray-200 truncate transition-colors duration-300">{product.name}</p>
+                            <p className="text-xs text-historical-charcoal/50 dark:text-gray-400 truncate transition-colors duration-300">
                               {product.variants_count} {t.admin.products.variant}
                             </p>
                           </div>
                         </div>
                       </td>
                       <td className="px-4 py-3">
-                        <span className="text-sm text-historical-charcoal/70">
+                        <span className="text-sm text-historical-charcoal/70 dark:text-gray-300 transition-colors duration-300">
                           {product.category_name_ar || product.category_name || '-'}
                         </span>
                       </td>
                       <td className="px-4 py-3">
-                        <span className="text-sm text-historical-charcoal/70">
+                        <span className="text-sm text-historical-charcoal/70 dark:text-gray-300 transition-colors duration-300">
                           {product.vendor_name || '-'}
                         </span>
                       </td>
                       <td className="px-4 py-3">
-                        <span className="font-medium text-historical-charcoal">
+                        <span className="font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300">
                           {formatPrice(product.base_price)}
                         </span>
                       </td>
                       <td className="px-4 py-3">
-                        <span className={`text-sm font-medium ${product.total_stock === 0 ? 'text-red-500' : product.total_stock < 10 ? 'text-yellow-600' : 'text-historical-charcoal'}`}>
+                        <span className={`text-sm font-medium transition-colors duration-300 ${product.total_stock === 0 ? 'text-red-500 dark:text-red-400' : product.total_stock < 10 ? 'text-yellow-600 dark:text-yellow-400' : 'text-historical-charcoal dark:text-gray-200'}`}>
                           {product.total_stock}
                         </span>
                       </td>
@@ -800,21 +983,22 @@ export default function ProductsPage() {
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                           <button
-                            className="p-2 rounded-lg text-historical-charcoal/50 hover:text-historical-charcoal hover:bg-historical-gold/10 transition-colors"
+                            onClick={() => handleViewClick(product)}
+                            className="p-2 rounded-lg text-historical-charcoal/50 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
                             title={t.admin.products.view}
                           >
                             {Icons.eye}
                           </button>
                           <button
                             onClick={() => handleEditClick(product)}
-                            className="p-2 rounded-lg text-historical-charcoal/50 hover:text-historical-charcoal hover:bg-historical-gold/10 transition-colors"
+                            className="p-2 rounded-lg text-historical-charcoal/50 dark:text-gray-500 hover:text-historical-charcoal dark:hover:text-gray-200 hover:bg-historical-gold/10 dark:hover:bg-gray-700 transition-colors"
                             title={t.admin.products.edit}
                           >
                             {Icons.edit}
                           </button>
                           <button
                             onClick={() => handleDeleteClick(product)}
-                            className="p-2 rounded-lg text-historical-charcoal/50 hover:text-red-500 hover:bg-red-50 transition-colors"
+                            className="p-2 rounded-lg text-historical-charcoal/50 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                             title={t.admin.products.delete}
                           >
                             {Icons.delete}
@@ -828,8 +1012,8 @@ export default function ProductsPage() {
             </div>
 
             {/* Pagination */}
-            <div className="flex items-center justify-between px-6 py-4 border-t border-historical-gold/10 bg-historical-stone/30">
-              <p className="text-sm text-historical-charcoal/50">
+            <div className="flex items-center justify-between px-6 py-4 border-t border-historical-gold/10 dark:border-gray-700 bg-historical-stone/30 dark:bg-gray-700/30 transition-colors duration-300">
+              <p className="text-sm text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">
                 {t.admin.products.showingProducts.replace('{start}', (((currentPage - 1) * 10) + 1).toString()).replace('{end}', Math.min(currentPage * 10, totalCount).toString()).replace('{total}', totalCount.toString())}
               </p>
               <div className="flex items-center gap-2">
@@ -902,6 +1086,16 @@ export default function ProductsPage() {
           />
         )}
       </AnimatePresence>
+
+      {/* View Product Modal */}
+      <ViewProductModal
+        isOpen={isViewModalOpen}
+        onClose={() => {
+          setIsViewModalOpen(false)
+          setViewingProduct(null)
+        }}
+        product={viewingProduct}
+      />
     </motion.div>
   )
 }

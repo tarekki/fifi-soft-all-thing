@@ -50,7 +50,20 @@
   .dark {
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
-    /* Dark mode adjustments would go here */
+    --card: 222.2 84% 8%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 8%;
+    --popover-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+  }
+  
+  .dark body {
+    @apply bg-gray-900 text-gray-100;
+    background-image: radial-gradient(rgba(197, 160, 101, 0.1) 1px, transparent 1px);
   }
 }
 
@@ -65,6 +78,12 @@
     background-image: radial-gradient(var(--bg-texture-color) 1px, transparent 1px);
     background-size: 24px 24px;
     font-family: 'Tajawal', sans-serif;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+  
+  .dark body {
+    @apply bg-gray-900 text-gray-100;
+    background-image: radial-gradient(rgba(197, 160, 101, 0.1) 1px, transparent 1px);
   }
 }
 

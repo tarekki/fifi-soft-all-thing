@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useAdminAuth } from '@/lib/admin'
 import { useLanguage } from '@/lib/i18n/context'
 import { useNotifications } from '@/lib/admin/hooks/useNotifications'
+import { useUIStore } from '@/store/uiStore'
 import type { Notification as NotificationType } from '@/lib/admin/types/notifications'
 
 // =============================================================================
@@ -36,12 +37,12 @@ const Icons = {
     </svg>
   ),
   sun: (
-    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+    <svg className="w-5 h-5 dark:text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
     </svg>
   ),
   moon: (
-    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+    <svg className="w-5 h-5 dark:text-blue-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" />
     </svg>
   ),
@@ -131,11 +132,11 @@ function SearchBar() {
         initial={false}
         animate={{ width: isExpanded ? 320 : 44 }}
         transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
-        className="flex items-center bg-historical-stone/50 rounded-xl border border-historical-gold/10 overflow-hidden"
+        className="flex items-center bg-historical-stone/50 dark:bg-gray-800/50 rounded-xl border border-historical-gold/10 dark:border-gray-700 overflow-hidden transition-colors duration-300"
       >
         <button
           onClick={() => setIsExpanded(!isExpanded)}
-          className="p-2.5 text-historical-charcoal/50 hover:text-historical-charcoal transition-colors"
+          className="p-2.5 text-historical-charcoal/50 dark:text-gray-400 hover:text-historical-charcoal dark:hover:text-gray-200 transition-colors"
         >
           {Icons.search}
         </button>
@@ -149,7 +150,7 @@ function SearchBar() {
               placeholder={t.admin.header.search}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              className="flex-1 bg-transparent py-2.5 pl-4 text-sm text-historical-charcoal placeholder:text-historical-charcoal/40 outline-none"
+              className="flex-1 bg-transparent py-2.5 pl-4 text-sm text-historical-charcoal dark:text-gray-200 placeholder:text-historical-charcoal/40 dark:placeholder:text-gray-500 outline-none transition-colors duration-300"
               autoFocus
             />
           )}
@@ -225,7 +226,7 @@ function NotificationDropdown() {
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2.5 rounded-xl text-historical-charcoal/60 hover:text-historical-charcoal hover:bg-historical-gold/10 transition-all duration-200"
+        className="relative p-2.5 rounded-xl text-historical-charcoal/60 dark:text-yellow-400 hover:text-historical-charcoal dark:hover:text-yellow-300 hover:bg-historical-gold/10 dark:hover:bg-gray-700 transition-all duration-200"
       >
         {Icons.notification}
         {unreadCount > 0 && (
@@ -257,11 +258,11 @@ function NotificationDropdown() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 10, scale: 0.95 }}
               transition={{ duration: 0.2 }}
-              className="absolute left-0 mt-2 w-80 bg-white rounded-2xl shadow-soft-xl border border-historical-gold/10 overflow-hidden z-50"
+              className="absolute left-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-2xl shadow-soft-xl border border-historical-gold/10 dark:border-gray-700 overflow-hidden z-50 transition-colors duration-300"
             >
               {/* Header */}
-              <div className="flex items-center justify-between px-4 py-3 border-b border-historical-gold/10 bg-historical-stone/30">
-                <h3 className="font-semibold text-historical-charcoal">{t.admin.header.notifications}</h3>
+              <div className="flex items-center justify-between px-4 py-3 border-b border-historical-gold/10 dark:border-gray-700 bg-historical-stone/30 dark:bg-gray-700/30 transition-colors duration-300">
+                <h3 className="font-semibold text-historical-charcoal dark:text-gray-200 transition-colors duration-300">{t.admin.header.notifications}</h3>
                 {unreadCount > 0 && (
                   <button
                     onClick={markAllAsRead}
@@ -275,12 +276,12 @@ function NotificationDropdown() {
               {/* Notifications List */}
               <div className="max-h-80 overflow-y-auto custom-scrollbar">
                 {isLoading && notifications.length === 0 ? (
-                  <div className="p-8 text-center text-historical-charcoal/50">
-                    <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-historical-gold mb-2"></div>
+                  <div className="p-8 text-center text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">
+                    <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-historical-gold dark:border-gray-500 mb-2"></div>
                     <p>{language === 'ar' ? 'جاري التحميل...' : 'Loading...'}</p>
                   </div>
                 ) : notifications.length === 0 ? (
-                  <div className="p-8 text-center text-historical-charcoal/50">
+                  <div className="p-8 text-center text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">
                     <p>{t.admin.header.noNotifications}</p>
                   </div>
                 ) : (
@@ -295,9 +296,9 @@ function NotificationDropdown() {
                         key={notification.id}
                         layout
                         className={`
-                          flex items-start gap-3 px-4 py-3 border-b border-historical-gold/5
-                          hover:bg-historical-gold/5 transition-colors cursor-pointer
-                          ${!notification.is_read ? 'bg-historical-gold/5' : ''}
+                          flex items-start gap-3 px-4 py-3 border-b border-historical-gold/5 dark:border-gray-700/50
+                          hover:bg-historical-gold/5 dark:hover:bg-gray-700/50 transition-colors cursor-pointer
+                          ${!notification.is_read ? 'bg-historical-gold/5 dark:bg-gray-700/30' : ''}
                         `}
                         onClick={() => markAsRead(notification.id)}
                       >
@@ -305,10 +306,10 @@ function NotificationDropdown() {
                           {getNotificationIcon(notification.type)}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className={`text-sm ${!notification.is_read ? 'font-medium' : ''} text-historical-charcoal`}>
+                          <p className={`text-sm ${!notification.is_read ? 'font-medium' : ''} text-historical-charcoal dark:text-gray-200 transition-colors duration-300`}>
                             {message}
                           </p>
-                          <p className="text-xs text-historical-charcoal/50 mt-0.5">
+                          <p className="text-xs text-historical-charcoal/50 dark:text-gray-400 mt-0.5 transition-colors duration-300">
                             {formatRelativeTime(notification.timestamp, language)}
                           </p>
                         </div>
@@ -322,7 +323,7 @@ function NotificationDropdown() {
               </div>
 
               {/* Footer */}
-              <div className="px-4 py-3 border-t border-historical-gold/10 bg-historical-stone/30">
+              <div className="px-4 py-3 border-t border-historical-gold/10 dark:border-gray-700 bg-historical-stone/30 dark:bg-gray-700/30 transition-colors duration-300">
                 <button className="w-full text-center text-sm text-historical-gold hover:text-historical-red transition-colors">
                   {t.admin.header.viewAll}
                 </button>
@@ -336,23 +337,75 @@ function NotificationDropdown() {
 }
 
 function ThemeToggle() {
-  const [isDark, setIsDark] = useState(false)
+  const { theme, setTheme } = useUIStore()
+  const { language } = useLanguage()
+  
+  // Determine if dark mode is active
+  // تحديد ما إذا كان الوضع الداكن نشطاً
+  const isDark = theme === 'dark' || (
+    theme === 'system' && 
+    typeof window !== 'undefined' && 
+    window.matchMedia('(prefers-color-scheme: dark)').matches
+  )
+  
+  const toggleTheme = useCallback(() => {
+    // Toggle between light and dark (skip system for simplicity)
+    // التبديل بين الفاتح والداكن (تخطي النظام للبساطة)
+    const newTheme = (theme === 'light' || theme === 'system') ? 'dark' : 'light'
+    setTheme(newTheme)
+    
+    // Apply theme immediately to document
+    // تطبيق المظهر فوراً على المستند
+    if (typeof window !== 'undefined') {
+      if (newTheme === 'dark') {
+        document.documentElement.classList.add('dark')
+      } else {
+        document.documentElement.classList.remove('dark')
+      }
+    }
+  }, [theme, setTheme])
+  
+  // Apply theme when it changes
+  // تطبيق المظهر عند تغييره
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      if (theme === 'dark') {
+        document.documentElement.classList.add('dark')
+      } else if (theme === 'light') {
+        document.documentElement.classList.remove('dark')
+      } else if (theme === 'system') {
+        // System theme
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (prefersDark) {
+          document.documentElement.classList.add('dark')
+        } else {
+          document.documentElement.classList.remove('dark')
+        }
+      }
+    }
+  }, [theme])
 
   return (
     <button
-      onClick={() => setIsDark(!isDark)}
-      className="p-2.5 rounded-xl text-historical-charcoal/60 hover:text-historical-charcoal hover:bg-historical-gold/10 transition-all duration-200"
-      title={isDark ? 'الوضع الفاتح' : 'الوضع الداكن'}
+      onClick={toggleTheme}
+      className="relative p-2.5 rounded-xl text-historical-charcoal/60 hover:text-historical-charcoal hover:bg-historical-gold/10 transition-all duration-200"
+      title={
+        language === 'ar' 
+          ? (isDark ? 'الوضع الفاتح' : 'الوضع الداكن')
+          : (isDark ? 'Light Mode' : 'Dark Mode')
+      }
     >
-      <motion.div
-        key={isDark ? 'moon' : 'sun'}
-        initial={{ scale: 0, rotate: -90 }}
-        animate={{ scale: 1, rotate: 0 }}
-        exit={{ scale: 0, rotate: 90 }}
-        transition={{ duration: 0.2 }}
-      >
-        {isDark ? Icons.moon : Icons.sun}
-      </motion.div>
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={theme}
+          initial={{ scale: 0, rotate: -90, opacity: 0 }}
+          animate={{ scale: 1, rotate: 0, opacity: 1 }}
+          exit={{ scale: 0, rotate: 90, opacity: 0 }}
+          transition={{ duration: 0.2 }}
+        >
+          {isDark ? Icons.moon : Icons.sun}
+        </motion.div>
+      </AnimatePresence>
     </button>
   )
 }
@@ -499,21 +552,21 @@ function UserMenu() {
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-3 p-1.5 pr-3 rounded-xl hover:bg-historical-gold/10 transition-all duration-200"
+        className="flex items-center gap-3 p-1.5 pr-3 rounded-xl hover:bg-historical-gold/10 dark:hover:bg-gray-700 transition-all duration-200"
       >
         <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-historical-gold to-historical-red flex items-center justify-center shadow-lg">
           <span className="text-white font-bold text-sm">{getInitials()}</span>
         </div>
         <div className="text-right hidden sm:block">
-          <p className="text-sm font-medium text-historical-charcoal">
+          <p className="text-sm font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300">
             {user?.full_name || 'Admin'}
           </p>
-          <p className="text-xs text-historical-charcoal/50">{getRoleDisplay()}</p>
+          <p className="text-xs text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{getRoleDisplay()}</p>
         </div>
         <motion.div
           animate={{ rotate: isOpen ? 180 : 0 }}
           transition={{ duration: 0.2 }}
-          className="text-historical-charcoal/40"
+          className="text-historical-charcoal/40 dark:text-gray-500 transition-colors duration-300"
         >
           {Icons.chevronDown}
         </motion.div>
@@ -535,33 +588,33 @@ function UserMenu() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 10, scale: 0.95 }}
               transition={{ duration: 0.2 }}
-              className="absolute left-0 mt-2 w-56 bg-white rounded-2xl shadow-soft-xl border border-historical-gold/10 overflow-hidden z-50"
+              className="absolute left-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-2xl shadow-soft-xl border border-historical-gold/10 dark:border-gray-700 overflow-hidden z-50 transition-colors duration-300"
             >
               {/* User Info */}
-              <div className="p-3 border-b border-historical-gold/10 bg-historical-stone/30">
-                <p className="text-sm font-medium text-historical-charcoal truncate">
+              <div className="p-3 border-b border-historical-gold/10 dark:border-gray-700 bg-historical-stone/30 dark:bg-gray-700/30 transition-colors duration-300">
+                <p className="text-sm font-medium text-historical-charcoal dark:text-gray-200 truncate transition-colors duration-300">
                   {user?.full_name || 'Admin'}
                 </p>
-                <p className="text-xs text-historical-charcoal/50 truncate">
+                <p className="text-xs text-historical-charcoal/50 dark:text-gray-400 truncate transition-colors duration-300">
                   {user?.email || 'admin@yallabuy.com'}
                 </p>
               </div>
               
               <div className="p-2">
-                <button className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm text-historical-charcoal hover:bg-historical-gold/10 transition-colors">
+                <button className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm text-historical-charcoal dark:text-gray-200 hover:bg-historical-gold/10 dark:hover:bg-gray-700 transition-colors">
                   {Icons.user}
                   <span>الملف الشخصي</span>
                 </button>
-                <button className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm text-historical-charcoal hover:bg-historical-gold/10 transition-colors">
+                <button className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm text-historical-charcoal dark:text-gray-200 hover:bg-historical-gold/10 dark:hover:bg-gray-700 transition-colors">
                   {Icons.search}
                   <span>الإعدادات</span>
                 </button>
               </div>
-              <div className="border-t border-historical-gold/10 p-2">
+              <div className="border-t border-historical-gold/10 dark:border-gray-700 p-2 transition-colors duration-300">
                 <button 
                   onClick={handleLogout}
                   disabled={isLoggingOut}
-                  className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
+                  className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-50"
                 >
                   {isLoggingOut ? (
                     <svg className="w-5 h-5 animate-spin\" fill="none" viewBox="0 0 24 24">
@@ -588,17 +641,17 @@ function UserMenu() {
 
 export function AdminHeader({ title, titleAr, subtitle, subtitleAr }: AdminHeaderProps) {
   return (
-    <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-xl border-b border-historical-gold/10">
+    <header className="sticky top-0 z-30 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border-b border-historical-gold/10 dark:border-gray-700 transition-colors duration-300">
       <div className="flex items-center justify-between px-6 py-4">
         {/* Title Section */}
         <div>
           {(titleAr || title) && (
-            <h1 className="text-xl font-bold text-historical-charcoal">
+            <h1 className="text-xl font-bold text-historical-charcoal dark:text-gray-100 transition-colors duration-300">
               {titleAr || title}
             </h1>
           )}
           {(subtitleAr || subtitle) && (
-            <p className="text-sm text-historical-charcoal/50 mt-0.5">
+            <p className="text-sm text-historical-charcoal/50 dark:text-gray-400 mt-0.5 transition-colors duration-300">
               {subtitleAr || subtitle}
             </p>
           )}

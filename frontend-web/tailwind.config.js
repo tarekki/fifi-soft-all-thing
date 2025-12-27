@@ -5,6 +5,17 @@ module.exports = {
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
     './src/app/**/*.{js,ts,jsx,tsx,mdx}',
+    './src/lib/**/*.{js,ts,jsx,tsx,mdx}',
+    // Exclude unnecessary paths to reduce memory usage
+    // استبعاد المسارات غير الضرورية لتقليل استهلاك الذاكرة
+    '!./src/**/*.test.{js,ts,jsx,tsx}',
+    '!./src/**/*.spec.{js,ts,jsx,tsx}',
+    '!./src/**/__tests__/**',
+    '!./src/**/__mocks__/**',
+    '!./src/**/node_modules/**',
+    '!./src/**/.next/**',
+    '!./src/**/dist/**',
+    '!./src/**/build/**',
   ],
   theme: {
     container: {
