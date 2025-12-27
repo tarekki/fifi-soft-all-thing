@@ -89,9 +89,9 @@ const getLinkTypeLabel = (linkType: 'url' | 'product' | 'category', t: any) => {
 
 const getLinkTypeColor = (linkType: 'url' | 'product' | 'category') => {
   const colors = {
-    url: 'bg-blue-100 text-blue-700',
-    product: 'bg-green-100 text-green-700',
-    category: 'bg-purple-100 text-purple-700',
+    url: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400',
+    product: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400',
+    category: 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400',
   }
   return colors[linkType]
 }
@@ -199,13 +199,13 @@ export default function StoriesPage() {
         <div className="flex items-center gap-4">
           <Link
             href="/admin/promotions"
-            className="p-2 rounded-xl border border-historical-gold/20 text-historical-charcoal/50 hover:text-historical-charcoal hover:bg-historical-gold/10 transition-colors"
+            className="p-2 rounded-xl border border-historical-gold/20 dark:border-gray-600 text-historical-charcoal dark:text-gray-200 transition-colors duration-300/50 hover:text-historical-charcoal dark:text-gray-200 transition-colors duration-300 hover:bg-historical-gold/10 transition-colors"
           >
             {Icons.back}
           </Link>
           <div>
-            <h1 className="text-2xl font-bold text-historical-charcoal">{t.admin.promotions.stories.pageTitle}</h1>
-            <p className="text-historical-charcoal/50 mt-1">{t.admin.promotions.stories.pageSubtitle}</p>
+            <h1 className="text-2xl font-bold text-historical-charcoal dark:text-gray-200 transition-colors duration-300">{t.admin.promotions.stories.pageTitle}</h1>
+            <p className="text-historical-charcoal dark:text-gray-200 transition-colors duration-300/50 mt-1">{t.admin.promotions.stories.pageSubtitle}</p>
           </div>
         </div>
         <button
@@ -229,7 +229,7 @@ export default function StoriesPage() {
 
       {/* Stories Preview (Instagram-style) */}
       {isLoading ? (
-        <motion.div variants={itemVariants} className="bg-white/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 shadow-soft p-6">
+        <motion.div variants={itemVariants} className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm transition-colors duration-300 rounded-2xl border border-historical-gold/10 dark:border-gray-700 shadow-soft p-6">
           <div className="flex gap-4">
             {[1, 2, 3, 4].map((i) => (
               <div key={i} className="w-16 h-16 rounded-full bg-historical-stone animate-pulse" />
@@ -237,8 +237,8 @@ export default function StoriesPage() {
           </div>
         </motion.div>
       ) : (
-        <motion.div variants={itemVariants} className="bg-white/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 shadow-soft p-6">
-          <h2 className="text-sm font-medium text-historical-charcoal/50 mb-4">{t.admin.promotions.stories.preview}</h2>
+        <motion.div variants={itemVariants} className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm transition-colors duration-300 rounded-2xl border border-historical-gold/10 dark:border-gray-700 shadow-soft p-6">
+          <h2 className="text-sm font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300/50 mb-4">{t.admin.promotions.stories.preview}</h2>
           <div className="flex gap-4 overflow-x-auto pb-2">
             {activeStories.map((story) => (
               <div key={story.id} className="flex-shrink-0 text-center">
@@ -253,11 +253,11 @@ export default function StoriesPage() {
                     )}
                   </div>
                 </div>
-                <p className="text-xs text-historical-charcoal mt-2 max-w-[64px] truncate">{story.title_ar}</p>
+                <p className="text-xs text-historical-charcoal dark:text-gray-200 transition-colors duration-300 mt-2 max-w-[64px] truncate">{story.title_ar}</p>
               </div>
             ))}
             {activeStories.length === 0 && (
-              <p className="text-sm text-historical-charcoal/50">{t.admin.promotions.stories.noActiveStories}</p>
+              <p className="text-sm text-historical-charcoal dark:text-gray-200 transition-colors duration-300/50">{t.admin.promotions.stories.noActiveStories}</p>
             )}
           </div>
         </motion.div>
@@ -265,7 +265,7 @@ export default function StoriesPage() {
 
       {/* Stories List */}
       {isLoading ? (
-        <motion.div variants={itemVariants} className="bg-white/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 shadow-soft p-4 space-y-3">
+        <motion.div variants={itemVariants} className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm transition-colors duration-300 rounded-2xl border border-historical-gold/10 dark:border-gray-700 shadow-soft p-4 space-y-3">
           {[1, 2, 3].map((i) => (
             <div key={i} className="h-20 bg-historical-stone animate-pulse rounded-xl" />
           ))}
@@ -273,12 +273,12 @@ export default function StoriesPage() {
       ) : stories.length === 0 ? (
         <motion.div
           variants={itemVariants}
-          className="text-center py-12 bg-white/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10"
+          className="text-center py-12 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm transition-colors duration-300 rounded-2xl border border-historical-gold/10 dark:border-gray-700"
         >
-          <p className="text-historical-charcoal/50">{t.admin.promotions.stories.noStories}</p>
+          <p className="text-historical-charcoal dark:text-gray-200 transition-colors duration-300/50">{t.admin.promotions.stories.noStories}</p>
         </motion.div>
       ) : (
-        <motion.div variants={itemVariants} className="bg-white/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 shadow-soft overflow-hidden">
+        <motion.div variants={itemVariants} className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm transition-colors duration-300 rounded-2xl border border-historical-gold/10 dark:border-gray-700 shadow-soft overflow-hidden">
           <div className="p-4 space-y-3">
             {stories.map((story) => (
               <motion.div
@@ -302,12 +302,12 @@ export default function StoriesPage() {
                 {/* Story Info */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <h3 className="font-bold text-historical-charcoal truncate">{story.title_ar}</h3>
+                    <h3 className="font-bold text-historical-charcoal dark:text-gray-200 transition-colors duration-300 truncate">{story.title_ar}</h3>
                     <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${getLinkTypeColor(story.link_type)}`}>
                       {getLinkTypeLabel(story.link_type, t)}
                     </span>
                   </div>
-                  <div className="flex items-center gap-4 text-sm text-historical-charcoal/50">
+                  <div className="flex items-center gap-4 text-sm text-historical-charcoal dark:text-gray-200 transition-colors duration-300/50">
                     <span className="flex items-center gap-1">
                       {Icons.eye}
                       {story.views.toLocaleString()}
@@ -336,14 +336,14 @@ export default function StoriesPage() {
                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button
                     onClick={() => handleEdit(story)}
-                    className="p-2 rounded-lg text-historical-charcoal/50 hover:text-historical-charcoal hover:bg-historical-gold/10 transition-colors"
+                    className="p-2 rounded-lg text-historical-charcoal dark:text-gray-200 transition-colors duration-300/50 hover:text-historical-charcoal dark:text-gray-200 transition-colors duration-300 hover:bg-historical-gold/10 transition-colors"
                   >
                     {Icons.edit}
                   </button>
                   <button
                     onClick={() => handleDelete(story.id)}
                     disabled={isProcessing}
-                    className="p-2 rounded-lg text-historical-charcoal/50 hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-50"
+                    className="p-2 rounded-lg text-historical-charcoal dark:text-gray-200 transition-colors duration-300/50 hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-50"
                   >
                     {Icons.delete}
                   </button>
@@ -503,16 +503,16 @@ function StoryModal({
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          className="w-full max-w-md max-h-[90vh] bg-white rounded-2xl shadow-2xl overflow-hidden my-8"
+          className="w-full max-w-md max-h-[90vh] bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden my-8 transition-colors duration-300"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="flex items-center justify-between p-6 border-b border-historical-gold/10">
-            <h2 className="text-lg font-bold text-historical-charcoal">
+          <div className="flex items-center justify-between p-6 border-b border-historical-gold/10 dark:border-gray-700 transition-colors duration-300">
+            <h2 className="text-lg font-bold text-historical-charcoal dark:text-gray-200 transition-colors duration-300">
               {story ? t.admin.promotions.stories.editStory : t.admin.promotions.stories.addNewStory}
             </h2>
             <button
               onClick={onClose}
-              className="p-2 rounded-lg text-historical-charcoal/50 hover:bg-historical-gold/10 transition-colors"
+              className="p-2 rounded-lg text-historical-charcoal/50 dark:text-gray-400 hover:text-historical-charcoal dark:hover:text-gray-200 hover:bg-historical-gold/10 dark:hover:bg-gray-700/50 transition-colors duration-300"
             >
               {Icons.close}
             </button>
@@ -521,9 +521,9 @@ function StoryModal({
           <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto max-h-[calc(90vh-140px)]">
             {/* Image Upload */}
             <div>
-              <label className="block text-sm font-medium text-historical-charcoal mb-2">{t.admin.promotions.stories.image}</label>
+              <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300 mb-2">{t.admin.promotions.stories.image}</label>
               <div className="flex justify-center">
-                <div className="w-32 h-48 rounded-xl border-2 border-dashed border-historical-gold/30 bg-historical-stone/30 flex items-center justify-center cursor-pointer hover:bg-historical-gold/10 transition-colors">
+                <div className="w-32 h-48 rounded-xl border-2 border-dashed border-historical-gold/30 dark:border-gray-600 bg-historical-stone/30 dark:bg-gray-700/30 flex items-center justify-center cursor-pointer hover:bg-historical-gold/10 dark:hover:bg-gray-700/50 transition-colors duration-300">
                   {imagePreview ? (
                     <div className="relative w-full h-full">
                       <img
@@ -537,7 +537,7 @@ function StoryModal({
                           setImagePreview(null)
                           setImageFile(null)
                         }}
-                        className="absolute top-2 right-2 p-1 rounded-full bg-red-500 text-white"
+                        className="absolute top-2 right-2 p-1 rounded-full bg-red-500 dark:bg-red-600 text-white transition-colors duration-300"
                       >
                         {Icons.close}
                       </button>
@@ -545,7 +545,7 @@ function StoryModal({
                   ) : (
                     <label className="text-center cursor-pointer">
                       <div className="text-historical-gold mb-2">{Icons.play}</div>
-                      <p className="text-xs text-historical-charcoal/50">{t.admin.promotions.stories.uploadImage}</p>
+                      <p className="text-xs text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{t.admin.promotions.stories.uploadImage}</p>
                       <input
                         type="file"
                         accept="image/*"
@@ -557,19 +557,19 @@ function StoryModal({
                 </div>
               </div>
               {formErrors.image && (
-                <p className="text-sm text-red-600 mt-1">{formErrors.image}</p>
+                <p className="text-sm text-red-600 dark:text-red-400 mt-1 transition-colors duration-300">{formErrors.image}</p>
               )}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-historical-charcoal mb-2">
+              <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300 mb-2">
                 {t.admin.promotions.stories.titleAr} *
               </label>
               <input
                 type="text"
                 value={formData.title_ar}
                 onChange={(e) => setFormData({ ...formData, title_ar: e.target.value })}
-                className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+                className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700/50 text-historical-charcoal dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 transition-colors duration-300"
                 required
               />
               {formErrors.title_ar && (
@@ -578,14 +578,14 @@ function StoryModal({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-historical-charcoal mb-2">
+              <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300 mb-2">
                 {t.admin.promotions.stories.titleEn} *
               </label>
               <input
                 type="text"
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+                className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700/50 text-historical-charcoal dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 transition-colors duration-300"
                 dir="ltr"
                 required
               />
@@ -595,13 +595,13 @@ function StoryModal({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-historical-charcoal mb-2">
+              <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300 mb-2">
                 {t.admin.promotions.stories.linkType}
               </label>
               <select
                 value={formData.link_type}
                 onChange={(e) => setFormData({ ...formData, link_type: e.target.value as 'url' | 'product' | 'category' })}
-                className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+                className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700/50 text-historical-charcoal dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 transition-colors duration-300"
               >
                 <option value="url">{t.admin.promotions.stories.directLink}</option>
                 <option value="product">{t.admin.promotions.stories.product}</option>
@@ -610,40 +610,40 @@ function StoryModal({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-historical-charcoal mb-2">
+              <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300 mb-2">
                 {t.admin.promotions.stories.link}
               </label>
               <input
                 type="text"
                 value={formData.link}
                 onChange={(e) => setFormData({ ...formData, link: e.target.value })}
-                className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+                className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700/50 text-historical-charcoal dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 transition-colors duration-300"
                 dir="ltr"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-historical-charcoal mb-2">
+                <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300 mb-2">
                   {t.admin.promotions.stories.expiryDate} *
                 </label>
                 <input
                   type="datetime-local"
                   value={formData.expires_at}
                   onChange={(e) => setFormData({ ...formData, expires_at: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+                  className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700/50 text-historical-charcoal dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 transition-colors duration-300"
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-historical-charcoal mb-2">
+                <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300 mb-2">
                   {t.admin.promotions.stories.order}
                 </label>
                 <input
                   type="number"
                   value={formData.order}
                   onChange={(e) => setFormData({ ...formData, order: parseInt(e.target.value) || 0 })}
-                  className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+                  className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700/50 text-historical-charcoal dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 transition-colors duration-300"
                   min="0"
                 />
               </div>
@@ -655,18 +655,18 @@ function StoryModal({
                   type="checkbox"
                   checked={formData.is_active}
                   onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
-                  className="w-4 h-4 rounded border-historical-gold/30 text-historical-gold focus:ring-historical-gold"
+                  className="w-4 h-4 rounded border-historical-gold/30 dark:border-gray-600 bg-white dark:bg-gray-700 text-historical-gold dark:text-yellow-400 focus:ring-historical-gold dark:focus:ring-yellow-600 transition-colors duration-300"
                 />
-                <span className="text-sm text-historical-charcoal">{t.admin.promotions.active}</span>
+                <span className="text-sm text-historical-charcoal dark:text-gray-200 transition-colors duration-300">{t.admin.promotions.active}</span>
               </label>
             </div>
           </form>
 
-          <div className="flex items-center justify-end gap-3 p-6 border-t border-historical-gold/10">
+          <div className="flex items-center justify-end gap-3 p-6 border-t border-historical-gold/10 dark:border-gray-700 transition-colors duration-300">
             <button
               type="button"
               onClick={onClose}
-              className="px-6 py-2.5 rounded-xl text-historical-charcoal/70 hover:bg-historical-gold/10 transition-colors"
+              className="px-6 py-2.5 rounded-xl text-historical-charcoal/70 dark:text-gray-300 hover:text-historical-charcoal dark:hover:text-gray-200 hover:bg-historical-gold/10 dark:hover:bg-gray-700/50 transition-colors duration-300"
             >
               {t.admin.promotions.stories.cancel}
             </button>

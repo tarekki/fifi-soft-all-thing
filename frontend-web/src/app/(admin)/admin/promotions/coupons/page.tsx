@@ -214,13 +214,13 @@ export default function CouponsPage() {
         <div className="flex items-center gap-4">
           <Link
             href="/admin/promotions"
-            className="p-2 rounded-xl border border-historical-gold/20 text-historical-charcoal/50 hover:text-historical-charcoal hover:bg-historical-gold/10 transition-colors"
+            className="p-2 rounded-xl border border-historical-gold/20 dark:border-gray-600 text-historical-charcoal/50 dark:text-gray-400 hover:text-historical-charcoal dark:hover:text-gray-200 hover:bg-historical-gold/10 dark:hover:bg-gray-700/50 transition-colors duration-300"
           >
             {Icons.back}
           </Link>
           <div>
-            <h1 className="text-2xl font-bold text-historical-charcoal">{t.admin.promotions.coupons.pageTitle}</h1>
-            <p className="text-historical-charcoal/50 mt-1">{t.admin.promotions.coupons.pageSubtitle}</p>
+            <h1 className="text-2xl font-bold text-historical-charcoal dark:text-gray-200 transition-colors duration-300">{t.admin.promotions.coupons.pageTitle}</h1>
+            <p className="text-historical-charcoal/50 dark:text-gray-400 mt-1 transition-colors duration-300">{t.admin.promotions.coupons.pageSubtitle}</p>
           </div>
         </div>
         <button
@@ -235,7 +235,7 @@ export default function CouponsPage() {
       {/* Search & Filters */}
       <motion.div variants={itemVariants} className="flex flex-wrap items-center gap-4">
         <div className="flex-1 min-w-[280px] relative">
-          <span className="absolute right-4 top-1/2 -translate-y-1/2 text-historical-charcoal/30">
+          <span className="absolute right-4 top-1/2 -translate-y-1/2 text-historical-charcoal dark:text-gray-200 transition-colors duration-300/30">
             {Icons.search}
           </span>
           <input
@@ -243,13 +243,13 @@ export default function CouponsPage() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={t.admin.promotions.coupons.searchPlaceholder}
-            className="w-full pr-12 pl-4 py-3 rounded-xl border border-historical-gold/20 bg-white/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+            className="w-full pr-12 pl-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm text-historical-charcoal dark:text-gray-200 placeholder:text-historical-charcoal/30 dark:placeholder:text-gray-500 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600"
           />
         </div>
         <select
           value={filterStatus}
           onChange={(e) => setFilterStatus(e.target.value === '' ? '' : e.target.value === 'true')}
-          className="px-4 py-3 rounded-xl border border-historical-gold/20 bg-white/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-historical-gold/30 min-w-[150px]"
+          className="px-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm text-historical-charcoal dark:text-gray-200 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 min-w-[150px]"
         >
           <option value="">{t.admin.promotions.coupons.allStatuses}</option>
           <option value="true">{t.admin.promotions.coupons.active}</option>
@@ -261,7 +261,7 @@ export default function CouponsPage() {
       {error && (
         <motion.div
           variants={itemVariants}
-          className="p-4 rounded-xl bg-red-50 border border-red-200 text-red-700"
+          className="p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 transition-colors duration-300"
         >
           {error}
         </motion.div>
@@ -271,7 +271,7 @@ export default function CouponsPage() {
       {isLoading ? (
         <motion.div
           variants={itemVariants}
-          className="bg-white/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 shadow-soft p-6"
+          className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm transition-colors duration-300 rounded-2xl border border-historical-gold/10 dark:border-gray-700 shadow-soft p-6"
         >
           <div className="space-y-3">
             {[1, 2, 3].map((i) => (
@@ -282,25 +282,25 @@ export default function CouponsPage() {
       ) : coupons.length === 0 ? (
         <motion.div
           variants={itemVariants}
-          className="text-center py-12 bg-white/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10"
+          className="text-center py-12 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm transition-colors duration-300 rounded-2xl border border-historical-gold/10 dark:border-gray-700"
         >
-          <p className="text-historical-charcoal/50">{t.admin.promotions.coupons.noCoupons}</p>
+          <p className="text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{t.admin.promotions.coupons.noCoupons}</p>
         </motion.div>
       ) : (
         <motion.div
           variants={itemVariants}
-          className="bg-white/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 shadow-soft overflow-hidden"
+          className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm transition-colors duration-300 rounded-2xl border border-historical-gold/10 dark:border-gray-700 shadow-soft overflow-hidden"
         >
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-historical-stone/50">
+              <thead className="bg-historical-stone/50 dark:bg-gray-700/50 transition-colors duration-300">
                 <tr>
-                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-4">{t.admin.promotions.coupons.code}</th>
-                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-4">{t.admin.promotions.coupons.description}</th>
-                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-4">{t.admin.promotions.coupons.discount}</th>
-                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-4">{t.admin.promotions.coupons.usage}</th>
-                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-4">{t.admin.promotions.coupons.validity}</th>
-                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-4">{t.admin.promotions.coupons.status}</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-6 py-4 transition-colors duration-300">{t.admin.promotions.coupons.code}</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-6 py-4 transition-colors duration-300">{t.admin.promotions.coupons.description}</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-6 py-4 transition-colors duration-300">{t.admin.promotions.coupons.discount}</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-6 py-4 transition-colors duration-300">{t.admin.promotions.coupons.usage}</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-6 py-4 transition-colors duration-300">{t.admin.promotions.coupons.validity}</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-6 py-4 transition-colors duration-300">{t.admin.promotions.coupons.status}</th>
                   <th className="w-24 px-6 py-4"></th>
                 </tr>
               </thead>
@@ -317,10 +317,10 @@ export default function CouponsPage() {
                             {Icons.tag}
                           </div>
                           <div>
-                            <code className="font-bold text-historical-charcoal">{coupon.code}</code>
+                            <code className="font-bold text-historical-charcoal dark:text-gray-200 transition-colors duration-300">{coupon.code}</code>
                             <button
                               onClick={() => handleCopyCode(coupon.id, coupon.code)}
-                              className="mr-2 p-1 text-historical-charcoal/30 hover:text-historical-gold transition-colors"
+                              className="mr-2 p-1 text-historical-charcoal dark:text-gray-200 transition-colors duration-300/30 hover:text-historical-gold transition-colors"
                               title={t.admin.promotions.coupons.copyCode}
                             >
                               {copiedId === coupon.id ? '✓' : Icons.copy}
@@ -329,20 +329,20 @@ export default function CouponsPage() {
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <p className="text-sm text-historical-charcoal">{coupon.description_ar}</p>
-                        <p className="text-xs text-historical-charcoal/50">{getApplicableToLabel(coupon.applicable_to, t)}</p>
+                        <p className="text-sm text-historical-charcoal dark:text-gray-200 transition-colors duration-300">{coupon.description_ar}</p>
+                        <p className="text-xs text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{getApplicableToLabel(coupon.applicable_to, t)}</p>
                       </td>
                       <td className="px-6 py-4">
                         <span className="font-bold text-historical-gold">
                           {coupon.discount_type === 'percentage' ? `${coupon.discount_value}%` : `${coupon.discount_value} ${t.admin.promotions.coupons.syr}`}
                         </span>
                         {coupon.min_order > 0 && (
-                          <p className="text-xs text-historical-charcoal/50">{t.admin.promotions.coupons.minOrder}: {coupon.min_order} {t.admin.promotions.coupons.syr}</p>
+                          <p className="text-xs text-historical-charcoal dark:text-gray-200 transition-colors duration-300/50">{t.admin.promotions.coupons.minOrder}: {coupon.min_order} {t.admin.promotions.coupons.syr}</p>
                         )}
                       </td>
                       <td className="px-6 py-4">
                         <div className="space-y-1">
-                          <p className="text-sm text-historical-charcoal">
+                          <p className="text-sm text-historical-charcoal dark:text-gray-200 transition-colors duration-300">
                             {coupon.used_count} {coupon.usage_limit ? `/ ${coupon.usage_limit}` : ''}
                           </p>
                           {coupon.usage_limit && (
@@ -356,18 +356,18 @@ export default function CouponsPage() {
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <p className="text-sm text-historical-charcoal">
+                        <p className="text-sm text-historical-charcoal dark:text-gray-200 transition-colors duration-300">
                           {new Date(coupon.start_date).toLocaleDateString('ar-SY')}
                         </p>
                         {coupon.end_date && (
-                          <p className="text-xs text-historical-charcoal/50">
+                          <p className="text-xs text-historical-charcoal dark:text-gray-200 transition-colors duration-300/50">
                             {t.admin.promotions.coupons.to} {new Date(coupon.end_date).toLocaleDateString('ar-SY')}
                           </p>
                         )}
                       </td>
                       <td className="px-6 py-4">
                         {isExpired ? (
-                          <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
+                          <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 transition-colors duration-300">
                             {t.admin.promotions.coupons.expired}
                           </span>
                         ) : (
@@ -375,14 +375,14 @@ export default function CouponsPage() {
                             onClick={() => handleToggle(coupon.id, coupon.is_active)}
                             disabled={isProcessing}
                             className={`relative w-12 h-7 rounded-full transition-colors duration-200 disabled:opacity-50 ${
-                              coupon.is_active ? 'bg-green-500' : 'bg-historical-charcoal/20'
+                              coupon.is_active ? 'bg-green-500 dark:bg-green-600' : 'bg-historical-charcoal/20 dark:bg-gray-600'
                             }`}
                           >
                             <motion.div
                               initial={false}
                               animate={{ x: coupon.is_active ? 22 : 4 }}
                               transition={{ duration: 0.2 }}
-                              className="absolute top-1 w-5 h-5 rounded-full bg-white shadow"
+                              className="absolute top-1 w-5 h-5 rounded-full bg-white dark:bg-gray-200 shadow transition-colors duration-300"
                             />
                           </button>
                         )}
@@ -391,14 +391,14 @@ export default function CouponsPage() {
                         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                           <button
                             onClick={() => handleEdit(coupon)}
-                            className="p-2 rounded-lg text-historical-charcoal/50 hover:text-historical-charcoal hover:bg-historical-gold/10 transition-colors"
+                            className="p-2 rounded-lg text-historical-charcoal/50 dark:text-gray-500 hover:text-historical-charcoal dark:hover:text-gray-200 hover:bg-historical-gold/10 dark:hover:bg-gray-700/50 transition-colors duration-300"
                           >
                             {Icons.edit}
                           </button>
                           <button
                             onClick={() => handleDelete(coupon.id)}
                             disabled={isProcessing}
-                            className="p-2 rounded-lg text-historical-charcoal/50 hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-50"
+                            className="p-2 rounded-lg text-historical-charcoal/50 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors duration-300 disabled:opacity-50"
                           >
                             {Icons.delete}
                           </button>
@@ -684,16 +684,16 @@ function CouponModal({
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          className="w-full max-w-3xl max-h-[90vh] bg-white rounded-2xl shadow-2xl overflow-hidden my-8"
+          className="w-full max-w-3xl max-h-[90vh] bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden my-8 transition-colors duration-300"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="flex items-center justify-between p-6 border-b border-historical-gold/10">
-            <h2 className="text-lg font-bold text-historical-charcoal">
+          <div className="flex items-center justify-between p-6 border-b border-historical-gold/10 dark:border-gray-700 transition-colors duration-300">
+            <h2 className="text-lg font-bold text-historical-charcoal dark:text-gray-200 transition-colors duration-300">
               {coupon ? t.admin.promotions.coupons.editCoupon : t.admin.promotions.coupons.createNewCoupon}
             </h2>
             <button
               onClick={onClose}
-              className="p-2 rounded-lg text-historical-charcoal/50 hover:bg-historical-gold/10 transition-colors"
+              className="p-2 rounded-lg text-historical-charcoal/50 dark:text-gray-400 hover:text-historical-charcoal dark:hover:text-gray-200 hover:bg-historical-gold/10 dark:hover:bg-gray-700/50 transition-colors duration-300"
             >
               {Icons.close}
             </button>
@@ -702,34 +702,34 @@ function CouponModal({
           <form onSubmit={handleSubmit} className="p-6 space-y-6 overflow-y-auto max-h-[calc(90vh-140px)]">
             {/* Code */}
             <div>
-              <label className="block text-sm font-medium text-historical-charcoal mb-2">
+              <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300 mb-2">
                 {t.admin.promotions.coupons.codeLabel} *
               </label>
               <input
                 type="text"
                 value={formData.code}
                 onChange={(e) => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
-                className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 uppercase"
+                className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700/50 text-historical-charcoal dark:text-gray-200 placeholder:text-historical-charcoal/30 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 transition-colors duration-300 uppercase"
                 placeholder={t.admin.promotions.coupons.codePlaceholder}
                 dir="ltr"
                 required
               />
               {formErrors.code && (
-                <p className="text-sm text-red-600 mt-1">{formErrors.code}</p>
+                <p className="text-sm text-red-600 dark:text-red-400 mt-1 transition-colors duration-300">{formErrors.code}</p>
               )}
             </div>
 
             {/* Description */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-historical-charcoal mb-2">
+                <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300 mb-2">
                   {t.admin.promotions.coupons.descriptionAr} *
                 </label>
                 <input
                   type="text"
                   value={formData.description_ar}
                   onChange={(e) => setFormData({ ...formData, description_ar: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+                  className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700/50 text-historical-charcoal dark:text-gray-200 placeholder:text-historical-charcoal/30 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 transition-colors duration-300"
                   required
                 />
                 {formErrors.description_ar && (
@@ -737,14 +737,14 @@ function CouponModal({
                 )}
               </div>
               <div>
-                <label className="block text-sm font-medium text-historical-charcoal mb-2">
+                <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300 mb-2">
                   {t.admin.promotions.coupons.descriptionEn}
                 </label>
                 <input
                   type="text"
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+                  className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700/50 text-historical-charcoal dark:text-gray-200 placeholder:text-historical-charcoal/30 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 transition-colors duration-300"
                   dir="ltr"
                 />
               </div>
@@ -753,13 +753,13 @@ function CouponModal({
             {/* Discount Type & Value */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-historical-charcoal mb-2">
+                <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300 mb-2">
                   {t.admin.promotions.coupons.discountType} *
                 </label>
                 <select
                   value={formData.discount_type}
                   onChange={(e) => setFormData({ ...formData, discount_type: e.target.value as CouponDiscountType })}
-                  className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+                  className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700/50 text-historical-charcoal dark:text-gray-200 placeholder:text-historical-charcoal/30 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 transition-colors duration-300"
                   required
                 >
                   <option value="percentage">{t.admin.promotions.coupons.percentage}</option>
@@ -767,14 +767,14 @@ function CouponModal({
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-historical-charcoal mb-2">
+                <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300 mb-2">
                   {t.admin.promotions.coupons.discountValue} *
                 </label>
                 <input
                   type="number"
                   value={formData.discount_value}
                   onChange={(e) => setFormData({ ...formData, discount_value: parseFloat(e.target.value) || 0 })}
-                  className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+                  className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700/50 text-historical-charcoal dark:text-gray-200 placeholder:text-historical-charcoal/30 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 transition-colors duration-300"
                   min="0"
                   step={formData.discount_type === 'percentage' ? '1' : '0.01'}
                   max={formData.discount_type === 'percentage' ? '100' : undefined}
@@ -789,45 +789,45 @@ function CouponModal({
             {/* Min Order & Max Discount */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-historical-charcoal mb-2">
+                <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300 mb-2">
                   {t.admin.promotions.coupons.minOrderLabel}
                 </label>
                 <input
                   type="number"
                   value={formData.min_order}
                   onChange={(e) => setFormData({ ...formData, min_order: parseFloat(e.target.value) || 0 })}
-                  className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+                  className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700/50 text-historical-charcoal dark:text-gray-200 placeholder:text-historical-charcoal/30 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 transition-colors duration-300"
                   min="0"
                   step="0.01"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-historical-charcoal mb-2">
+                <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300 mb-2">
                   {t.admin.promotions.coupons.maxDiscount}
                 </label>
                 <input
                   type="number"
                   value={formData.max_discount || ''}
                   onChange={(e) => setFormData({ ...formData, max_discount: e.target.value ? parseFloat(e.target.value) : null })}
-                  className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+                  className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700/50 text-historical-charcoal dark:text-gray-200 placeholder:text-historical-charcoal/30 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 transition-colors duration-300"
                   placeholder={t.admin.promotions.coupons.unlimited}
                   min="0"
                   step="0.01"
                 />
-                <p className="text-xs text-historical-charcoal/50 mt-1">{t.admin.promotions.coupons.maxDiscountNote}</p>
+                <p className="text-xs text-historical-charcoal/50 dark:text-gray-400 mt-1 transition-colors duration-300">{t.admin.promotions.coupons.maxDiscountNote}</p>
               </div>
             </div>
 
             {/* Usage Limit */}
             <div>
-              <label className="block text-sm font-medium text-historical-charcoal mb-2">
+              <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300 mb-2">
                 {t.admin.promotions.coupons.usageLimit}
               </label>
               <input
                 type="number"
                 value={formData.usage_limit || ''}
                 onChange={(e) => setFormData({ ...formData, usage_limit: e.target.value ? parseInt(e.target.value) : null })}
-                className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+                className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
                 placeholder={t.admin.promotions.coupons.unlimitedUsage}
                 min="1"
               />
@@ -836,33 +836,33 @@ function CouponModal({
             {/* Dates */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-historical-charcoal mb-2">
+                <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300 mb-2">
                   {t.admin.promotions.coupons.startDate} *
                 </label>
                 <input
                   type="datetime-local"
                   value={formData.start_date}
                   onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+                  className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700/50 text-historical-charcoal dark:text-gray-200 placeholder:text-historical-charcoal/30 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 transition-colors duration-300"
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-historical-charcoal mb-2">
+                <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300 mb-2">
                   {t.admin.promotions.coupons.endDate}
                 </label>
                 <input
                   type="datetime-local"
                   value={formData.end_date || ''}
                   onChange={(e) => setFormData({ ...formData, end_date: e.target.value || null })}
-                  className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+                  className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700/50 text-historical-charcoal dark:text-gray-200 placeholder:text-historical-charcoal/30 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 transition-colors duration-300"
                 />
               </div>
             </div>
 
             {/* Applicable To */}
             <div>
-              <label className="block text-sm font-medium text-historical-charcoal mb-2">
+              <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300 mb-2">
                 {t.admin.promotions.coupons.applicableTo} *
               </label>
               <select
@@ -878,7 +878,7 @@ function CouponModal({
                     applicable_users: newApplicableTo !== 'user' ? [] : formData.applicable_users,
                   })
                 }}
-                className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+                className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
                 required
               >
                 <option value="all">{t.admin.promotions.coupons.allProducts}</option>
@@ -891,7 +891,7 @@ function CouponModal({
             {/* Category Selection */}
             {formData.applicable_to === 'category' && (
               <div>
-                <label className="block text-sm font-medium text-historical-charcoal mb-2">
+                <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300 mb-2">
                   {t.admin.promotions.coupons.selectCategories}
                 </label>
                 <input
@@ -899,30 +899,30 @@ function CouponModal({
                   value={searchCategory}
                   onChange={(e) => setSearchCategory(e.target.value)}
                   placeholder={t.admin.promotions.coupons.searchCategory}
-                  className="w-full px-4 py-2 rounded-lg border border-historical-gold/20 mb-3 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+                  className="w-full px-4 py-2 rounded-lg border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700/50 text-historical-charcoal dark:text-gray-200 placeholder:text-historical-charcoal/30 dark:placeholder:text-gray-500 mb-3 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 transition-colors duration-300"
                 />
-                <div className="max-h-48 overflow-y-auto border border-historical-gold/20 rounded-lg p-3 space-y-2">
+                <div className="max-h-48 overflow-y-auto border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700/30 rounded-lg p-3 space-y-2 transition-colors duration-300">
                   {filteredCategories.length === 0 ? (
-                    <p className="text-sm text-historical-charcoal/50 text-center py-4">{t.admin.promotions.coupons.noCategories}</p>
+                    <p className="text-sm text-historical-charcoal/50 dark:text-gray-400 text-center py-4 transition-colors duration-300">{t.admin.promotions.coupons.noCategories}</p>
                   ) : (
                     filteredCategories.map((category) => (
                       <label
                         key={category.id}
-                        className="flex items-center gap-2 p-2 rounded-lg hover:bg-historical-gold/10 cursor-pointer"
+                        className="flex items-center gap-2 p-2 rounded-lg hover:bg-historical-gold/10 dark:hover:bg-gray-700/50 cursor-pointer transition-colors duration-300"
                       >
                         <input
                           type="checkbox"
                           checked={(formData.applicable_categories || []).includes(category.id)}
                           onChange={() => toggleCategory(category.id)}
-                          className="w-4 h-4 rounded border-historical-gold/30 text-historical-gold focus:ring-historical-gold"
+                          className="w-4 h-4 rounded border-historical-gold/30 dark:border-gray-600 bg-white dark:bg-gray-700 text-historical-gold dark:text-yellow-400 focus:ring-historical-gold dark:focus:ring-yellow-600 transition-colors duration-300"
                         />
-                        <span className="text-sm text-historical-charcoal">{category.name_ar}</span>
+                        <span className="text-sm text-historical-charcoal dark:text-gray-200 transition-colors duration-300">{category.name_ar}</span>
                       </label>
                     ))
                   )}
                 </div>
                 {(formData.applicable_categories || []).length > 0 && (
-                  <p className="text-xs text-historical-charcoal/50 mt-2">
+                  <p className="text-xs text-historical-charcoal/50 dark:text-gray-400 mt-2 transition-colors duration-300">
                     {t.admin.promotions.coupons.selectedCategories.replace('{count}', (formData.applicable_categories?.length || 0).toString())}
                   </p>
                 )}
@@ -932,7 +932,7 @@ function CouponModal({
             {/* Product Selection */}
             {formData.applicable_to === 'product' && (
               <div>
-                <label className="block text-sm font-medium text-historical-charcoal mb-2">
+                <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300 mb-2">
                   {t.admin.promotions.coupons.selectProducts}
                 </label>
                 <input
@@ -940,30 +940,30 @@ function CouponModal({
                   value={searchProduct}
                   onChange={(e) => setSearchProduct(e.target.value)}
                   placeholder={t.admin.promotions.coupons.searchProduct}
-                  className="w-full px-4 py-2 rounded-lg border border-historical-gold/20 mb-3 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+                  className="w-full px-4 py-2 rounded-lg border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700/50 text-historical-charcoal dark:text-gray-200 placeholder:text-historical-charcoal/30 dark:placeholder:text-gray-500 mb-3 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 transition-colors duration-300"
                 />
-                <div className="max-h-48 overflow-y-auto border border-historical-gold/20 rounded-lg p-3 space-y-2">
+                <div className="max-h-48 overflow-y-auto border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700/30 rounded-lg p-3 space-y-2 transition-colors duration-300">
                   {filteredProducts.length === 0 ? (
-                    <p className="text-sm text-historical-charcoal/50 text-center py-4">{t.admin.promotions.coupons.noProducts}</p>
+                    <p className="text-sm text-historical-charcoal dark:text-gray-200 transition-colors duration-300/50 text-center py-4">{t.admin.promotions.coupons.noProducts}</p>
                   ) : (
                     filteredProducts.map((product) => (
                       <label
                         key={product.id}
-                        className="flex items-center gap-2 p-2 rounded-lg hover:bg-historical-gold/10 cursor-pointer"
+                        className="flex items-center gap-2 p-2 rounded-lg hover:bg-historical-gold/10 dark:hover:bg-gray-700/50 cursor-pointer transition-colors duration-300"
                       >
                         <input
                           type="checkbox"
                           checked={(formData.applicable_products || []).includes(product.id)}
                           onChange={() => toggleProduct(product.id)}
-                          className="w-4 h-4 rounded border-historical-gold/30 text-historical-gold focus:ring-historical-gold"
+                          className="w-4 h-4 rounded border-historical-gold/30 dark:border-gray-600 bg-white dark:bg-gray-700 text-historical-gold dark:text-yellow-400 focus:ring-historical-gold dark:focus:ring-yellow-600 transition-colors duration-300"
                         />
-                        <span className="text-sm text-historical-charcoal">{product.name_ar}</span>
+                        <span className="text-sm text-historical-charcoal dark:text-gray-200 transition-colors duration-300">{product.name_ar}</span>
                       </label>
                     ))
                   )}
                 </div>
                 {(formData.applicable_products || []).length > 0 && (
-                  <p className="text-xs text-historical-charcoal/50 mt-2">
+                  <p className="text-xs text-historical-charcoal/50 dark:text-gray-400 mt-2 transition-colors duration-300">
                     {t.admin.promotions.coupons.selectedProducts.replace('{count}', (formData.applicable_products?.length || 0).toString())}
                   </p>
                 )}
@@ -973,7 +973,7 @@ function CouponModal({
             {/* User Selection */}
             {formData.applicable_to === 'user' && (
               <div>
-                <label className="block text-sm font-medium text-historical-charcoal mb-2">
+                <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300 mb-2">
                   {t.admin.promotions.coupons.selectUsers}
                 </label>
                 <input
@@ -981,24 +981,24 @@ function CouponModal({
                   value={searchUser}
                   onChange={(e) => setSearchUser(e.target.value)}
                   placeholder={t.admin.promotions.coupons.searchUser}
-                  className="w-full px-4 py-2 rounded-lg border border-historical-gold/20 mb-3 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+                  className="w-full px-4 py-2 rounded-lg border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700/50 text-historical-charcoal dark:text-gray-200 placeholder:text-historical-charcoal/30 dark:placeholder:text-gray-500 mb-3 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 transition-colors duration-300"
                 />
-                <div className="max-h-48 overflow-y-auto border border-historical-gold/20 rounded-lg p-3 space-y-2">
+                <div className="max-h-48 overflow-y-auto border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700/30 rounded-lg p-3 space-y-2 transition-colors duration-300">
                   {filteredUsers.length === 0 ? (
-                    <p className="text-sm text-historical-charcoal/50 text-center py-4">{t.admin.promotions.coupons.noUsers}</p>
+                    <p className="text-sm text-historical-charcoal dark:text-gray-200 transition-colors duration-300/50 text-center py-4">{t.admin.promotions.coupons.noUsers}</p>
                   ) : (
                     filteredUsers.map((user) => (
                       <label
                         key={user.id}
-                        className="flex items-center gap-2 p-2 rounded-lg hover:bg-historical-gold/10 cursor-pointer"
+                        className="flex items-center gap-2 p-2 rounded-lg hover:bg-historical-gold/10 dark:hover:bg-gray-700/50 cursor-pointer transition-colors duration-300"
                       >
                         <input
                           type="checkbox"
                           checked={(formData.applicable_users || []).includes(user.id)}
                           onChange={() => toggleUser(user.id)}
-                          className="w-4 h-4 rounded border-historical-gold/30 text-historical-gold focus:ring-historical-gold"
+                          className="w-4 h-4 rounded border-historical-gold/30 dark:border-gray-600 bg-white dark:bg-gray-700 text-historical-gold dark:text-yellow-400 focus:ring-historical-gold dark:focus:ring-yellow-600 transition-colors duration-300"
                         />
-                        <span className="text-sm text-historical-charcoal">
+                        <span className="text-sm text-historical-charcoal dark:text-gray-200 transition-colors duration-300">
                           {user.email} {user.first_name && `(${user.first_name} ${user.last_name || ''})`}
                         </span>
                       </label>
@@ -1006,7 +1006,7 @@ function CouponModal({
                   )}
                 </div>
                 {(formData.applicable_users || []).length > 0 && (
-                  <p className="text-xs text-historical-charcoal/50 mt-2">
+                  <p className="text-xs text-historical-charcoal/50 dark:text-gray-400 mt-2 transition-colors duration-300">
                     {t.admin.promotions.coupons.selectedUsers.replace('{count}', (formData.applicable_users?.length || 0).toString())}
                   </p>
                 )}
@@ -1022,16 +1022,16 @@ function CouponModal({
                   onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
                   className="w-4 h-4 rounded border-historical-gold/30 text-historical-gold focus:ring-historical-gold"
                 />
-                <span className="text-sm text-historical-charcoal">{t.admin.promotions.active}</span>
+                <span className="text-sm text-historical-charcoal dark:text-gray-200 transition-colors duration-300">{t.admin.promotions.active}</span>
               </label>
             </div>
           </form>
 
-          <div className="flex items-center justify-end gap-3 p-6 border-t border-historical-gold/10">
+          <div className="flex items-center justify-end gap-3 p-6 border-t border-historical-gold/10 dark:border-gray-700 transition-colors duration-300">
             <button
               type="button"
               onClick={onClose}
-              className="px-6 py-2.5 rounded-xl text-historical-charcoal/70 hover:bg-historical-gold/10 transition-colors"
+              className="px-6 py-2.5 rounded-xl text-historical-charcoal/70 dark:text-gray-300 hover:text-historical-charcoal dark:hover:text-gray-200 hover:bg-historical-gold/10 dark:hover:bg-gray-700/50 transition-colors duration-300"
             >
               {t.admin.promotions.coupons.cancel}
             </button>

@@ -84,12 +84,12 @@ const getLocationLabel = (location: BannerLocation, t: any) => {
 
 const getLocationColor = (location: BannerLocation) => {
   const colors = {
-    hero: 'bg-blue-100 text-blue-700',
-    sidebar: 'bg-purple-100 text-purple-700',
-    popup: 'bg-yellow-100 text-yellow-700',
-    category: 'bg-green-100 text-green-700',
+    hero: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400',
+    sidebar: 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400',
+    popup: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400',
+    category: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400',
   }
-  return colors[location] || 'bg-gray-100 text-gray-700'
+  return colors[location] || 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
 }
 
 // =============================================================================
@@ -198,13 +198,13 @@ export default function BannersPage() {
         <div className="flex items-center gap-4">
           <Link
             href="/admin/promotions"
-            className="p-2 rounded-xl border border-historical-gold/20 text-historical-charcoal/50 hover:text-historical-charcoal hover:bg-historical-gold/10 transition-colors"
+            className="p-2 rounded-xl border border-historical-gold/20 dark:border-gray-600 text-historical-charcoal dark:text-gray-200 transition-colors duration-300/50 hover:text-historical-charcoal dark:text-gray-200 transition-colors duration-300 hover:bg-historical-gold/10 transition-colors"
           >
             {Icons.back}
           </Link>
           <div>
-            <h1 className="text-2xl font-bold text-historical-charcoal">{t.admin.promotions.banners.pageTitle}</h1>
-            <p className="text-historical-charcoal/50 mt-1">{t.admin.promotions.banners.pageSubtitle}</p>
+            <h1 className="text-2xl font-bold text-historical-charcoal dark:text-gray-200 transition-colors duration-300">{t.admin.promotions.banners.pageTitle}</h1>
+            <p className="text-historical-charcoal dark:text-gray-200 transition-colors duration-300/50 mt-1">{t.admin.promotions.banners.pageSubtitle}</p>
           </div>
         </div>
         <button
@@ -221,7 +221,7 @@ export default function BannersPage() {
         <select
           value={filterLocation}
           onChange={(e) => setFilterLocation(e.target.value as BannerLocation | '')}
-          className="px-4 py-3 rounded-xl border border-historical-gold/20 bg-white/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-historical-gold/30 min-w-[180px]"
+          className="px-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 min-w-[180px]"
         >
           <option value="">{t.admin.promotions.banners.allLocations}</option>
           <option value="hero">{t.admin.promotions.banners.hero}</option>
@@ -231,15 +231,15 @@ export default function BannersPage() {
         </select>
         <div className="flex-1" />
         {isLoading ? (
-          <div className="flex items-center gap-2 text-sm text-historical-charcoal/50">
+          <div className="flex items-center gap-2 text-sm text-historical-charcoal dark:text-gray-200 transition-colors duration-300/50">
             <div className="w-4 h-4 border-2 border-historical-gold border-t-transparent rounded-full animate-spin" />
             <span>{t.admin.promotions.banners.loading}</span>
           </div>
         ) : (
-          <div className="flex items-center gap-4 text-sm text-historical-charcoal/50">
+          <div className="flex items-center gap-4 text-sm text-historical-charcoal dark:text-gray-200 transition-colors duration-300/50">
             <span>{t.admin.promotions.banners.total}: {total}</span>
             <span>•</span>
-            <span className="text-green-600">{t.admin.promotions.active}: {activeBanners.length}</span>
+            <span className="text-green-600 dark:text-green-400 transition-colors duration-300">{t.admin.promotions.active}: {activeBanners.length}</span>
           </div>
         )}
       </motion.div>
@@ -248,7 +248,7 @@ export default function BannersPage() {
       {error && (
         <motion.div
           variants={itemVariants}
-          className="p-4 rounded-xl bg-red-50 border border-red-200 text-red-700"
+          className="p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 transition-colors duration-300"
         >
           {error}
         </motion.div>
@@ -258,15 +258,15 @@ export default function BannersPage() {
       {isLoading ? (
         <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="bg-white/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 shadow-soft h-64 animate-pulse" />
+            <div key={i} className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm transition-colors duration-300 rounded-2xl border border-historical-gold/10 dark:border-gray-700 shadow-soft h-64 animate-pulse" />
           ))}
         </motion.div>
       ) : filteredBanners.length === 0 ? (
         <motion.div
           variants={itemVariants}
-          className="text-center py-12 bg-white/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10"
+          className="text-center py-12 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm transition-colors duration-300 rounded-2xl border border-historical-gold/10 dark:border-gray-700"
         >
-          <p className="text-historical-charcoal/50">{t.admin.promotions.banners.noBanners}</p>
+          <p className="text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{t.admin.promotions.banners.noBanners}</p>
         </motion.div>
       ) : (
         <motion.div variants={containerVariants} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -274,8 +274,8 @@ export default function BannersPage() {
             <motion.div
               key={banner.id}
               variants={itemVariants}
-              className={`bg-white/80 backdrop-blur-sm rounded-2xl border shadow-soft overflow-hidden group ${
-                banner.is_active ? 'border-green-200' : 'border-historical-gold/10'
+              className={`bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm transition-colors duration-300 rounded-2xl border shadow-soft overflow-hidden group ${
+                banner.is_active ? 'border-green-200 dark:border-green-800' : 'border-historical-gold/10 dark:border-gray-700'
               }`}
             >
               {/* Banner Image Preview */}
@@ -305,7 +305,7 @@ export default function BannersPage() {
                 </div>
                 {!banner.is_active && (
                   <div className="absolute top-3 right-3">
-                    <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">
+                    <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 transition-colors duration-300">
                       {t.admin.promotions.banners.inactive}
                     </span>
                   </div>
@@ -315,23 +315,23 @@ export default function BannersPage() {
               {/* Banner Details */}
               <div className="p-4">
                 <div className="flex items-center gap-4 mb-4">
-                  <div className="flex items-center gap-2 text-sm text-historical-charcoal/50">
+                  <div className="flex items-center gap-2 text-sm text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">
                     {Icons.eye}
                     <span>{banner.views.toLocaleString()} {t.admin.promotions.views}</span>
                   </div>
-                  <div className="flex items-center gap-2 text-sm text-historical-charcoal/50">
+                  <div className="flex items-center gap-2 text-sm text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">
                     {Icons.click}
                     <span>{banner.clicks.toLocaleString()} {t.admin.promotions.clicks}</span>
                   </div>
                   <div className="flex-1" />
                   {banner.views > 0 && (
-                    <span className="text-xs text-historical-charcoal/40">
+                    <span className="text-xs text-historical-charcoal/40 dark:text-gray-500 transition-colors duration-300">
                       {((banner.clicks / banner.views) * 100).toFixed(1)}% CTR
                     </span>
                   )}
                 </div>
 
-                <div className="flex items-center gap-2 text-sm text-historical-charcoal/50 mb-4">
+                <div className="flex items-center gap-2 text-sm text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300 mb-4">
                   <span>{t.admin.promotions.banners.from}: {new Date(banner.start_date).toLocaleDateString('ar-SY')}</span>
                   {banner.end_date && (
                     <>
@@ -346,27 +346,27 @@ export default function BannersPage() {
                     onClick={() => handleToggle(banner.id, banner.is_active)}
                     disabled={isProcessing}
                     className={`relative w-12 h-7 rounded-full transition-colors duration-200 disabled:opacity-50 ${
-                      banner.is_active ? 'bg-green-500' : 'bg-historical-charcoal/20'
+                      banner.is_active ? 'bg-green-500 dark:bg-green-600' : 'bg-historical-charcoal/20 dark:bg-gray-600'
                     }`}
                   >
                     <motion.div
                       initial={false}
                       animate={{ x: banner.is_active ? 22 : 4 }}
                       transition={{ duration: 0.2 }}
-                      className="absolute top-1 w-5 h-5 rounded-full bg-white shadow"
+                      className="absolute top-1 w-5 h-5 rounded-full bg-white dark:bg-gray-200 shadow transition-colors duration-300"
                     />
                   </button>
                   <div className="flex-1" />
                   <button
                     onClick={() => handleEdit(banner)}
-                    className="p-2 rounded-lg text-historical-charcoal/50 hover:text-historical-charcoal hover:bg-historical-gold/10 transition-colors"
+                    className="p-2 rounded-lg text-historical-charcoal/50 dark:text-gray-500 hover:text-historical-charcoal dark:hover:text-gray-200 hover:bg-historical-gold/10 dark:hover:bg-gray-700/50 transition-colors duration-300"
                   >
                     {Icons.edit}
                   </button>
                   <button
                     onClick={() => handleDelete(banner.id)}
                     disabled={isProcessing}
-                    className="p-2 rounded-lg text-historical-charcoal/50 hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-50"
+                    className="p-2 rounded-lg text-historical-charcoal/50 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors duration-300 disabled:opacity-50"
                   >
                     {Icons.delete}
                   </button>
@@ -543,16 +543,16 @@ function BannerModal({
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          className="w-full max-w-2xl max-h-[90vh] bg-white rounded-2xl shadow-2xl overflow-hidden my-8"
+          className="w-full max-w-2xl max-h-[90vh] bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden my-8 transition-colors duration-300"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="flex items-center justify-between p-6 border-b border-historical-gold/10">
-            <h2 className="text-lg font-bold text-historical-charcoal">
+          <div className="flex items-center justify-between p-6 border-b border-historical-gold/10 dark:border-gray-700 transition-colors duration-300">
+            <h2 className="text-lg font-bold text-historical-charcoal dark:text-gray-200 transition-colors duration-300">
               {banner ? t.admin.promotions.banners.editBanner : t.admin.promotions.banners.addNewBanner}
             </h2>
             <button
               onClick={onClose}
-              className="p-2 rounded-lg text-historical-charcoal/50 hover:bg-historical-gold/10 transition-colors"
+              className="p-2 rounded-lg text-historical-charcoal/50 dark:text-gray-400 hover:text-historical-charcoal dark:hover:text-gray-200 hover:bg-historical-gold/10 dark:hover:bg-gray-700/50 transition-colors duration-300"
             >
               {Icons.close}
             </button>
@@ -561,8 +561,8 @@ function BannerModal({
           <form onSubmit={handleSubmit} className="p-6 space-y-6 overflow-y-auto max-h-[calc(90vh-140px)]">
             {/* Image Upload */}
             <div>
-              <label className="block text-sm font-medium text-historical-charcoal mb-2">{t.admin.promotions.banners.image}</label>
-              <div className="border-2 border-dashed border-historical-gold/30 rounded-xl p-8 text-center bg-historical-stone/30">
+              <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300 mb-2">{t.admin.promotions.banners.image}</label>
+              <div className="border-2 border-dashed border-historical-gold/30 dark:border-gray-600 rounded-xl p-8 text-center bg-historical-stone/30 dark:bg-gray-700/30 transition-colors duration-300">
                 {imagePreview ? (
                   <div className="relative">
                     <img
@@ -576,7 +576,7 @@ function BannerModal({
                         setImagePreview(null)
                         setImageFile(null)
                       }}
-                      className="px-4 py-2 rounded-lg bg-red-50 text-red-600 text-sm font-medium hover:bg-red-100"
+                      className="px-4 py-2 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm font-medium hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors duration-300"
                     >
                       {t.admin.promotions.banners.removeImage}
                     </button>
@@ -584,8 +584,8 @@ function BannerModal({
                 ) : (
                   <>
                     <div className="text-historical-gold mb-3">{Icons.image}</div>
-                    <p className="text-sm text-historical-charcoal/70 mb-2">{t.admin.promotions.banners.dragImage}</p>
-                    <label className="inline-block px-4 py-2 rounded-lg bg-historical-gold/10 text-historical-gold text-sm font-medium cursor-pointer hover:bg-historical-gold/20 transition-colors">
+                    <p className="text-sm text-historical-charcoal/70 dark:text-gray-300 mb-2 transition-colors duration-300">{t.admin.promotions.banners.dragImage}</p>
+                    <label className="inline-block px-4 py-2 rounded-lg bg-historical-gold/10 dark:bg-yellow-900/30 text-historical-gold dark:text-yellow-400 text-sm font-medium cursor-pointer hover:bg-historical-gold/20 dark:hover:bg-yellow-900/40 transition-colors duration-300">
                       {t.admin.promotions.banners.chooseFile}
                       <input
                         type="file"
@@ -598,21 +598,21 @@ function BannerModal({
                 )}
               </div>
               {formErrors.image && (
-                <p className="text-sm text-red-600 mt-1">{formErrors.image}</p>
+                <p className="text-sm text-red-600 dark:text-red-400 mt-1 transition-colors duration-300">{formErrors.image}</p>
               )}
             </div>
 
             {/* Form Fields */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-historical-charcoal mb-2">
+                <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300 mb-2">
                   {t.admin.promotions.banners.titleAr} *
                 </label>
                 <input
                   type="text"
                   value={formData.title_ar}
                   onChange={(e) => setFormData({ ...formData, title_ar: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+                  className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700/50 text-historical-charcoal dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 transition-colors duration-300"
                   required
                 />
                 {formErrors.title_ar && (
@@ -620,14 +620,14 @@ function BannerModal({
                 )}
               </div>
               <div>
-                <label className="block text-sm font-medium text-historical-charcoal mb-2">
+                <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300 mb-2">
                   {t.admin.promotions.banners.titleEn} *
                 </label>
                 <input
                   type="text"
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+                  className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700/50 text-historical-charcoal dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 transition-colors duration-300"
                   dir="ltr"
                   required
                 />
@@ -639,25 +639,25 @@ function BannerModal({
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-historical-charcoal mb-2">
+                <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300 mb-2">
                   {t.admin.promotions.banners.subtitleAr}
                 </label>
                 <input
                   type="text"
                   value={formData.subtitle_ar}
                   onChange={(e) => setFormData({ ...formData, subtitle_ar: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+                  className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700/50 text-historical-charcoal dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 transition-colors duration-300"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-historical-charcoal mb-2">
+                <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300 mb-2">
                   {t.admin.promotions.banners.subtitleEn}
                 </label>
                 <input
                   type="text"
                   value={formData.subtitle}
                   onChange={(e) => setFormData({ ...formData, subtitle: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+                  className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700/50 text-historical-charcoal dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 transition-colors duration-300"
                   dir="ltr"
                 />
               </div>
@@ -665,13 +665,13 @@ function BannerModal({
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-historical-charcoal mb-2">
+                <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300 mb-2">
                   {t.admin.promotions.banners.linkType}
                 </label>
                 <select
                   value={formData.link_type}
                   onChange={(e) => setFormData({ ...formData, link_type: e.target.value as 'url' | 'product' | 'category' })}
-                  className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+                  className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700/50 text-historical-charcoal dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 transition-colors duration-300"
                 >
                   <option value="url">{t.admin.promotions.banners.directLink}</option>
                   <option value="product">{t.admin.promotions.banners.product}</option>
@@ -679,14 +679,14 @@ function BannerModal({
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-historical-charcoal mb-2">
+                <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300 mb-2">
                   {t.admin.promotions.banners.link} *
                 </label>
                 <input
                   type="text"
                   value={formData.link}
                   onChange={(e) => setFormData({ ...formData, link: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+                  className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700/50 text-historical-charcoal dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 transition-colors duration-300"
                   dir="ltr"
                   required
                 />
@@ -698,13 +698,13 @@ function BannerModal({
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-historical-charcoal mb-2">
+                <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300 mb-2">
                   {t.admin.promotions.banners.location}
                 </label>
                 <select
                   value={formData.location}
                   onChange={(e) => setFormData({ ...formData, location: e.target.value as BannerLocation })}
-                  className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+                  className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700/50 text-historical-charcoal dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 transition-colors duration-300"
                 >
                   <option value="hero">{t.admin.promotions.banners.hero}</option>
                   <option value="sidebar">{t.admin.promotions.banners.sidebar}</option>
@@ -713,14 +713,14 @@ function BannerModal({
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-historical-charcoal mb-2">
+                <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300 mb-2">
                   {t.admin.promotions.banners.order}
                 </label>
                 <input
                   type="number"
                   value={formData.order}
                   onChange={(e) => setFormData({ ...formData, order: parseInt(e.target.value) || 0 })}
-                  className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+                  className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700/50 text-historical-charcoal dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 transition-colors duration-300"
                   min="0"
                 />
               </div>
@@ -728,26 +728,26 @@ function BannerModal({
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-historical-charcoal mb-2">
+                <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300 mb-2">
                   {t.admin.promotions.banners.startDate} *
                 </label>
                 <input
                   type="datetime-local"
                   value={formData.start_date}
                   onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+                  className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700/50 text-historical-charcoal dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 transition-colors duration-300"
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-historical-charcoal mb-2">
+                <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300 mb-2">
                   {t.admin.promotions.banners.endDate}
                 </label>
                 <input
                   type="datetime-local"
                   value={formData.end_date || ''}
                   onChange={(e) => setFormData({ ...formData, end_date: e.target.value || null })}
-                  className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+                  className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700/50 text-historical-charcoal dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 transition-colors duration-300"
                 />
               </div>
             </div>
@@ -758,18 +758,18 @@ function BannerModal({
                   type="checkbox"
                   checked={formData.is_active}
                   onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
-                  className="w-4 h-4 rounded border-historical-gold/30 text-historical-gold focus:ring-historical-gold"
+                  className="w-4 h-4 rounded border-historical-gold/30 dark:border-gray-600 bg-white dark:bg-gray-700 text-historical-gold dark:text-yellow-400 focus:ring-historical-gold dark:focus:ring-yellow-600 transition-colors duration-300"
                 />
-                <span className="text-sm text-historical-charcoal">{t.admin.promotions.active}</span>
+                <span className="text-sm text-historical-charcoal dark:text-gray-200 transition-colors duration-300">{t.admin.promotions.active}</span>
               </label>
             </div>
           </form>
 
-          <div className="flex items-center justify-end gap-3 p-6 border-t border-historical-gold/10">
+          <div className="flex items-center justify-end gap-3 p-6 border-t border-historical-gold/10 dark:border-gray-700 transition-colors duration-300">
             <button
               type="button"
               onClick={onClose}
-              className="px-6 py-2.5 rounded-xl text-historical-charcoal/70 hover:bg-historical-gold/10 transition-colors"
+              className="px-6 py-2.5 rounded-xl text-historical-charcoal/70 dark:text-gray-300 hover:text-historical-charcoal dark:hover:text-gray-200 hover:bg-historical-gold/10 dark:hover:bg-gray-700/50 transition-colors duration-300"
             >
               {t.admin.promotions.banners.cancel}
             </button>

@@ -153,8 +153,8 @@ export default function PromotionsPage() {
       {/* Page Header */}
       <motion.div variants={itemVariants} className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-historical-charcoal">{t.admin.promotions.title}</h1>
-          <p className="text-historical-charcoal/50 mt-1">{t.admin.promotions.subtitle}</p>
+          <h1 className="text-2xl font-bold text-historical-charcoal dark:text-gray-100 transition-colors duration-300">{t.admin.promotions.title}</h1>
+          <p className="text-historical-charcoal/50 dark:text-gray-400 mt-1 transition-colors duration-300">{t.admin.promotions.subtitle}</p>
         </div>
       </motion.div>
 
@@ -163,7 +163,7 @@ export default function PromotionsPage() {
         {promotionSections.map((section) => (
           <motion.div key={section.id} variants={itemVariants}>
             <Link href={section.href} className="block group">
-              <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 shadow-soft overflow-hidden hover:shadow-soft-lg transition-all">
+              <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 dark:border-gray-700 shadow-soft overflow-hidden hover:shadow-soft-lg transition-all duration-300">
                 {/* Header with gradient */}
                 <div className={`bg-gradient-to-l ${section.color} p-6 text-white`}>
                   <div className="flex items-center justify-between">
@@ -179,15 +179,15 @@ export default function PromotionsPage() {
 
                 {/* Content */}
                 <div className="p-5">
-                  <h3 className="font-bold text-historical-charcoal text-lg mb-1">{section.title}</h3>
-                  <p className="text-sm text-historical-charcoal/50 mb-4">{section.description}</p>
+                  <h3 className="font-bold text-historical-charcoal dark:text-gray-100 text-lg mb-1 transition-colors duration-300">{section.title}</h3>
+                  <p className="text-sm text-historical-charcoal/50 dark:text-gray-400 mb-4 transition-colors duration-300">{section.description}</p>
                   
                   <div className="flex items-center justify-between">
-                    <button className="flex items-center gap-2 text-sm font-medium text-historical-gold hover:text-historical-red transition-colors">
+                    <button className="flex items-center gap-2 text-sm font-medium text-historical-gold dark:text-yellow-400 hover:text-historical-red dark:hover:text-red-400 transition-colors duration-300">
                       {Icons.add}
                       <span>{t.admin.promotions.addNew}</span>
                     </button>
-                    <span className="text-historical-charcoal/30 group-hover:text-historical-gold transition-colors">
+                    <span className="text-historical-charcoal/30 dark:text-gray-500 group-hover:text-historical-gold dark:group-hover:text-yellow-400 transition-colors duration-300">
                       {Icons.arrow}
                     </span>
                   </div>
@@ -201,19 +201,19 @@ export default function PromotionsPage() {
       {/* Recent Activity */}
       <motion.div
         variants={itemVariants}
-        className="bg-white/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 shadow-soft overflow-hidden"
+        className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 dark:border-gray-700 shadow-soft overflow-hidden transition-colors duration-300"
       >
-        <div className="flex items-center justify-between px-6 py-4 border-b border-historical-gold/10">
-          <h2 className="text-lg font-bold text-historical-charcoal">{t.admin.promotions.recentActivity}</h2>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-historical-gold/10 dark:border-gray-700 transition-colors duration-300">
+          <h2 className="text-lg font-bold text-historical-charcoal dark:text-gray-100 transition-colors duration-300">{t.admin.promotions.recentActivity}</h2>
           <div className="flex items-center gap-2">
             {(['all', 'banners', 'stories', 'coupons'] as const).map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-300 ${
                   activeTab === tab
-                    ? 'bg-historical-gold/20 text-historical-gold'
-                    : 'text-historical-charcoal/50 hover:bg-historical-gold/10'
+                    ? 'bg-historical-gold/20 dark:bg-yellow-900/30 text-historical-gold dark:text-yellow-400'
+                    : 'text-historical-charcoal/50 dark:text-gray-400 hover:bg-historical-gold/10 dark:hover:bg-gray-700/50'
                 }`}
               >
                 {tab === 'all' && t.admin.promotions.all}
@@ -227,39 +227,39 @@ export default function PromotionsPage() {
 
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-historical-stone/50">
+            <thead className="bg-historical-stone/50 dark:bg-gray-700/50 transition-colors duration-300">
               <tr>
-                <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">{t.admin.promotions.type}</th>
-                <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">{t.admin.promotions.titleLabel}</th>
-                <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">{t.admin.promotions.status}</th>
-                <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">{t.admin.promotions.performance}</th>
+                <th className="text-right text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-6 py-3 transition-colors duration-300">{t.admin.promotions.type}</th>
+                <th className="text-right text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-6 py-3 transition-colors duration-300">{t.admin.promotions.titleLabel}</th>
+                <th className="text-right text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-6 py-3 transition-colors duration-300">{t.admin.promotions.status}</th>
+                <th className="text-right text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-6 py-3 transition-colors duration-300">{t.admin.promotions.performance}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-historical-gold/5">
+            <tbody className="divide-y divide-historical-gold/5 dark:divide-gray-700 transition-colors duration-300">
               {recentPromotions
                 .filter(p => activeTab === 'all' || p.type === activeTab.slice(0, -1))
                 .map((promo) => (
-                <tr key={promo.id} className="hover:bg-historical-gold/5 transition-colors">
+                <tr key={promo.id} className="hover:bg-historical-gold/5 dark:hover:bg-gray-700/30 transition-colors duration-300">
                   <td className="px-6 py-4">
                     <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${
-                      promo.type === 'banner' ? 'bg-blue-100 text-blue-700' :
-                      promo.type === 'story' ? 'bg-purple-100 text-purple-700' :
-                      'bg-historical-gold/20 text-historical-gold'
-                    }`}>
+                      promo.type === 'banner' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' :
+                      promo.type === 'story' ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400' :
+                      'bg-historical-gold/20 dark:bg-yellow-900/30 text-historical-gold dark:text-yellow-400'
+                    } transition-colors duration-300`}>
                       {promo.type === 'banner' && t.admin.promotions.banner}
                       {promo.type === 'story' && t.admin.promotions.story}
                       {promo.type === 'coupon' && t.admin.promotions.coupon}
                     </span>
                   </td>
                   <td className="px-6 py-4">
-                    <span className="font-medium text-historical-charcoal">{promo.title}</span>
+                    <span className="font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300">{promo.title}</span>
                   </td>
                   <td className="px-6 py-4">
                     <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${
-                      promo.status === 'active' ? 'bg-green-100 text-green-700' :
-                      promo.status === 'scheduled' ? 'bg-yellow-100 text-yellow-700' :
-                      'bg-gray-100 text-gray-700'
-                    }`}>
+                      promo.status === 'active' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' :
+                      promo.status === 'scheduled' ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400' :
+                      'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                    } transition-colors duration-300`}>
                       {promo.status === 'active' && t.admin.promotions.active}
                       {promo.status === 'scheduled' && t.admin.promotions.scheduled}
                       {promo.status === 'expired' && t.admin.promotions.expired}
@@ -267,11 +267,11 @@ export default function PromotionsPage() {
                   </td>
                   <td className="px-6 py-4">
                     {promo.type === 'coupon' ? (
-                      <span className="text-sm text-historical-charcoal/70">
+                      <span className="text-sm text-historical-charcoal/70 dark:text-gray-300 transition-colors duration-300">
                         {promo.uses} {t.admin.promotions.uses} • {promo.remaining} {t.admin.promotions.remaining}
                       </span>
                     ) : (
-                      <span className="text-sm text-historical-charcoal/70">
+                      <span className="text-sm text-historical-charcoal/70 dark:text-gray-300 transition-colors duration-300">
                         {promo.views?.toLocaleString()} {t.admin.promotions.views} • {promo.clicks} {t.admin.promotions.clicks}
                       </span>
                     )}
