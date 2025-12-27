@@ -15,6 +15,7 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useReports } from '@/lib/admin/hooks/useReports'
 import type { DateRange, ReportType } from '@/lib/admin/types/reports'
+import { useLanguage } from '@/lib/i18n/context'
 
 // =============================================================================
 // Icons
@@ -68,8 +69,8 @@ const Icons = {
 // دوال مساعدة
 // =============================================================================
 
-function formatCurrency(value: number): string {
-  return new Intl.NumberFormat('ar-SY', {
+function formatCurrency(value: number, locale: string = 'ar-SY'): string {
+  return new Intl.NumberFormat(locale, {
     style: 'currency',
     currency: 'SYP',
     minimumFractionDigits: 0,
@@ -77,8 +78,21 @@ function formatCurrency(value: number): string {
   }).format(value)
 }
 
-function formatNumber(value: number): string {
-  return new Intl.NumberFormat('ar-SY').format(value)
+function formatNumber(value: number, locale: string = 'ar-SY'): string {
+  return new Intl.NumberFormat(locale).format(value)
+}
+
+// Helper function to translate order status
+function getStatusLabel(status: string, t: any): string {
+  const statusMap: Record<string, string> = {
+    pending: t.admin.orders.status.pending,
+    confirmed: t.admin.orders.status.confirmed,
+    shipped: t.admin.orders.status.shipped,
+    delivered: t.admin.orders.status.delivered,
+    cancelled: t.admin.orders.status.cancelled,
+    processing: t.admin.orders?.status?.processing || 'قيد المعالجة',
+  }
+  return statusMap[status] || status
 }
 
 // =============================================================================
@@ -107,6 +121,7 @@ const itemVariants = {
 // =============================================================================
 
 export default function ReportsPage() {
+  const { t, language, direction } = useLanguage()
   const [selectedReportType, setSelectedReportType] = useState<ReportType>('sales')
   
   const {
@@ -227,8 +242,8 @@ export default function ReportsPage() {
       {/* Page Header */}
       <motion.div variants={itemVariants} className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-historical-charcoal">التقارير والإحصائيات</h1>
-          <p className="text-historical-charcoal/50 mt-1">تحليل أداء المتجر والمبيعات</p>
+          <h1 className="text-2xl font-bold text-historical-charcoal">{t.admin.reports.title}</h1>
+          <p className="text-historical-charcoal/50 mt-1">{t.admin.reports.subtitle}</p>
         </div>
         <div className="flex items-center gap-3 flex-wrap">
           <select
@@ -236,10 +251,10 @@ export default function ReportsPage() {
             onChange={(e) => setDateRange(e.target.value as DateRange)}
             className="px-4 py-2.5 rounded-xl border border-historical-gold/20 bg-white/80 text-sm focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
           >
-            <option value="7days">آخر 7 أيام</option>
-            <option value="30days">آخر 30 يوم</option>
-            <option value="90days">آخر 90 يوم</option>
-            <option value="year">سنة كاملة</option>
+            <option value="7days">{t.admin.reports.dateRange['7days']}</option>
+            <option value="30days">{t.admin.reports.dateRange['30days']}</option>
+            <option value="90days">{t.admin.reports.dateRange['90days']}</option>
+            <option value="year">{t.admin.reports.dateRange['year']}</option>
           </select>
           <select
             value={selectedReportType}
@@ -249,21 +264,33 @@ export default function ReportsPage() {
               setSelectedReportType(newType)
             }}
             className="px-4 py-2.5 rounded-xl border border-blue-500/30 bg-white/80 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 font-medium"
-            title="اختر نوع التقرير للتصدير"
+            title={t.admin.reports.selectReportType || (language === 'ar' ? 'اختر نوع التقرير للتصدير' : 'Select report type to export')}
           >
-            <option value="sales">📊 تقرير المبيعات</option>
-            <option value="products">📦 تقرير المنتجات</option>
-            <option value="users">👥 تقرير المستخدمين</option>
-            <option value="commissions">💰 تقرير العمولات</option>
+            <option value="sales">📊 {t.admin.reports.reportType.sales}</option>
+            <option value="products">📦 {t.admin.reports.reportType.products}</option>
+            <option value="users">👥 {t.admin.reports.reportType.users}</option>
+            <option value="commissions">💰 {t.admin.reports.reportType.commissions}</option>
           </select>
           <button 
             onClick={handleExport}
             disabled={isLoading}
             className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-historical-gold/10 text-historical-gold font-medium hover:bg-historical-gold/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            title={`تصدير ${selectedReportType === 'sales' ? 'تقرير المبيعات' : selectedReportType === 'products' ? 'تقرير المنتجات' : selectedReportType === 'users' ? 'تقرير المستخدمين' : 'تقرير العمولات'}`}
+            title={
+              selectedReportType === 'sales' ? t.admin.reports.exportSales :
+              selectedReportType === 'products' ? t.admin.reports.exportProducts :
+              selectedReportType === 'users' ? t.admin.reports.exportUsers :
+              t.admin.reports.exportCommissions
+            }
           >
             {Icons.download}
-            <span>{isLoading ? 'جاري التصدير...' : `تصدير ${selectedReportType === 'sales' ? 'المبيعات' : selectedReportType === 'products' ? 'المنتجات' : selectedReportType === 'users' ? 'المستخدمين' : 'العمولات'}`}</span>
+            <span>
+              {isLoading ? t.admin.reports.exporting : 
+                selectedReportType === 'sales' ? t.admin.reports.exportSales :
+                selectedReportType === 'products' ? t.admin.reports.exportProducts :
+                selectedReportType === 'users' ? t.admin.reports.exportUsers :
+                t.admin.reports.exportCommissions
+              }
+            </span>
           </button>
         </div>
       </motion.div>
@@ -284,9 +311,9 @@ export default function ReportsPage() {
             </span>
           </div>
           <p className="text-2xl font-bold text-historical-charcoal">
-            {formatCurrency(summaryData.totalRevenue.value)}
+            {formatCurrency(summaryData.totalRevenue.value, language === 'ar' ? 'ar-SY' : 'en-US')}
           </p>
-          <p className="text-sm text-historical-charcoal/50 mt-1">إجمالي الإيرادات</p>
+          <p className="text-sm text-historical-charcoal/50 mt-1">{t.admin.reports.totalRevenue}</p>
         </div>
 
         {/* Total Orders */}
@@ -303,9 +330,9 @@ export default function ReportsPage() {
             </span>
           </div>
           <p className="text-2xl font-bold text-historical-charcoal">
-            {formatNumber(summaryData.totalOrders.value)}
+            {formatNumber(summaryData.totalOrders.value, language === 'ar' ? 'ar-SY' : 'en-US')}
           </p>
-          <p className="text-sm text-historical-charcoal/50 mt-1">إجمالي الطلبات</p>
+          <p className="text-sm text-historical-charcoal/50 mt-1">{t.admin.reports.totalOrders}</p>
         </div>
 
         {/* Avg Order Value */}
@@ -322,9 +349,9 @@ export default function ReportsPage() {
             </span>
           </div>
           <p className="text-2xl font-bold text-historical-charcoal">
-            {formatCurrency(summaryData.avgOrderValue.value)}
+            {formatCurrency(summaryData.avgOrderValue.value, language === 'ar' ? 'ar-SY' : 'en-US')}
           </p>
-          <p className="text-sm text-historical-charcoal/50 mt-1">متوسط قيمة الطلب</p>
+          <p className="text-sm text-historical-charcoal/50 mt-1">{t.admin.reports.avgOrderValue}</p>
         </div>
 
         {/* New Users */}
@@ -341,9 +368,9 @@ export default function ReportsPage() {
             </span>
           </div>
           <p className="text-2xl font-bold text-historical-charcoal">
-            {formatNumber(summaryData.newUsers.value)}
+            {formatNumber(summaryData.newUsers.value, language === 'ar' ? 'ar-SY' : 'en-US')}
           </p>
-          <p className="text-sm text-historical-charcoal/50 mt-1">المستخدمين الجدد</p>
+          <p className="text-sm text-historical-charcoal/50 mt-1">{t.admin.reports.newUsers}</p>
         </div>
       </motion.div>
 
@@ -364,7 +391,7 @@ export default function ReportsPage() {
           className="text-center py-12"
         >
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-historical-gold mb-4"></div>
-          <p className="text-historical-charcoal/50">جاري تحميل البيانات...</p>
+          <p className="text-historical-charcoal/50">{t.admin.reports.loading}</p>
         </motion.div>
       )}
 
@@ -374,8 +401,8 @@ export default function ReportsPage() {
           variants={itemVariants}
           className="bg-blue-50 border border-blue-200 text-blue-700 px-6 py-8 rounded-xl text-center"
         >
-          <p className="text-lg font-medium mb-2">لا توجد بيانات متاحة</p>
-          <p className="text-sm">يرجى اختيار فترة زمنية أخرى أو التحقق من وجود بيانات في النظام</p>
+          <p className="text-lg font-medium mb-2">{t.admin.reports.noDataMessage}</p>
+          <p className="text-sm">{t.admin.reports.noDataSubmessage}</p>
         </motion.div>
       )}
 
@@ -386,7 +413,7 @@ export default function ReportsPage() {
             variants={itemVariants}
             className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-historical-gold/10 shadow-soft"
           >
-            <h3 className="text-lg font-bold text-historical-charcoal mb-6">المبيعات اليومية</h3>
+            <h3 className="text-lg font-bold text-historical-charcoal mb-6">{t.admin.reports.dailySales}</h3>
             {dailySales.length > 0 ? (
               <div className="flex items-end justify-between gap-2 h-48">
                 {dailySales.map((data, index) => (
@@ -399,7 +426,7 @@ export default function ReportsPage() {
                 >
                   <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
                     <div className="bg-historical-charcoal text-white text-xs px-2 py-1 rounded-lg whitespace-nowrap">
-                      {formatCurrency(Number(data.sales))}
+                      {formatCurrency(Number(data.sales), language === 'ar' ? 'ar-SY' : 'en-US')}
                     </div>
                   </div>
                 </motion.div>
@@ -409,7 +436,7 @@ export default function ReportsPage() {
             </div>
             ) : (
               <div className="flex items-center justify-center h-48 text-historical-charcoal/50">
-                لا توجد بيانات
+                {t.admin.reports.noData}
               </div>
             )}
           </motion.div>
@@ -419,14 +446,14 @@ export default function ReportsPage() {
             variants={itemVariants}
             className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-historical-gold/10 shadow-soft"
           >
-            <h3 className="text-lg font-bold text-historical-charcoal mb-6">المبيعات حسب الفئة</h3>
+            <h3 className="text-lg font-bold text-historical-charcoal mb-6">{t.admin.reports.salesByCategory}</h3>
             {salesByCategory.length > 0 ? (
               <div className="space-y-4">
                 {salesByCategory.map((cat, index) => (
               <div key={cat.category}>
                 <div className="flex items-center justify-between mb-1.5">
                   <span className="text-sm font-medium text-historical-charcoal">{cat.category}</span>
-                  <span className="text-sm text-historical-charcoal/50">{formatCurrency(Number(cat.sales))}</span>
+                  <span className="text-sm text-historical-charcoal/50">{formatCurrency(Number(cat.sales), language === 'ar' ? 'ar-SY' : 'en-US')}</span>
                 </div>
                 <div className="h-2.5 bg-historical-stone rounded-full overflow-hidden">
                   <motion.div
@@ -441,7 +468,7 @@ export default function ReportsPage() {
             </div>
             ) : (
               <div className="flex items-center justify-center h-48 text-historical-charcoal/50">
-                لا توجد بيانات
+                {t.admin.reports.noData}
               </div>
             )}
           </motion.div>
@@ -453,7 +480,7 @@ export default function ReportsPage() {
           className="bg-white/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 shadow-soft overflow-hidden"
         >
           <div className="px-6 py-4 border-b border-historical-gold/10">
-            <h3 className="text-lg font-bold text-historical-charcoal">المنتجات الأكثر مبيعاً</h3>
+            <h3 className="text-lg font-bold text-historical-charcoal">{t.admin.reports.topProducts}</h3>
           </div>
           {topProducts.length > 0 ? (
             <div className="overflow-x-auto">
@@ -461,12 +488,12 @@ export default function ReportsPage() {
                 <thead className="bg-historical-stone/50">
                   <tr>
                     <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">#</th>
-                    <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">المنتج</th>
-                    <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">البائع</th>
-                    <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">الفئة</th>
-                    <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">المبيعات</th>
-                    <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">الإيرادات</th>
-                    <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">المخزون</th>
+                    <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">{t.admin.reports.product}</th>
+                    <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">{t.admin.reports.vendor}</th>
+                    <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">{t.admin.reports.category}</th>
+                    <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">{t.admin.reports.sales}</th>
+                    <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">{t.admin.reports.revenue}</th>
+                    <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">{t.admin.reports.stock}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-historical-gold/5">
@@ -483,16 +510,16 @@ export default function ReportsPage() {
                         <span className="font-medium text-historical-charcoal">{product.name}</span>
                       </td>
                       <td className="px-6 py-4">
-                        <span className="text-sm text-historical-charcoal/70">{product.vendor_name || 'غير معروف'}</span>
+                        <span className="text-sm text-historical-charcoal/70">{product.vendor_name || t.admin.reports.unknown || (language === 'ar' ? 'غير معروف' : 'Unknown')}</span>
                       </td>
                       <td className="px-6 py-4">
-                        <span className="text-sm text-historical-charcoal/70">{product.category_name || 'أخرى'}</span>
+                        <span className="text-sm text-historical-charcoal/70">{product.category_name || t.admin.reports.other || (language === 'ar' ? 'أخرى' : 'Other')}</span>
                       </td>
                       <td className="px-6 py-4">
-                        <span className="text-sm text-historical-charcoal/70">{product.sales} وحدة</span>
+                        <span className="text-sm text-historical-charcoal/70">{product.sales} {t.admin.reports.unit}</span>
                       </td>
                       <td className="px-6 py-4">
-                        <span className="font-bold text-historical-gold">{formatCurrency(Number(product.revenue))}</span>
+                        <span className="font-bold text-historical-gold">{formatCurrency(Number(product.revenue), language === 'ar' ? 'ar-SY' : 'en-US')}</span>
                       </td>
                       <td className="px-6 py-4">
                         <span className={`text-sm font-medium ${
@@ -508,7 +535,7 @@ export default function ReportsPage() {
             </div>
           ) : (
             <div className="px-6 py-12 text-center text-historical-charcoal/50">
-              لا توجد بيانات
+              {t.admin.reports.noData}
             </div>
           )}
         </motion.div>
@@ -520,20 +547,22 @@ export default function ReportsPage() {
           className="bg-white/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 shadow-soft overflow-hidden"
         >
           <div className="px-6 py-4 border-b border-historical-gold/10">
-            <h3 className="text-lg font-bold text-historical-charcoal">قائمة الطلبات التفصيلية</h3>
-            <p className="text-sm text-historical-charcoal/50 mt-1">عرض {salesReport.orders.length} طلب</p>
+            <h3 className="text-lg font-bold text-historical-charcoal">{t.admin.reports.detailedOrders}</h3>
+            <p className="text-sm text-historical-charcoal/50 mt-1">
+              {t.admin.reports.showingOrders.replace('{count}', salesReport.orders.length.toString())}
+            </p>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-historical-stone/50">
                 <tr>
-                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">رقم الطلب</th>
-                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">العميل</th>
-                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">الهاتف</th>
-                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">الحالة</th>
-                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">عدد العناصر</th>
-                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">الإجمالي</th>
-                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">التاريخ</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">{t.admin.reports.orderNumber}</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">{t.admin.reports.customer}</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">{t.admin.reports.phone}</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">{t.admin.reports.status}</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">{t.admin.reports.itemsCount}</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">{t.admin.reports.total}</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">{t.admin.reports.date}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-historical-gold/5">
@@ -556,14 +585,14 @@ export default function ReportsPage() {
                         order.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
                         'bg-red-100 text-red-700'
                       }`}>
-                        {order.status_display}
+                        {getStatusLabel(order.status, t)}
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm text-historical-charcoal/70">{order.items_count} عنصر</span>
+                      <span className="text-sm text-historical-charcoal/70">{t.admin.reports.item.replace('{count}', order.items_count.toString())}</span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="font-bold text-historical-gold">{formatCurrency(Number(order.total))}</span>
+                      <span className="font-bold text-historical-gold">{formatCurrency(Number(order.total), language === 'ar' ? 'ar-SY' : 'en-US')}</span>
                     </td>
                     <td className="px-6 py-4">
                       <span className="text-sm text-historical-charcoal/70">
@@ -585,20 +614,22 @@ export default function ReportsPage() {
           className="bg-white/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 shadow-soft overflow-hidden"
         >
           <div className="px-6 py-4 border-b border-historical-gold/10">
-            <h3 className="text-lg font-bold text-historical-charcoal">قائمة المستخدمين التفصيلية</h3>
-            <p className="text-sm text-historical-charcoal/50 mt-1">عرض {usersReport.users.length} مستخدم</p>
+            <h3 className="text-lg font-bold text-historical-charcoal">{t.admin.reports.detailedUsers}</h3>
+            <p className="text-sm text-historical-charcoal/50 mt-1">
+              {t.admin.reports.showingUsers.replace('{count}', usersReport.users.length.toString())}
+            </p>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-historical-stone/50">
                 <tr>
-                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">الاسم</th>
-                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">البريد</th>
-                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">الهاتف</th>
-                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">عدد الطلبات</th>
-                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">إجمالي الإنفاق</th>
-                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">تاريخ الانضمام</th>
-                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">الحالة</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">{t.admin.reports.name}</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">{t.admin.reports.email}</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">{t.admin.reports.phone}</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">{t.admin.reports.ordersCount}</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">{t.admin.reports.totalSpent}</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">{t.admin.reports.dateJoined}</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">{t.admin.reports.status}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-historical-gold/5">
@@ -616,21 +647,21 @@ export default function ReportsPage() {
                       <span className="text-sm text-historical-charcoal/70">{user.phone || '-'}</span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm text-historical-charcoal/70">{user.orders_count} طلب</span>
+                      <span className="text-sm text-historical-charcoal/70">{t.admin.reports.ordersCountText.replace('{count}', user.orders_count.toString())}</span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="font-bold text-historical-gold">{formatCurrency(Number(user.total_spent))}</span>
+                      <span className="font-bold text-historical-gold">{formatCurrency(Number(user.total_spent), language === 'ar' ? 'ar-SY' : 'en-US')}</span>
                     </td>
                     <td className="px-6 py-4">
                       <span className="text-sm text-historical-charcoal/70">
-                        {new Date(user.date_joined).toLocaleDateString('ar-SY')}
+                        {new Date(user.date_joined).toLocaleDateString(language === 'ar' ? 'ar-SY' : 'en-US')}
                       </span>
                     </td>
                     <td className="px-6 py-4">
                       <span className={`px-2 py-1 rounded-lg text-xs font-medium ${
                         user.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
                       }`}>
-                        {user.is_active ? 'نشط' : 'غير نشط'}
+                        {user.is_active ? t.admin.reports.isActive : t.admin.reports.isInactive}
                       </span>
                     </td>
                   </tr>
@@ -648,20 +679,22 @@ export default function ReportsPage() {
           className="bg-white/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 shadow-soft overflow-hidden"
         >
           <div className="px-6 py-4 border-b border-historical-gold/10">
-            <h3 className="text-lg font-bold text-historical-charcoal">قائمة العمولات التفصيلية</h3>
-            <p className="text-sm text-historical-charcoal/50 mt-1">عرض {commissionsReport.commissions.length} عمولة</p>
+            <h3 className="text-lg font-bold text-historical-charcoal">{t.admin.reports.detailedCommissions}</h3>
+            <p className="text-sm text-historical-charcoal/50 mt-1">
+              {t.admin.reports.showingCommissions.replace('{count}', commissionsReport.commissions.length.toString())}
+            </p>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-historical-stone/50">
                 <tr>
-                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">رقم الطلب</th>
-                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">العميل</th>
-                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">البائع</th>
-                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">إجمالي الطلب</th>
-                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">مبلغ العمولة</th>
-                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">النسبة %</th>
-                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">التاريخ</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">{t.admin.reports.orderNumber}</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">{t.admin.reports.customer}</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">{t.admin.reports.vendor}</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">{t.admin.reports.orderTotal}</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">{t.admin.reports.commissionAmount}</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">{t.admin.reports.commissionPercentage}</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">{t.admin.reports.date}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-historical-gold/5">
@@ -677,17 +710,17 @@ export default function ReportsPage() {
                       <span className="text-sm text-historical-charcoal/70">{commission.vendor_name}</span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm text-historical-charcoal/70">{formatCurrency(Number(commission.order_total))}</span>
+                      <span className="text-sm text-historical-charcoal/70">{formatCurrency(Number(commission.order_total), language === 'ar' ? 'ar-SY' : 'en-US')}</span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="font-bold text-historical-gold">{formatCurrency(Number(commission.commission_amount))}</span>
+                      <span className="font-bold text-historical-gold">{formatCurrency(Number(commission.commission_amount), language === 'ar' ? 'ar-SY' : 'en-US')}</span>
                     </td>
                     <td className="px-6 py-4">
                       <span className="text-sm text-historical-charcoal/70">{commission.commission_percentage}%</span>
                     </td>
                     <td className="px-6 py-4">
                       <span className="text-sm text-historical-charcoal/70">
-                        {new Date(commission.created_at).toLocaleDateString('ar-SY')}
+                        {new Date(commission.created_at).toLocaleDateString(language === 'ar' ? 'ar-SY' : 'en-US')}
                       </span>
                     </td>
                   </tr>

@@ -22,10 +22,12 @@ COPY . .
 # Set environment variables
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV WATCHPACK_POLLING=true
+ENV NEXT_PRIVATE_SKIP_TURBO=1
 
 # Expose port
 EXPOSE 3000
 
 # Start development server with host binding
-CMD ["npm", "run", "dev"]
+# تشغيل خادم التطوير مع ربط المضيف
+CMD ["npm", "run", "dev", "--", "-H", "0.0.0.0"]
 

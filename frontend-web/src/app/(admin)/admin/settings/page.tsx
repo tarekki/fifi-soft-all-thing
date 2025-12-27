@@ -9,6 +9,7 @@
 
 import Link from 'next/link'
 import { motion } from 'framer-motion'
+import { useLanguage } from '@/lib/i18n/context'
 
 // =============================================================================
 // Types
@@ -78,63 +79,63 @@ const Icons = {
 const settingsSections: SettingsSection[] = [
   {
     id: 'general',
-    title: 'الإعدادات العامة',
-    description: 'اسم الموقع، الشعار، العملة، وضع الصيانة',
+    title: t.admin.settings.general.title,
+    description: t.admin.settings.general.title,
     icon: Icons.general,
     href: '/admin/settings/general',
     status: 'ready',
   },
   {
     id: 'seo',
-    title: 'تحسين محركات البحث (SEO)',
-    description: 'العنوان، الوصف، الكلمات المفتاحية',
+    title: t.admin.settings.seo.title,
+    description: t.admin.settings.seo.title,
     icon: Icons.seo,
     href: '/admin/settings/seo',
     status: 'ready',
   },
   {
     id: 'contact',
-    title: 'معلومات الاتصال',
-    description: 'البريد، الهاتف، العنوان، ساعات العمل',
+    title: t.admin.settings.contact.title,
+    description: t.admin.settings.contact.title,
     icon: Icons.contact,
     href: '/admin/settings/contact',
     status: 'ready',
   },
   {
     id: 'social',
-    title: 'روابط التواصل الاجتماعي',
-    description: 'فيسبوك، انستغرام، تويتر، واتساب',
+    title: t.admin.settings.social.title,
+    description: t.admin.settings.social.title,
     icon: Icons.social,
     href: '/admin/settings/social',
     status: 'ready',
   },
   {
     id: 'languages',
-    title: 'اللغات',
-    description: 'إدارة اللغات المدعومة واللغة الافتراضية',
+    title: t.admin.settings.languages.title,
+    description: t.admin.settings.languages.subtitle,
     icon: Icons.languages,
     href: '/admin/settings/languages',
     status: 'ready',
   },
   {
     id: 'navigation',
-    title: 'قوائم التنقل',
-    description: 'الهيدر، الفوتر، القوائم الفرعية',
+    title: t.admin.settings.navigation.title,
+    description: t.admin.settings.navigation.subtitle,
     icon: Icons.navigation,
     href: '/admin/settings/navigation',
     status: 'ready',
   },
   {
     id: 'payments',
-    title: 'طرق الدفع',
-    description: 'إعداد طرق الدفع المتاحة',
+    title: t.admin.settings.payments.title,
+    description: t.admin.settings.payments.subtitle,
     icon: Icons.payments,
     href: '/admin/settings/payments',
     status: 'ready',
   },
   {
     id: 'shipping',
-    title: 'طرق الشحن',
+    title: t.admin.settings.shipping.title,
     description: 'إعداد مناطق ورسوم الشحن',
     icon: Icons.shipping,
     href: '/admin/settings/shipping',
@@ -168,6 +169,8 @@ const itemVariants = {
 // =============================================================================
 
 export default function SettingsIndexPage() {
+  const { t } = useLanguage()
+  const settingsSections = getSettingsSections(t)
   return (
     <motion.div
       variants={containerVariants}
@@ -177,8 +180,8 @@ export default function SettingsIndexPage() {
     >
       {/* Page Header */}
       <motion.div variants={itemVariants}>
-        <h1 className="text-2xl font-bold text-historical-charcoal">إعدادات الموقع</h1>
-        <p className="text-historical-charcoal/50 mt-1">إدارة جميع إعدادات الموقع من مكان واحد</p>
+        <h1 className="text-2xl font-bold text-historical-charcoal">{t.admin.settings.title}</h1>
+        <p className="text-historical-charcoal/50 mt-1">{t.admin.settings.subtitle}</p>
       </motion.div>
 
       {/* Settings Grid */}

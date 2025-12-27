@@ -20,6 +20,7 @@
 import { motion } from 'framer-motion'
 import { useDashboard } from '@/lib/admin'
 import type { RecentOrder, RecentActivity } from '@/lib/admin'
+import { useLanguage } from '@/lib/i18n/context'
 
 // =============================================================================
 // Types
@@ -125,26 +126,26 @@ function getStatusStyle(status: string): string {
 }
 
 /**
- * Get status label in Arabic
- * الحصول على اسم الحالة بالعربي
+ * Get status label (translated)
+ * الحصول على اسم الحالة (مترجم)
  */
-function getStatusLabel(status: string): string {
+function getStatusLabel(status: string, t: any): string {
   const labels: Record<string, string> = {
-    pending: 'قيد الانتظار',
-    processing: 'قيد المعالجة',
-    shipped: 'تم الشحن',
-    delivered: 'تم التسليم',
-    cancelled: 'ملغي',
-    completed: 'مكتمل',
+    pending: t.admin.dashboard.status?.pending || 'قيد الانتظار',
+    processing: t.admin.dashboard.status?.processing || 'قيد المعالجة',
+    shipped: t.admin.dashboard.status?.shipped || 'تم الشحن',
+    delivered: t.admin.dashboard.status?.delivered || 'تم التسليم',
+    cancelled: t.admin.dashboard.status?.cancelled || 'ملغي',
+    completed: t.admin.dashboard.status?.completed || 'مكتمل',
   }
   return labels[status] || status
 }
 
 /**
- * Format date relative to now
- * تنسيق التاريخ نسبة للآن
+ * Format date relative to now (translated)
+ * تنسيق التاريخ نسبة للآن (مترجم)
  */
-function formatRelativeDate(dateStr: string): string {
+function formatRelativeDate(dateStr: string, t: any): string {
   const date = new Date(dateStr)
   const now = new Date()
   const diffMs = now.getTime() - date.getTime()
@@ -152,13 +153,13 @@ function formatRelativeDate(dateStr: string): string {
   const diffHours = Math.floor(diffMs / 3600000)
   const diffDays = Math.floor(diffMs / 86400000)
   
-  if (diffMins < 1) return 'الآن'
-  if (diffMins < 60) return `منذ ${diffMins} دقيقة`
-  if (diffHours < 24) return `منذ ${diffHours} ساعة`
-  if (diffDays === 1) return 'أمس'
-  if (diffDays < 7) return `منذ ${diffDays} أيام`
+  if (diffMins < 1) return t.admin.dashboard.time?.now || 'الآن'
+  if (diffMins < 60) return (t.admin.dashboard.time?.minutesAgo || 'منذ {n} دقيقة').replace('{n}', diffMins.toString())
+  if (diffHours < 24) return (t.admin.dashboard.time?.hoursAgo || 'منذ {n} ساعة').replace('{n}', diffHours.toString())
+  if (diffDays === 1) return t.admin.dashboard.time?.yesterday || 'أمس'
+  if (diffDays < 7) return (t.admin.dashboard.time?.daysAgo || 'منذ {n} أيام').replace('{n}', diffDays.toString())
   
-  return date.toLocaleDateString('ar-SA')
+  return date.toLocaleDateString(t.admin.dashboard.time?.locale || 'ar-SA')
 }
 
 /**
@@ -338,11 +339,12 @@ function SalesChart({
   })) || []
   
   const maxValue = Math.max(...chartData.map(d => d.value), 1)
+  const { t } = useLanguage()
 
   const periodLabels = {
-    week: 'أسبوعي',
-    month: 'شهري',
-    year: 'سنوي',
+    week: t.admin.reports.dateRange['7days'] || 'Week',
+    month: t.admin.reports.dateRange['30days'] || 'Month',
+    year: t.admin.reports.dateRange['year'] || 'Year',
   }
 
   return (
@@ -352,9 +354,9 @@ function SalesChart({
     >
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h3 className="text-lg font-bold text-historical-charcoal">اتجاه المبيعات</h3>
+          <h3 className="text-lg font-bold text-historical-charcoal">{t.admin.dashboard.salesTrend}</h3>
           <p className="text-sm text-historical-charcoal/50">
-            {period === 'week' ? 'آخر 7 أيام' : period === 'month' ? 'آخر 30 يوم' : 'آخر 12 شهر'}
+            {period === 'week' ? periodLabels.week : period === 'month' ? periodLabels.month : periodLabels.year}
           </p>
         </div>
         <select
@@ -383,7 +385,7 @@ function SalesChart({
         </div>
       ) : chartData.length === 0 ? (
         <div className="flex items-center justify-center h-48 text-historical-charcoal/40">
-          لا توجد بيانات متاحة
+          {t.admin.reports.noData}
         </div>
       ) : (
         <div className="flex items-end justify-between gap-2 h-48">
@@ -424,6 +426,8 @@ function RecentOrdersTable({
   orders: RecentOrder[]
   isLoading?: boolean 
 }) {
+  const { t, language } = useLanguage()
+  
   return (
     <motion.div
       variants={itemVariants}
@@ -431,13 +435,13 @@ function RecentOrdersTable({
     >
       <div className="flex items-center justify-between p-6 border-b border-historical-gold/10">
         <div>
-          <h3 className="text-lg font-bold text-historical-charcoal">آخر الطلبات</h3>
+          <h3 className="text-lg font-bold text-historical-charcoal">{t.admin.dashboard.recentOrders}</h3>
           <p className="text-sm text-historical-charcoal/50">
-            {isLoading ? 'جاري التحميل...' : `${orders.length} طلب`}
+            {isLoading ? t.admin.dashboard.loading : (t.admin.dashboard.ordersCount || '').replace('{count}', orders.length.toString())}
           </p>
         </div>
         <button className="text-sm text-historical-gold hover:text-historical-red transition-colors font-medium">
-          عرض الكل
+          {t.admin.dashboard.viewAll}
         </button>
       </div>
 
@@ -445,11 +449,11 @@ function RecentOrdersTable({
         <table className="w-full">
           <thead className="bg-historical-stone/50">
             <tr>
-              <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">رقم الطلب</th>
-              <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">العميل</th>
-              <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">المبلغ</th>
-              <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">الحالة</th>
-              <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">التاريخ</th>
+              <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">{t.admin.reports.orderNumber}</th>
+              <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">{t.admin.reports.customer}</th>
+              <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">{t.admin.reports.total}</th>
+              <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">{t.admin.reports.status}</th>
+              <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">{t.admin.reports.date}</th>
               <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3"></th>
             </tr>
           </thead>
@@ -468,7 +472,7 @@ function RecentOrdersTable({
             ) : orders.length === 0 ? (
               <tr>
                 <td colSpan={6} className="px-6 py-12 text-center text-historical-charcoal/40">
-                  لا توجد طلبات حتى الآن
+                  {t.admin.dashboard.noOrders}
                 </td>
               </tr>
             ) : (
@@ -483,11 +487,11 @@ function RecentOrdersTable({
                   </td>
                   <td className="px-6 py-4">
                     <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${getStatusStyle(order.status)}`}>
-                      {getStatusLabel(order.status)}
+                      {getStatusLabel(order.status, t)}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-sm text-historical-charcoal/50">
-                    {formatRelativeDate(order.created_at)}
+                    {formatRelativeDate(order.created_at, t)}
                   </td>
                   <td className="px-6 py-4">
                     <button className="p-2 rounded-lg text-historical-charcoal/40 hover:text-historical-charcoal hover:bg-historical-gold/10 transition-colors">
@@ -515,6 +519,8 @@ function RecentActivityList({
   activities: RecentActivity[]
   isLoading?: boolean 
 }) {
+  const { t } = useLanguage()
+  
   return (
     <motion.div
       variants={itemVariants}
@@ -522,8 +528,8 @@ function RecentActivityList({
     >
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h3 className="text-lg font-bold text-historical-charcoal">النشاط الأخير</h3>
-          <p className="text-sm text-historical-charcoal/50">آخر التحديثات</p>
+          <h3 className="text-lg font-bold text-historical-charcoal">{t.admin.dashboard.recentActivity}</h3>
+          <p className="text-sm text-historical-charcoal/50">{t.admin.dashboard.recentActivity}</p>
         </div>
       </div>
 
@@ -540,7 +546,7 @@ function RecentActivityList({
           ))
         ) : activities.length === 0 ? (
           <div className="text-center text-historical-charcoal/40 py-8">
-            لا توجد نشاطات حتى الآن
+            {t.admin.dashboard.noActivity}
           </div>
         ) : (
           activities.map((activity) => (
@@ -554,7 +560,7 @@ function RecentActivityList({
                   )}
                 </p>
                 <p className="text-xs text-historical-charcoal/40 mt-0.5">
-                  {formatRelativeDate(activity.timestamp)}
+                  {formatRelativeDate(activity.timestamp, t)}
                 </p>
               </div>
             </div>
@@ -563,7 +569,7 @@ function RecentActivityList({
       </div>
 
       <button className="w-full mt-6 text-center text-sm text-historical-gold hover:text-historical-red transition-colors font-medium">
-        عرض كل النشاط
+        {t.admin.dashboard.viewAllActivity}
       </button>
     </motion.div>
   )
@@ -574,6 +580,8 @@ function RecentActivityList({
 // =============================================================================
 
 export default function AdminDashboardPage() {
+  const { t, language } = useLanguage()
+  
   // Use the dashboard hook with 30 seconds auto-refresh
   // استخدام هوك لوحة التحكم مع تحديث تلقائي كل 30 ثانية
   const {
@@ -594,37 +602,37 @@ export default function AdminDashboardPage() {
   const kpiCards: KPICard[] = [
     {
       id: 'revenue',
-      title: 'إجمالي الإيرادات',
+      title: t.admin.dashboard.totalRevenue,
       value: overview ? formatCurrency(overview.total_revenue) : '$0',
       change: overview?.total_revenue_change || 0,
-      changeLabel: 'من الشهر الماضي',
+      changeLabel: t.admin.dashboard.fromLastMonth,
       icon: Icons.revenue,
       color: 'gold',
     },
     {
       id: 'orders',
-      title: 'إجمالي الطلبات',
+      title: t.admin.dashboard.totalOrders,
       value: overview ? formatNumber(overview.total_orders) : '0',
       change: overview?.total_orders_change || 0,
-      changeLabel: 'من الشهر الماضي',
+      changeLabel: t.admin.dashboard.fromLastMonth,
       icon: Icons.orders,
       color: 'blue',
     },
     {
       id: 'users',
-      title: 'المستخدمين',
+      title: t.admin.dashboard.totalUsers,
       value: overview ? formatNumber(overview.total_users) : '0',
       change: overview?.new_users_week || 0,
-      changeLabel: 'جديد هذا الأسبوع',
+      changeLabel: t.admin.dashboard.newThisWeek,
       icon: Icons.users,
       color: 'green',
     },
     {
       id: 'vendors',
-      title: 'البائعين النشطين',
+      title: t.admin.dashboard.activeVendors,
       value: overview ? formatNumber(overview.active_vendors) : '0',
       change: overview?.pending_vendors || 0,
-      changeLabel: 'قيد الانتظار',
+      changeLabel: t.admin.dashboard.pending,
       icon: Icons.vendors,
       color: 'red',
     },
@@ -640,9 +648,9 @@ export default function AdminDashboardPage() {
       {/* Page Header */}
       <motion.div variants={itemVariants} className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-historical-charcoal">لوحة التحكم</h1>
+          <h1 className="text-2xl font-bold text-historical-charcoal">{t.admin.dashboard.title}</h1>
           <p className="text-historical-charcoal/50 mt-1">
-            مرحباً بك في لوحة التحكم، هذه نظرة عامة على نشاط الموقع
+            {t.admin.dashboard.subtitle}
           </p>
         </div>
         
@@ -661,7 +669,7 @@ export default function AdminDashboardPage() {
             {Icons.refresh}
           </span>
           <span className="text-sm font-medium">
-            {isRefreshing ? 'جاري التحديث...' : 'تحديث'}
+            {isRefreshing ? t.admin.dashboard.refreshing : t.admin.dashboard.refresh}
           </span>
         </button>
       </motion.div>

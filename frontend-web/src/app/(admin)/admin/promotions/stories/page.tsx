@@ -17,6 +17,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 import { useStories } from '@/lib/admin'
 import type { Story, StoryPayload } from '@/lib/admin'
+import { useLanguage } from '@/lib/i18n/context'
 
 // =============================================================================
 // Icons
@@ -77,11 +78,11 @@ const Icons = {
 // دوال مساعدة
 // =============================================================================
 
-const getLinkTypeLabel = (linkType: 'url' | 'product' | 'category') => {
+const getLinkTypeLabel = (linkType: 'url' | 'product' | 'category', t: any) => {
   const labels = {
-    url: 'رابط مباشر',
-    product: 'منتج',
-    category: 'فئة',
+    url: t.admin.promotions.stories.directLink,
+    product: t.admin.promotions.stories.product,
+    category: t.admin.promotions.stories.category,
   }
   return labels[linkType]
 }
@@ -116,18 +117,18 @@ const itemVariants = {
   },
 }
 
-const getTimeRemaining = (expiresAt: string) => {
+const getTimeRemaining = (expiresAt: string, t: any) => {
   const now = new Date()
   const expires = new Date(expiresAt)
   const diff = expires.getTime() - now.getTime()
   
-  if (diff < 0) return 'منتهي'
+  if (diff < 0) return t.admin.promotions.stories.expired
   
   const hours = Math.floor(diff / (1000 * 60 * 60))
   const days = Math.floor(hours / 24)
   
-  if (days > 0) return `${days} يوم`
-  return `${hours} ساعة`
+  if (days > 0) return `${days} ${t.admin.promotions.stories.days}`
+  return `${hours} ${t.admin.promotions.stories.hours}`
 }
 
 // =============================================================================
@@ -135,6 +136,7 @@ const getTimeRemaining = (expiresAt: string) => {
 // =============================================================================
 
 export default function StoriesPage() {
+  const { t } = useLanguage()
   const {
     stories,
     total,
@@ -165,13 +167,13 @@ export default function StoriesPage() {
   }, [stories, update, refresh])
 
   const handleDelete = useCallback(async (id: number) => {
-    if (confirm('هل أنت متأكد من حذف هذه القصة؟')) {
+    if (confirm(t.admin.promotions.stories.confirmDelete)) {
       const success = await remove(id)
       if (success) {
         refresh()
       }
     }
-  }, [remove, refresh])
+  }, [remove, refresh, t])
 
   const handleEdit = useCallback((story: Story) => {
     setEditingStory(story)
@@ -202,8 +204,8 @@ export default function StoriesPage() {
             {Icons.back}
           </Link>
           <div>
-            <h1 className="text-2xl font-bold text-historical-charcoal">القصص (Stories)</h1>
-            <p className="text-historical-charcoal/50 mt-1">إدارة القصص المؤقتة للمنتجات والعروض</p>
+            <h1 className="text-2xl font-bold text-historical-charcoal">{t.admin.promotions.stories.pageTitle}</h1>
+            <p className="text-historical-charcoal/50 mt-1">{t.admin.promotions.stories.pageSubtitle}</p>
           </div>
         </div>
         <button
@@ -211,7 +213,7 @@ export default function StoriesPage() {
           className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-l from-historical-gold to-historical-red text-white font-medium shadow-lg hover:shadow-xl transition-shadow"
         >
           {Icons.add}
-          <span>إضافة قصة</span>
+          <span>{t.admin.promotions.stories.addStory}</span>
         </button>
       </motion.div>
 
@@ -236,7 +238,7 @@ export default function StoriesPage() {
         </motion.div>
       ) : (
         <motion.div variants={itemVariants} className="bg-white/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 shadow-soft p-6">
-          <h2 className="text-sm font-medium text-historical-charcoal/50 mb-4">معاينة كما تظهر للمستخدم</h2>
+          <h2 className="text-sm font-medium text-historical-charcoal/50 mb-4">{t.admin.promotions.stories.preview}</h2>
           <div className="flex gap-4 overflow-x-auto pb-2">
             {activeStories.map((story) => (
               <div key={story.id} className="flex-shrink-0 text-center">
@@ -255,7 +257,7 @@ export default function StoriesPage() {
               </div>
             ))}
             {activeStories.length === 0 && (
-              <p className="text-sm text-historical-charcoal/50">لا توجد قصص نشطة</p>
+              <p className="text-sm text-historical-charcoal/50">{t.admin.promotions.stories.noActiveStories}</p>
             )}
           </div>
         </motion.div>
@@ -273,7 +275,7 @@ export default function StoriesPage() {
           variants={itemVariants}
           className="text-center py-12 bg-white/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10"
         >
-          <p className="text-historical-charcoal/50">لا توجد قصص</p>
+          <p className="text-historical-charcoal/50">{t.admin.promotions.stories.noStories}</p>
         </motion.div>
       ) : (
         <motion.div variants={itemVariants} className="bg-white/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 shadow-soft overflow-hidden">
@@ -302,7 +304,7 @@ export default function StoriesPage() {
                   <div className="flex items-center gap-2 mb-1">
                     <h3 className="font-bold text-historical-charcoal truncate">{story.title_ar}</h3>
                     <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${getLinkTypeColor(story.link_type)}`}>
-                      {getLinkTypeLabel(story.link_type)}
+                      {getLinkTypeLabel(story.link_type, t)}
                     </span>
                   </div>
                   <div className="flex items-center gap-4 text-sm text-historical-charcoal/50">
@@ -310,7 +312,7 @@ export default function StoriesPage() {
                       {Icons.eye}
                       {story.views.toLocaleString()}
                     </span>
-                    <span>ينتهي: {new Date(story.expires_at).toLocaleDateString('ar-SY')}</span>
+                    <span>{t.admin.promotions.stories.expiresAt}: {new Date(story.expires_at).toLocaleDateString('ar-SY')}</span>
                   </div>
                 </div>
 
@@ -400,6 +402,7 @@ function StoryModal({
   onClose,
   onSave,
 }: StoryModalProps) {
+  const { t } = useLanguage()
   const [formData, setFormData] = useState<StoryPayload>({
     title: '',
     title_ar: '',
@@ -461,15 +464,15 @@ function StoryModal({
 
     // Validation
     if (!formData.title_ar.trim()) {
-      setFormErrors({ title_ar: 'العنوان بالعربية مطلوب' })
+      setFormErrors({ title_ar: t.admin.promotions.stories.titleArRequired })
       return
     }
     if (!formData.title.trim()) {
-      setFormErrors({ title: 'العنوان بالإنجليزية مطلوب' })
+      setFormErrors({ title: t.admin.promotions.stories.titleEnRequired })
       return
     }
     if (!story && !imageFile && !imagePreview) {
-      setFormErrors({ image: 'الصورة مطلوبة' })
+      setFormErrors({ image: t.admin.promotions.stories.imageRequired })
       return
     }
 
@@ -505,7 +508,7 @@ function StoryModal({
         >
           <div className="flex items-center justify-between p-6 border-b border-historical-gold/10">
             <h2 className="text-lg font-bold text-historical-charcoal">
-              {story ? 'تعديل القصة' : 'إضافة قصة جديدة'}
+              {story ? t.admin.promotions.stories.editStory : t.admin.promotions.stories.addNewStory}
             </h2>
             <button
               onClick={onClose}
@@ -518,7 +521,7 @@ function StoryModal({
           <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto max-h-[calc(90vh-140px)]">
             {/* Image Upload */}
             <div>
-              <label className="block text-sm font-medium text-historical-charcoal mb-2">الصورة</label>
+              <label className="block text-sm font-medium text-historical-charcoal mb-2">{t.admin.promotions.stories.image}</label>
               <div className="flex justify-center">
                 <div className="w-32 h-48 rounded-xl border-2 border-dashed border-historical-gold/30 bg-historical-stone/30 flex items-center justify-center cursor-pointer hover:bg-historical-gold/10 transition-colors">
                   {imagePreview ? (
@@ -542,7 +545,7 @@ function StoryModal({
                   ) : (
                     <label className="text-center cursor-pointer">
                       <div className="text-historical-gold mb-2">{Icons.play}</div>
-                      <p className="text-xs text-historical-charcoal/50">رفع صورة</p>
+                      <p className="text-xs text-historical-charcoal/50">{t.admin.promotions.stories.uploadImage}</p>
                       <input
                         type="file"
                         accept="image/*"
@@ -560,7 +563,7 @@ function StoryModal({
 
             <div>
               <label className="block text-sm font-medium text-historical-charcoal mb-2">
-                العنوان (عربي) *
+                {t.admin.promotions.stories.titleAr} *
               </label>
               <input
                 type="text"
@@ -576,7 +579,7 @@ function StoryModal({
 
             <div>
               <label className="block text-sm font-medium text-historical-charcoal mb-2">
-                Title (English) *
+                {t.admin.promotions.stories.titleEn} *
               </label>
               <input
                 type="text"
@@ -593,22 +596,22 @@ function StoryModal({
 
             <div>
               <label className="block text-sm font-medium text-historical-charcoal mb-2">
-                نوع الرابط
+                {t.admin.promotions.stories.linkType}
               </label>
               <select
                 value={formData.link_type}
                 onChange={(e) => setFormData({ ...formData, link_type: e.target.value as 'url' | 'product' | 'category' })}
                 className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
               >
-                <option value="url">رابط مباشر</option>
-                <option value="product">منتج</option>
-                <option value="category">فئة</option>
+                <option value="url">{t.admin.promotions.stories.directLink}</option>
+                <option value="product">{t.admin.promotions.stories.product}</option>
+                <option value="category">{t.admin.promotions.stories.category}</option>
               </select>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-historical-charcoal mb-2">
-                الرابط
+                {t.admin.promotions.stories.link}
               </label>
               <input
                 type="text"
@@ -622,7 +625,7 @@ function StoryModal({
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-historical-charcoal mb-2">
-                  تاريخ الانتهاء *
+                  {t.admin.promotions.stories.expiryDate} *
                 </label>
                 <input
                   type="datetime-local"
@@ -634,7 +637,7 @@ function StoryModal({
               </div>
               <div>
                 <label className="block text-sm font-medium text-historical-charcoal mb-2">
-                  الترتيب
+                  {t.admin.promotions.stories.order}
                 </label>
                 <input
                   type="number"
@@ -654,7 +657,7 @@ function StoryModal({
                   onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
                   className="w-4 h-4 rounded border-historical-gold/30 text-historical-gold focus:ring-historical-gold"
                 />
-                <span className="text-sm text-historical-charcoal">نشط</span>
+                <span className="text-sm text-historical-charcoal">{t.admin.promotions.active}</span>
               </label>
             </div>
           </form>
@@ -665,7 +668,7 @@ function StoryModal({
               onClick={onClose}
               className="px-6 py-2.5 rounded-xl text-historical-charcoal/70 hover:bg-historical-gold/10 transition-colors"
             >
-              إلغاء
+              {t.admin.promotions.stories.cancel}
             </button>
             <button
               type="submit"
@@ -673,7 +676,7 @@ function StoryModal({
               disabled={isProcessing}
               className="px-6 py-2.5 rounded-xl bg-historical-gold text-white font-medium hover:bg-historical-red transition-colors disabled:opacity-50"
             >
-              {isProcessing ? 'جاري الحفظ...' : (story ? 'حفظ التغييرات' : 'إضافة القصة')}
+              {isProcessing ? t.admin.promotions.stories.saving : (story ? t.admin.promotions.stories.saveChanges : t.admin.promotions.stories.addStory)}
             </button>
           </div>
         </motion.div>

@@ -23,6 +23,7 @@ import type {
   VendorFilters,
   VendorCreatePayload,
 } from '@/lib/admin/types/vendors'
+import { useLanguage } from '@/lib/i18n/context'
 
 
 // =============================================================================
@@ -193,7 +194,7 @@ function VendorCard({ vendor, onEdit, onToggleStatus, onDelete, isUpdating }: Ve
                 ? 'bg-green-100 text-green-700'
                 : 'bg-red-100 text-red-700'
             }`}>
-              {vendor.is_active ? 'نشط' : 'غير نشط'}
+              {vendor.is_active ? t.admin.vendors.status.active : t.admin.vendors.status.inactive}
             </span>
           </div>
         </div>
@@ -235,7 +236,7 @@ function VendorCard({ vendor, onEdit, onToggleStatus, onDelete, isUpdating }: Ve
             className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-historical-gold/10 text-historical-gold font-medium hover:bg-historical-gold/20 transition-colors"
           >
             {Icons.edit}
-            <span>تعديل</span>
+            <span>{t.admin.vendors.edit}</span>
           </button>
           <button
             onClick={() => onToggleStatus(vendor.id, !vendor.is_active)}
@@ -247,7 +248,7 @@ function VendorCard({ vendor, onEdit, onToggleStatus, onDelete, isUpdating }: Ve
             }`}
           >
             {isUpdating ? Icons.loader : (vendor.is_active ? Icons.x : Icons.check)}
-            <span>{vendor.is_active ? 'تعطيل' : 'تفعيل'}</span>
+            <span>{vendor.is_active ? t.admin.vendors.deactivate : t.admin.vendors.activate}</span>
           </button>
         </div>
       </div>
@@ -270,6 +271,7 @@ interface VendorModalProps {
 }
 
 function VendorModal({ isOpen, vendor, isSaving, onClose, onSave }: VendorModalProps) {
+  const { t } = useLanguage()
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [primaryColor, setPrimaryColor] = useState('#D4AF37')
@@ -331,7 +333,7 @@ function VendorModal({ isOpen, vendor, isSaving, onClose, onSave }: VendorModalP
           {/* Header */}
           <div className="flex items-center justify-between px-6 py-4 border-b border-historical-gold/10 bg-historical-stone/30">
             <h2 className="text-lg font-bold text-historical-charcoal">
-              {vendor ? 'تعديل البائع' : 'إضافة بائع جديد'}
+              {vendor ? t.admin.vendors.edit : t.admin.vendors.addVendor}
             </h2>
             <button
               onClick={onClose}
@@ -346,7 +348,7 @@ function VendorModal({ isOpen, vendor, isSaving, onClose, onSave }: VendorModalP
             {/* Name */}
             <div>
               <label className="block text-sm font-medium text-historical-charcoal mb-1">
-                اسم البائع *
+                {t.admin.vendors.name} *
               </label>
               <input
                 type="text"
@@ -354,21 +356,21 @@ function VendorModal({ isOpen, vendor, isSaving, onClose, onSave }: VendorModalP
                 onChange={(e) => setName(e.target.value)}
                 required
                 className="w-full px-4 py-2.5 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
-                placeholder="مثال: متجر التقنية"
+                placeholder={t.admin.vendors.namePlaceholder}
               />
             </div>
 
             {/* Description */}
             <div>
               <label className="block text-sm font-medium text-historical-charcoal mb-1">
-                الوصف
+                {t.admin.vendors.description}
               </label>
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={3}
                 className="w-full px-4 py-2.5 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 resize-none"
-                placeholder="وصف مختصر عن البائع..."
+                placeholder={t.admin.vendors.descriptionPlaceholder}
               />
             </div>
 
@@ -376,7 +378,7 @@ function VendorModal({ isOpen, vendor, isSaving, onClose, onSave }: VendorModalP
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-historical-charcoal mb-1">
-                  اللون الأساسي
+                  {t.admin.vendors.primaryColor}
                 </label>
                 <div className="flex items-center gap-2">
                   <input
@@ -396,7 +398,7 @@ function VendorModal({ isOpen, vendor, isSaving, onClose, onSave }: VendorModalP
               </div>
               <div>
                 <label className="block text-sm font-medium text-historical-charcoal mb-1">
-                  نسبة العمولة (%)
+                  {t.admin.vendors.commissionRate}
                 </label>
                 <input
                   type="number"
@@ -413,7 +415,7 @@ function VendorModal({ isOpen, vendor, isSaving, onClose, onSave }: VendorModalP
             {/* Logo */}
             <div>
               <label className="block text-sm font-medium text-historical-charcoal mb-1">
-                الشعار
+                {t.admin.vendors.logo}
               </label>
               <input
                 type="file"
@@ -433,7 +435,7 @@ function VendorModal({ isOpen, vendor, isSaving, onClose, onSave }: VendorModalP
                 className="w-4 h-4 rounded border-historical-gold/30 text-historical-gold focus:ring-historical-gold"
               />
               <label htmlFor="is_active" className="text-sm text-historical-charcoal">
-                البائع نشط
+                {t.admin.vendors.isActive}
               </label>
             </div>
 
@@ -444,7 +446,7 @@ function VendorModal({ isOpen, vendor, isSaving, onClose, onSave }: VendorModalP
                 onClick={onClose}
                 className="flex-1 px-4 py-2.5 rounded-xl border border-historical-gold/20 text-historical-charcoal hover:bg-historical-stone/50 transition-colors"
               >
-                إلغاء
+                {t.admin.users.form.cancel}
               </button>
               <button
                 type="submit"
@@ -452,7 +454,7 @@ function VendorModal({ isOpen, vendor, isSaving, onClose, onSave }: VendorModalP
                 className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-l from-historical-gold to-historical-red text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSaving ? Icons.loader : Icons.check}
-                <span>{vendor ? 'حفظ التعديلات' : 'إضافة البائع'}</span>
+                <span>{vendor ? t.admin.vendors.saveChanges : t.admin.vendors.addVendorButton}</span>
               </button>
             </div>
           </form>
@@ -473,6 +475,7 @@ export default function VendorsPage() {
   // Hook - Fetch vendors from API
   // الخطاف - جلب البائعين من API
   // =========================================================================
+  const { t, language } = useLanguage()
   const {
     vendors,
     stats,
@@ -607,8 +610,8 @@ export default function VendorsPage() {
       {/* Page Header */}
       <motion.div variants={itemVariants} className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-historical-charcoal">إدارة البائعين</h1>
-          <p className="text-historical-charcoal/50 mt-1">عرض وإدارة جميع البائعين</p>
+          <h1 className="text-2xl font-bold text-historical-charcoal">{t.admin.vendors.title}</h1>
+          <p className="text-historical-charcoal/50 mt-1">{t.admin.vendors.subtitle}</p>
         </div>
         <div className="flex items-center gap-3">
           <button
@@ -623,7 +626,7 @@ export default function VendorsPage() {
             className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-l from-historical-gold to-historical-red text-white font-medium shadow-lg hover:shadow-xl transition-shadow"
           >
             {Icons.add}
-            <span>إضافة بائع</span>
+            <span>{t.admin.vendors.addVendor}</span>
           </button>
         </div>
       </motion.div>
@@ -649,7 +652,7 @@ export default function VendorsPage() {
               <p className="text-2xl font-bold text-historical-charcoal">
                 {stats?.total_vendors || 0}
               </p>
-              <p className="text-xs text-historical-charcoal/50">إجمالي البائعين</p>
+              <p className="text-xs text-historical-charcoal/50">{t.admin.vendors.stats.total}</p>
             </div>
           </div>
         </div>
@@ -662,7 +665,7 @@ export default function VendorsPage() {
               <p className="text-2xl font-bold text-green-600">
                 {stats?.active_vendors || 0}
               </p>
-              <p className="text-xs text-historical-charcoal/50">نشط</p>
+              <p className="text-xs text-historical-charcoal/50">{t.admin.vendors.status.active}</p>
             </div>
           </div>
         </div>
@@ -675,7 +678,7 @@ export default function VendorsPage() {
               <p className="text-2xl font-bold text-red-600">
                 {stats?.inactive_vendors || 0}
               </p>
-              <p className="text-xs text-historical-charcoal/50">غير نشط</p>
+              <p className="text-xs text-historical-charcoal/50">{t.admin.vendors.status.inactive}</p>
             </div>
           </div>
         </div>
@@ -688,7 +691,7 @@ export default function VendorsPage() {
               <p className="text-2xl font-bold text-blue-600">
                 {stats?.average_commission_rate || 0}%
               </p>
-              <p className="text-xs text-historical-charcoal/50">متوسط العمولة</p>
+              <p className="text-xs text-historical-charcoal/50">{t.admin.vendors.averageCommission}</p>
             </div>
           </div>
         </div>
@@ -704,7 +707,7 @@ export default function VendorsPage() {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="بحث بالاسم أو الوصف..."
+            placeholder={t.admin.vendors.searchPlaceholder}
             className="w-full pr-12 pl-4 py-3 rounded-xl border border-historical-gold/20 bg-white/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
           />
         </div>
@@ -714,9 +717,9 @@ export default function VendorsPage() {
           onChange={(e) => setFilterStatus(e.target.value as 'all' | 'active' | 'inactive')}
           className="px-4 py-3 rounded-xl border border-historical-gold/20 bg-white/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-historical-gold/30 min-w-[150px]"
         >
-          <option value="all">كل الحالات</option>
-          <option value="active">نشط</option>
-          <option value="inactive">غير نشط</option>
+          <option value="all">{t.admin.vendors.allStatuses}</option>
+          <option value="active">{t.admin.vendors.status.active}</option>
+          <option value="inactive">{t.admin.vendors.status.inactive}</option>
         </select>
       </motion.div>
 
@@ -724,17 +727,17 @@ export default function VendorsPage() {
       {isLoading && vendors.length === 0 ? (
         <motion.div variants={itemVariants} className="flex items-center justify-center py-12">
           {Icons.loader}
-          <span className="mr-2 text-historical-charcoal/50">جاري تحميل البائعين...</span>
+          <span className="mr-2 text-historical-charcoal/50">{t.admin.vendors.loading}</span>
         </motion.div>
       ) : vendors.length === 0 ? (
         <motion.div variants={itemVariants} className="text-center py-12">
           <div className="text-4xl mb-4">🏪</div>
-          <p className="text-historical-charcoal/50">لا يوجد بائعين حالياً</p>
+          <p className="text-historical-charcoal/50">{t.admin.vendors.noVendors}</p>
           <button
             onClick={handleAddVendor}
             className="mt-4 px-6 py-2 rounded-xl bg-historical-gold/10 text-historical-gold hover:bg-historical-gold/20 transition-colors"
           >
-            إضافة أول بائع
+            {t.admin.vendors.addFirstVendor}
           </button>
         </motion.div>
       ) : (

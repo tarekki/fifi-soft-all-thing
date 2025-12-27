@@ -4,6 +4,7 @@ import { useState, useCallback } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useLanguage } from '@/lib/i18n/context'
 
 // =============================================================================
 // Types & Interfaces
@@ -194,6 +195,7 @@ interface NavItemComponentProps {
 }
 
 function NavItemComponent({ item, isCollapsed, isActive, pathname }: NavItemComponentProps) {
+  const { language } = useLanguage()
   const [isOpen, setIsOpen] = useState(() => {
     // Auto-open if any child is active
     return item.children?.some(child => child.href === pathname) ?? false
@@ -207,6 +209,8 @@ function NavItemComponent({ item, isCollapsed, isActive, pathname }: NavItemComp
       setIsOpen(prev => !prev)
     }
   }, [hasChildren])
+  
+  const displayLabel = language === 'ar' ? item.labelAr : item.label
 
   // Base styles
   const baseStyles = `
@@ -225,7 +229,7 @@ function NavItemComponent({ item, isCollapsed, isActive, pathname }: NavItemComp
         <button
           onClick={toggleOpen}
           className={`${baseStyles} ${activeStyles} w-full justify-between`}
-          title={isCollapsed ? item.labelAr : undefined}
+          title={isCollapsed ? displayLabel : undefined}
         >
           <span className="flex items-center gap-3">
             <span className="flex-shrink-0">{item.icon}</span>
@@ -237,7 +241,7 @@ function NavItemComponent({ item, isCollapsed, isActive, pathname }: NavItemComp
                   exit={{ opacity: 0, width: 0 }}
                   className="whitespace-nowrap overflow-hidden"
                 >
-                  {item.labelAr}
+                  {displayLabel}
                 </motion.span>
               )}
             </AnimatePresence>
@@ -277,7 +281,7 @@ function NavItemComponent({ item, isCollapsed, isActive, pathname }: NavItemComp
                     `}
                   >
                     <span className="w-1.5 h-1.5 rounded-full bg-current opacity-50" />
-                    {child.labelAr}
+                    {language === 'ar' ? child.labelAr : child.label}
                   </Link>
                 ))}
               </div>
@@ -292,7 +296,7 @@ function NavItemComponent({ item, isCollapsed, isActive, pathname }: NavItemComp
     <Link
       href={item.href!}
       className={`${baseStyles} ${activeStyles}`}
-      title={isCollapsed ? item.labelAr : undefined}
+      title={isCollapsed ? displayLabel : undefined}
     >
       <span className="flex-shrink-0">{item.icon}</span>
       <AnimatePresence>
@@ -303,7 +307,7 @@ function NavItemComponent({ item, isCollapsed, isActive, pathname }: NavItemComp
             exit={{ opacity: 0, width: 0 }}
             className="whitespace-nowrap overflow-hidden"
           >
-            {item.labelAr}
+            {displayLabel}
           </motion.span>
         )}
       </AnimatePresence>

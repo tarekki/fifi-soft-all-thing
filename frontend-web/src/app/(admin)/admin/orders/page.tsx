@@ -24,6 +24,7 @@ import type {
   OrderFilters,
   OrderBulkAction,
 } from '@/lib/admin/types/orders'
+import { useLanguage } from '@/lib/i18n/context'
 
 
 // =============================================================================
@@ -149,13 +150,13 @@ const getStatusStyle = (status: OrderStatus) => {
  * Get status label
  * الحصول على تسمية الحالة
  */
-const getStatusLabel = (status: OrderStatus) => {
+const getStatusLabel = (status: OrderStatus, t: any) => {
   const labels: Record<OrderStatus, string> = {
-    pending: 'قيد الانتظار',
-    confirmed: 'مؤكد',
-    shipped: 'تم الشحن',
-    delivered: 'تم التسليم',
-    cancelled: 'ملغى',
+    pending: t.admin.orders.status.pending,
+    confirmed: t.admin.orders.status.confirmed,
+    shipped: t.admin.orders.status.shipped,
+    delivered: t.admin.orders.status.delivered,
+    cancelled: t.admin.orders.status.cancelled,
   }
   return labels[status] || status
 }
@@ -209,6 +210,7 @@ function OrderDetailModal({
   onClose,
   onUpdateStatus,
 }: OrderDetailModalProps) {
+  const { t } = useLanguage()
   if (!isOpen) return null
 
   return (
@@ -257,21 +259,21 @@ function OrderDetailModal({
             {isLoading ? (
               <div className="flex items-center justify-center py-12">
                 {Icons.loader}
-                <span className="mr-2 text-historical-charcoal/50">جاري تحميل التفاصيل...</span>
+                <span className="mr-2 text-historical-charcoal/50">{t.admin.orders.loadingDetails}</span>
               </div>
             ) : order ? (
               <>
                 {/* Status */}
                 <div className="flex items-center gap-4">
                   <div className="flex-1">
-                    <p className="text-sm text-historical-charcoal/50 mb-2">حالة الطلب</p>
+                    <p className="text-sm text-historical-charcoal/50 mb-2">{t.admin.orders.orderStatus}</p>
                     <span className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium ${getStatusStyle(order.status)}`}>
                       {getStatusIcon(order.status)}
-                      {getStatusLabel(order.status)}
+                      {getStatusLabel(order.status, t)}
                     </span>
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm text-historical-charcoal/50 mb-2">نوع الطلب</p>
+                    <p className="text-sm text-historical-charcoal/50 mb-2">{t.admin.orders.orderType}</p>
                     <span className="inline-flex px-3 py-1.5 rounded-full text-sm font-medium bg-gray-100 text-gray-700">
                       {order.order_type_display}
                     </span>
@@ -281,7 +283,7 @@ function OrderDetailModal({
                 {/* Update Status - Only show available transitions */}
                 {order.available_statuses.length > 0 && (
                   <div>
-                    <p className="text-sm text-historical-charcoal/50 mb-2">تحديث الحالة</p>
+                    <p className="text-sm text-historical-charcoal/50 mb-2">{t.admin.orders.updateStatus}</p>
                     <div className="flex flex-wrap gap-2">
                       {order.available_statuses.map(({ value, label }) => (
                         <button
@@ -304,23 +306,23 @@ function OrderDetailModal({
 
                 {/* Customer Info */}
                 <div className="bg-historical-stone/50 rounded-xl p-4">
-                  <h3 className="font-medium text-historical-charcoal mb-3">معلومات العميل</h3>
+                  <h3 className="font-medium text-historical-charcoal mb-3">{t.admin.orders.customerInfo}</h3>
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
-                      <p className="text-historical-charcoal/50">الاسم</p>
+                      <p className="text-historical-charcoal/50">{t.admin.orders.name}</p>
                       <p className="font-medium text-historical-charcoal">{order.customer_name}</p>
                     </div>
                     <div>
-                      <p className="text-historical-charcoal/50">الهاتف</p>
+                      <p className="text-historical-charcoal/50">{t.admin.orders.phone}</p>
                       <p className="font-medium text-historical-charcoal" dir="ltr">{order.customer_phone}</p>
                     </div>
                     <div className="col-span-2">
-                      <p className="text-historical-charcoal/50">عنوان الشحن</p>
+                      <p className="text-historical-charcoal/50">{t.admin.orders.shippingAddress}</p>
                       <p className="font-medium text-historical-charcoal">{order.customer_address}</p>
                     </div>
                     {order.user_email && (
                       <div className="col-span-2">
-                        <p className="text-historical-charcoal/50">البريد الإلكتروني</p>
+                        <p className="text-historical-charcoal/50">{t.admin.orders.email}</p>
                         <p className="font-medium text-historical-charcoal">{order.user_email}</p>
                       </div>
                     )}
@@ -329,7 +331,7 @@ function OrderDetailModal({
 
                 {/* Items */}
                 <div>
-                  <h3 className="font-medium text-historical-charcoal mb-3">المنتجات ({order.items.length})</h3>
+                  <h3 className="font-medium text-historical-charcoal mb-3">{t.admin.orders.products} ({order.items.length})</h3>
                   <div className="space-y-3">
                     {order.items.map(item => (
                       <div key={item.id} className="flex items-center gap-4 p-3 bg-historical-stone/30 rounded-xl">
@@ -352,9 +354,9 @@ function OrderDetailModal({
                             <p className="text-sm text-historical-charcoal/50">{item.variant_info}</p>
                           )}
                           {item.vendor_name && (
-                            <p className="text-xs text-historical-charcoal/40">البائع: {item.vendor_name}</p>
+                            <p className="text-xs text-historical-charcoal/40">{t.admin.orders.vendor} {item.vendor_name}</p>
                           )}
-                          <p className="text-sm text-historical-charcoal/50">الكمية: {item.quantity}</p>
+                          <p className="text-sm text-historical-charcoal/50">{t.admin.orders.quantity} {item.quantity}</p>
                         </div>
                         <p className="font-bold text-historical-charcoal">{formatCurrency(item.subtotal)}</p>
                       </div>
@@ -365,7 +367,7 @@ function OrderDetailModal({
                 {/* Notes */}
                 {order.notes && (
                   <div className="bg-yellow-50 rounded-xl p-4 border border-yellow-200">
-                    <h3 className="font-medium text-yellow-800 mb-2">ملاحظات</h3>
+                    <h3 className="font-medium text-yellow-800 mb-2">{t.admin.orders.notes}</h3>
                     <p className="text-sm text-yellow-700">{order.notes}</p>
                   </div>
                 )}
@@ -374,21 +376,21 @@ function OrderDetailModal({
                 <div className="bg-historical-gold/5 rounded-xl p-4 border border-historical-gold/10">
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-historical-charcoal/70">المجموع الفرعي</span>
+                      <span className="text-historical-charcoal/70">{t.admin.orders.subtotal}</span>
                       <span className="font-medium">{formatCurrency(order.subtotal)}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-historical-charcoal/70">رسوم التوصيل</span>
+                      <span className="text-historical-charcoal/70">{t.admin.orders.deliveryFee}</span>
                       <span className="font-medium">
-                        {order.delivery_fee === 0 ? 'مجاني' : formatCurrency(order.delivery_fee)}
+                        {order.delivery_fee === 0 ? t.admin.orders.free : formatCurrency(order.delivery_fee)}
                       </span>
                     </div>
                     <div className="flex justify-between text-historical-charcoal/50">
-                      <span>عمولة المنصة (10%)</span>
+                      <span>{t.admin.orders.platformCommission}</span>
                       <span>{formatCurrency(order.platform_commission)}</span>
                     </div>
                     <div className="flex justify-between pt-2 border-t border-historical-gold/20">
-                      <span className="font-bold text-historical-charcoal">الإجمالي</span>
+                      <span className="font-bold text-historical-charcoal">{t.admin.orders.total}</span>
                       <span className="font-bold text-historical-gold text-lg">{formatCurrency(order.total)}</span>
                     </div>
                   </div>
@@ -396,7 +398,7 @@ function OrderDetailModal({
               </>
             ) : (
               <div className="text-center py-12 text-historical-charcoal/50">
-                لم يتم العثور على الطلب
+                {t.admin.orders.orderNotFound}
               </div>
             )}
           </div>
@@ -417,6 +419,7 @@ export default function OrdersPage() {
   // Hook - Fetch orders from API
   // الخطاف - جلب الطلبات من API
   // =========================================================================
+  const { t, language } = useLanguage()
   const {
     orders,
     selectedOrder,
@@ -568,8 +571,8 @@ export default function OrdersPage() {
       {/* Page Header */}
       <motion.div variants={itemVariants} className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-historical-charcoal">إدارة الطلبات</h1>
-          <p className="text-historical-charcoal/50 mt-1">عرض وإدارة جميع الطلبات</p>
+          <h1 className="text-2xl font-bold text-historical-charcoal">{t.admin.orders.title}</h1>
+          <p className="text-historical-charcoal/50 mt-1">{t.admin.orders.subtitle}</p>
         </div>
         <button
           onClick={refresh}
@@ -577,7 +580,7 @@ export default function OrdersPage() {
           className="flex items-center gap-2 px-4 py-2 rounded-xl bg-historical-gold/10 text-historical-gold hover:bg-historical-gold/20 transition-colors disabled:opacity-50"
         >
           {isLoading ? Icons.loader : Icons.refresh}
-          تحديث
+          {t.admin.dashboard.refresh}
         </button>
       </motion.div>
 
@@ -602,7 +605,7 @@ export default function OrdersPage() {
               <p className="text-2xl font-bold text-yellow-600">
                 {stats?.by_status.pending || 0}
               </p>
-              <p className="text-xs text-historical-charcoal/50">قيد الانتظار</p>
+              <p className="text-xs text-historical-charcoal/50">{t.admin.orders.status.pending}</p>
             </div>
           </div>
         </div>
@@ -615,7 +618,7 @@ export default function OrdersPage() {
               <p className="text-2xl font-bold text-blue-600">
                 {stats?.by_status.confirmed || 0}
               </p>
-              <p className="text-xs text-historical-charcoal/50">مؤكد</p>
+              <p className="text-xs text-historical-charcoal/50">{t.admin.orders.status.confirmed}</p>
             </div>
           </div>
         </div>
@@ -628,7 +631,7 @@ export default function OrdersPage() {
               <p className="text-2xl font-bold text-purple-600">
                 {stats?.by_status.shipped || 0}
               </p>
-              <p className="text-xs text-historical-charcoal/50">قيد الشحن</p>
+              <p className="text-xs text-historical-charcoal/50">{t.admin.orders.shipping}</p>
             </div>
           </div>
         </div>
@@ -641,7 +644,7 @@ export default function OrdersPage() {
               <p className="text-2xl font-bold text-green-600">
                 {stats?.by_status.delivered || 0}
               </p>
-              <p className="text-xs text-historical-charcoal/50">تم التسليم</p>
+              <p className="text-xs text-historical-charcoal/50">{t.admin.orders.delivered}</p>
             </div>
           </div>
         </div>
@@ -654,7 +657,7 @@ export default function OrdersPage() {
               <p className="text-2xl font-bold text-red-600">
                 {stats?.by_status.cancelled || 0}
               </p>
-              <p className="text-xs text-historical-charcoal/50">ملغى</p>
+              <p className="text-xs text-historical-charcoal/50">{t.admin.orders.cancelled}</p>
             </div>
           </div>
         </div>
@@ -670,7 +673,7 @@ export default function OrdersPage() {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="بحث برقم الطلب أو اسم العميل أو الهاتف..."
+            placeholder={t.admin.orders.searchPlaceholder}
             className="w-full pr-12 pl-4 py-3 rounded-xl border border-historical-gold/20 bg-white/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
           />
         </div>
@@ -680,37 +683,37 @@ export default function OrdersPage() {
           onChange={(e) => setFilterStatus(e.target.value as OrderStatus | '')}
           className="px-4 py-3 rounded-xl border border-historical-gold/20 bg-white/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-historical-gold/30 min-w-[150px]"
         >
-          <option value="">كل الحالات</option>
-          <option value="pending">قيد الانتظار</option>
-          <option value="confirmed">مؤكد</option>
-          <option value="shipped">تم الشحن</option>
-          <option value="delivered">تم التسليم</option>
-          <option value="cancelled">ملغى</option>
+          <option value="">{t.admin.orders.allStatuses}</option>
+          <option value="pending">{t.admin.orders.status.pending}</option>
+          <option value="confirmed">{t.admin.orders.status.confirmed}</option>
+          <option value="shipped">{t.admin.orders.status.shipped}</option>
+          <option value="delivered">{t.admin.orders.status.delivered}</option>
+          <option value="cancelled">{t.admin.orders.status.cancelled}</option>
         </select>
 
         {/* Bulk Actions */}
         {selectedOrderIds.length > 0 && (
           <div className="flex items-center gap-2">
             <span className="text-sm text-historical-charcoal/50">
-              {selectedOrderIds.length} محدد
+              {selectedOrderIds.length} {t.admin.orders.selected}
             </span>
             <button
               onClick={() => handleBulkAction('confirm')}
               className="px-3 py-2 rounded-lg bg-blue-100 text-blue-700 text-sm hover:bg-blue-200 transition-colors"
             >
-              تأكيد
+              {t.admin.orders.confirm}
             </button>
             <button
               onClick={() => handleBulkAction('ship')}
               className="px-3 py-2 rounded-lg bg-purple-100 text-purple-700 text-sm hover:bg-purple-200 transition-colors"
             >
-              شحن
+              {t.admin.orders.ship}
             </button>
             <button
               onClick={() => handleBulkAction('cancel')}
               className="px-3 py-2 rounded-lg bg-red-100 text-red-700 text-sm hover:bg-red-200 transition-colors"
             >
-              إلغاء
+              {t.admin.orders.cancel}
             </button>
           </div>
         )}
@@ -724,12 +727,12 @@ export default function OrdersPage() {
         {isLoading && orders.length === 0 ? (
           <div className="flex items-center justify-center py-12">
             {Icons.loader}
-            <span className="mr-2 text-historical-charcoal/50">جاري تحميل الطلبات...</span>
+            <span className="mr-2 text-historical-charcoal/50">{t.admin.orders.loading}</span>
           </div>
         ) : orders.length === 0 ? (
           <div className="text-center py-12 text-historical-charcoal/50">
             <div className="text-4xl mb-4">📦</div>
-            لا توجد طلبات حالياً
+            {t.admin.orders.noOrders}
           </div>
         ) : (
           <>
@@ -745,13 +748,13 @@ export default function OrdersPage() {
                         className="w-4 h-4 rounded border-historical-gold/30 text-historical-gold focus:ring-historical-gold"
                       />
                     </th>
-                    <th className="text-right text-xs font-medium text-historical-charcoal/50 px-4 py-4">رقم الطلب</th>
-                    <th className="text-right text-xs font-medium text-historical-charcoal/50 px-4 py-4">العميل</th>
-                    <th className="text-right text-xs font-medium text-historical-charcoal/50 px-4 py-4">النوع</th>
-                    <th className="text-right text-xs font-medium text-historical-charcoal/50 px-4 py-4">المبلغ</th>
-                    <th className="text-right text-xs font-medium text-historical-charcoal/50 px-4 py-4">الحالة</th>
-                    <th className="text-right text-xs font-medium text-historical-charcoal/50 px-4 py-4">العناصر</th>
-                    <th className="text-right text-xs font-medium text-historical-charcoal/50 px-4 py-4">التاريخ</th>
+                    <th className="text-right text-xs font-medium text-historical-charcoal/50 px-4 py-4">{t.admin.orders.orderNumber}</th>
+                    <th className="text-right text-xs font-medium text-historical-charcoal/50 px-4 py-4">{t.admin.orders.customer}</th>
+                    <th className="text-right text-xs font-medium text-historical-charcoal/50 px-4 py-4">{t.admin.orders.type}</th>
+                    <th className="text-right text-xs font-medium text-historical-charcoal/50 px-4 py-4">{t.admin.orders.amount}</th>
+                    <th className="text-right text-xs font-medium text-historical-charcoal/50 px-4 py-4">{t.admin.orders.status}</th>
+                    <th className="text-right text-xs font-medium text-historical-charcoal/50 px-4 py-4">{t.admin.orders.items}</th>
+                    <th className="text-right text-xs font-medium text-historical-charcoal/50 px-4 py-4">{t.admin.orders.date}</th>
                     <th className="w-16 px-4 py-4"></th>
                   </tr>
                 </thead>
@@ -774,7 +777,7 @@ export default function OrdersPage() {
                       <td className="px-4 py-3">
                         <span className="font-medium text-historical-charcoal">{order.order_number}</span>
                         {order.is_guest_order && (
-                          <span className="mr-2 px-1.5 py-0.5 text-[10px] bg-gray-100 text-gray-500 rounded">ضيف</span>
+                          <span className="mr-2 px-1.5 py-0.5 text-[10px] bg-gray-100 text-gray-500 rounded">{t.admin.orders.guest}</span>
                         )}
                       </td>
                       <td className="px-4 py-3">
@@ -792,11 +795,11 @@ export default function OrdersPage() {
                       <td className="px-4 py-3">
                         <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${getStatusStyle(order.status)}`}>
                           {getStatusIcon(order.status)}
-                          {getStatusLabel(order.status)}
+                          {getStatusLabel(order.status, t)}
                         </span>
                       </td>
                       <td className="px-4 py-3">
-                        <span className="text-sm text-historical-charcoal/70">{order.items_count} عنصر</span>
+                        <span className="text-sm text-historical-charcoal/70">{t.admin.orders.itemsCount.replace('{count}', order.items_count.toString())}</span>
                       </td>
                       <td className="px-4 py-3">
                         <span className="text-sm text-historical-charcoal/50">
@@ -807,7 +810,7 @@ export default function OrdersPage() {
                         <button
                           onClick={() => handleViewOrder(order)}
                           className="p-2 rounded-lg text-historical-charcoal/50 hover:text-historical-charcoal hover:bg-historical-gold/10 transition-colors opacity-0 group-hover:opacity-100"
-                          title="عرض التفاصيل"
+                          title={t.admin.orders.viewDetails}
                         >
                           {Icons.eye}
                         </button>
@@ -821,7 +824,7 @@ export default function OrdersPage() {
             {/* Pagination */}
             <div className="flex items-center justify-between px-6 py-4 border-t border-historical-gold/10 bg-historical-stone/30">
               <p className="text-sm text-historical-charcoal/50">
-                عرض {orders.length} من {total} طلب
+                {t.admin.orders.showingOrders.replace('{count}', orders.length.toString()).replace('{total}', total.toString())}
               </p>
               <div className="flex items-center gap-2">
                 <button
@@ -832,7 +835,7 @@ export default function OrdersPage() {
                   {Icons.chevronRight}
                 </button>
                 <span className="px-4 py-2 text-sm text-historical-charcoal">
-                  صفحة {currentPage}
+                  {t.admin.orders.page} {currentPage}
                 </span>
                 <button
                   onClick={() => handlePageChange('next')}

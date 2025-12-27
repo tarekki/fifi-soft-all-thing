@@ -13,6 +13,7 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
+import { useLanguage } from '@/lib/i18n/context'
 
 // =============================================================================
 // Types
@@ -67,11 +68,11 @@ const Icons = {
 // Mock Data
 // =============================================================================
 
-const promotionSections: PromotionSection[] = [
+const getPromotionSections = (t: any): PromotionSection[] => [
   {
     id: 'banners',
-    title: 'البانرات الإعلانية',
-    description: 'إدارة البانرات في الصفحة الرئيسية والصفحات الأخرى',
+    title: t.admin.promotions.banners.title,
+    description: t.admin.promotions.banners.subtitle,
     icon: Icons.banner,
     href: '/admin/promotions/banners',
     count: 8,
@@ -80,8 +81,8 @@ const promotionSections: PromotionSection[] = [
   },
   {
     id: 'stories',
-    title: 'القصص (Stories)',
-    description: 'إدارة القصص المؤقتة للعروض والمنتجات الجديدة',
+    title: t.admin.promotions.stories.title,
+    description: t.admin.promotions.stories.subtitle,
     icon: Icons.story,
     href: '/admin/promotions/stories',
     count: 12,
@@ -90,8 +91,8 @@ const promotionSections: PromotionSection[] = [
   },
   {
     id: 'coupons',
-    title: 'كوبونات الخصم',
-    description: 'إنشاء وإدارة أكواد الخصم والعروض الترويجية',
+    title: t.admin.promotions.coupons.title,
+    description: t.admin.promotions.coupons.subtitle,
     icon: Icons.coupon,
     href: '/admin/promotions/coupons',
     count: 15,
@@ -138,7 +139,9 @@ const recentPromotions = [
 // =============================================================================
 
 export default function PromotionsPage() {
+  const { t } = useLanguage()
   const [activeTab, setActiveTab] = useState<'all' | 'banners' | 'stories' | 'coupons'>('all')
+  const promotionSections = getPromotionSections(t)
 
   return (
     <motion.div
@@ -150,8 +153,8 @@ export default function PromotionsPage() {
       {/* Page Header */}
       <motion.div variants={itemVariants} className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-historical-charcoal">العروض والحملات</h1>
-          <p className="text-historical-charcoal/50 mt-1">إدارة البانرات والقصص والكوبونات</p>
+          <h1 className="text-2xl font-bold text-historical-charcoal">{t.admin.promotions.title}</h1>
+          <p className="text-historical-charcoal/50 mt-1">{t.admin.promotions.subtitle}</p>
         </div>
       </motion.div>
 
@@ -169,7 +172,7 @@ export default function PromotionsPage() {
                     </div>
                     <div className="text-left">
                       <p className="text-3xl font-bold">{section.count}</p>
-                      <p className="text-sm opacity-80">{section.activeCount} نشط</p>
+                      <p className="text-sm opacity-80">{section.activeCount} {t.admin.promotions.active}</p>
                     </div>
                   </div>
                 </div>
@@ -182,7 +185,7 @@ export default function PromotionsPage() {
                   <div className="flex items-center justify-between">
                     <button className="flex items-center gap-2 text-sm font-medium text-historical-gold hover:text-historical-red transition-colors">
                       {Icons.add}
-                      <span>إضافة جديد</span>
+                      <span>{t.admin.promotions.addNew}</span>
                     </button>
                     <span className="text-historical-charcoal/30 group-hover:text-historical-gold transition-colors">
                       {Icons.arrow}
@@ -201,7 +204,7 @@ export default function PromotionsPage() {
         className="bg-white/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 shadow-soft overflow-hidden"
       >
         <div className="flex items-center justify-between px-6 py-4 border-b border-historical-gold/10">
-          <h2 className="text-lg font-bold text-historical-charcoal">النشاط الأخير</h2>
+          <h2 className="text-lg font-bold text-historical-charcoal">{t.admin.promotions.recentActivity}</h2>
           <div className="flex items-center gap-2">
             {(['all', 'banners', 'stories', 'coupons'] as const).map((tab) => (
               <button
@@ -213,10 +216,10 @@ export default function PromotionsPage() {
                     : 'text-historical-charcoal/50 hover:bg-historical-gold/10'
                 }`}
               >
-                {tab === 'all' && 'الكل'}
-                {tab === 'banners' && 'البانرات'}
-                {tab === 'stories' && 'القصص'}
-                {tab === 'coupons' && 'الكوبونات'}
+                {tab === 'all' && t.admin.promotions.all}
+                {tab === 'banners' && t.admin.promotions.banners.title}
+                {tab === 'stories' && t.admin.promotions.stories.title}
+                {tab === 'coupons' && t.admin.promotions.coupons.title}
               </button>
             ))}
           </div>
@@ -226,10 +229,10 @@ export default function PromotionsPage() {
           <table className="w-full">
             <thead className="bg-historical-stone/50">
               <tr>
-                <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">النوع</th>
-                <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">العنوان</th>
-                <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">الحالة</th>
-                <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">الأداء</th>
+                <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">{t.admin.promotions.type}</th>
+                <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">{t.admin.promotions.titleLabel}</th>
+                <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">{t.admin.promotions.status}</th>
+                <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">{t.admin.promotions.performance}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-historical-gold/5">
@@ -243,9 +246,9 @@ export default function PromotionsPage() {
                       promo.type === 'story' ? 'bg-purple-100 text-purple-700' :
                       'bg-historical-gold/20 text-historical-gold'
                     }`}>
-                      {promo.type === 'banner' && 'بانر'}
-                      {promo.type === 'story' && 'قصة'}
-                      {promo.type === 'coupon' && 'كوبون'}
+                      {promo.type === 'banner' && t.admin.promotions.banner}
+                      {promo.type === 'story' && t.admin.promotions.story}
+                      {promo.type === 'coupon' && t.admin.promotions.coupon}
                     </span>
                   </td>
                   <td className="px-6 py-4">
@@ -257,19 +260,19 @@ export default function PromotionsPage() {
                       promo.status === 'scheduled' ? 'bg-yellow-100 text-yellow-700' :
                       'bg-gray-100 text-gray-700'
                     }`}>
-                      {promo.status === 'active' && 'نشط'}
-                      {promo.status === 'scheduled' && 'مجدول'}
-                      {promo.status === 'expired' && 'منتهي'}
+                      {promo.status === 'active' && t.admin.promotions.active}
+                      {promo.status === 'scheduled' && t.admin.promotions.scheduled}
+                      {promo.status === 'expired' && t.admin.promotions.expired}
                     </span>
                   </td>
                   <td className="px-6 py-4">
                     {promo.type === 'coupon' ? (
                       <span className="text-sm text-historical-charcoal/70">
-                        {promo.uses} استخدام • {promo.remaining} متبقي
+                        {promo.uses} {t.admin.promotions.uses} • {promo.remaining} {t.admin.promotions.remaining}
                       </span>
                     ) : (
                       <span className="text-sm text-historical-charcoal/70">
-                        {promo.views?.toLocaleString()} مشاهدة • {promo.clicks} نقرة
+                        {promo.views?.toLocaleString()} {t.admin.promotions.views} • {promo.clicks} {t.admin.promotions.clicks}
                       </span>
                     )}
                   </td>

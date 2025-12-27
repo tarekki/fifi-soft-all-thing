@@ -23,6 +23,7 @@ import type {
   VendorApplicationFilters,
   VendorApplicationStatus,
 } from '@/lib/admin/types/vendorApplications'
+import { useLanguage } from '@/lib/i18n/context'
 
 
 // =============================================================================
@@ -162,6 +163,7 @@ function ApplicationDetailModal({
   onApprove,
   onReject,
 }: ApplicationDetailModalProps) {
+  const { t } = useLanguage()
   const [commissionRate, setCommissionRate] = useState(10)
   const [rejectionReason, setRejectionReason] = useState('')
   const [showRejectForm, setShowRejectForm] = useState(false)
@@ -195,7 +197,7 @@ function ApplicationDetailModal({
           {/* Header */}
           <div className="flex items-center justify-between px-6 py-4 border-b border-historical-gold/10 bg-historical-stone/30">
             <div>
-              <h2 className="text-lg font-bold text-historical-charcoal">تفاصيل طلب الانضمام</h2>
+              <h2 className="text-lg font-bold text-historical-charcoal">{t.admin.vendorApplications.view}</h2>
               <span className={`inline-flex mt-1 px-3 py-1 rounded-full text-xs font-medium ${getStatusStyle(application.status)}`}>
                 {application.status_display}
               </span>
@@ -214,27 +216,27 @@ function ApplicationDetailModal({
             <div className="space-y-4">
               <h3 className="font-bold text-historical-charcoal flex items-center gap-2">
                 {Icons.store}
-                معلومات المتجر
+                {t.admin.vendorApplications.storeInfo}
               </h3>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm text-historical-charcoal/50">اسم المتجر</label>
+                  <label className="text-sm text-historical-charcoal/50">{t.admin.vendorApplications.storeName}</label>
                   <p className="font-medium text-historical-charcoal">{application.store_name}</p>
                 </div>
                 <div>
-                  <label className="text-sm text-historical-charcoal/50">نوع النشاط</label>
+                  <label className="text-sm text-historical-charcoal/50">{t.admin.vendorApplications.businessType}</label>
                   <p className="font-medium text-historical-charcoal">{application.business_type_display}</p>
                 </div>
               </div>
               {application.store_description && (
                 <div>
-                  <label className="text-sm text-historical-charcoal/50">الوصف</label>
+                  <label className="text-sm text-historical-charcoal/50">{t.admin.vendorApplications.description}</label>
                   <p className="text-historical-charcoal">{application.store_description}</p>
                 </div>
               )}
               {application.business_address && (
                 <div>
-                  <label className="text-sm text-historical-charcoal/50">العنوان</label>
+                  <label className="text-sm text-historical-charcoal/50">{t.admin.vendorApplications.address}</label>
                   <p className="text-historical-charcoal">{application.business_address}</p>
                 </div>
               )}
@@ -244,23 +246,23 @@ function ApplicationDetailModal({
             <div className="space-y-4 border-t border-historical-gold/10 pt-4">
               <h3 className="font-bold text-historical-charcoal flex items-center gap-2">
                 {Icons.user}
-                معلومات المتقدم
+                {t.admin.vendorApplications.applicantInfo}
               </h3>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm text-historical-charcoal/50">الاسم</label>
+                  <label className="text-sm text-historical-charcoal/50">{t.admin.vendorApplications.name}</label>
                   <p className="font-medium text-historical-charcoal">{application.applicant_name}</p>
                 </div>
                 <div>
-                  <label className="text-sm text-historical-charcoal/50">البريد الإلكتروني</label>
+                  <label className="text-sm text-historical-charcoal/50">{t.admin.vendorApplications.emailFull}</label>
                   <p className="font-medium text-historical-charcoal" dir="ltr">{application.applicant_email}</p>
                 </div>
                 <div>
-                  <label className="text-sm text-historical-charcoal/50">الهاتف</label>
+                  <label className="text-sm text-historical-charcoal/50">{t.admin.vendorApplications.phone}</label>
                   <p className="font-medium text-historical-charcoal" dir="ltr">{application.applicant_phone}</p>
                 </div>
                 <div>
-                  <label className="text-sm text-historical-charcoal/50">تاريخ التقديم</label>
+                  <label className="text-sm text-historical-charcoal/50">{t.admin.vendorApplications.submissionDate}</label>
                   <p className="font-medium text-historical-charcoal">{formatDate(application.created_at)}</p>
                 </div>
               </div>
@@ -269,20 +271,20 @@ function ApplicationDetailModal({
             {/* Review Info (if reviewed) */}
             {application.reviewed_at && (
               <div className="space-y-4 border-t border-historical-gold/10 pt-4">
-                <h3 className="font-bold text-historical-charcoal">معلومات المراجعة</h3>
+                <h3 className="font-bold text-historical-charcoal">{t.admin.vendorApplications.reviewInfo}</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-sm text-historical-charcoal/50">تمت المراجعة بواسطة</label>
+                    <label className="text-sm text-historical-charcoal/50">{t.admin.vendorApplications.reviewedBy}</label>
                     <p className="font-medium text-historical-charcoal">{application.reviewed_by_name || '-'}</p>
                   </div>
                   <div>
-                    <label className="text-sm text-historical-charcoal/50">تاريخ المراجعة</label>
+                    <label className="text-sm text-historical-charcoal/50">{t.admin.vendorApplications.reviewDate}</label>
                     <p className="font-medium text-historical-charcoal">{formatDate(application.reviewed_at)}</p>
                   </div>
                 </div>
                 {application.rejection_reason && (
                   <div>
-                    <label className="text-sm text-historical-charcoal/50">سبب الرفض</label>
+                    <label className="text-sm text-historical-charcoal/50">{t.admin.vendorApplications.rejectionReason}</label>
                     <p className="text-red-600">{application.rejection_reason}</p>
                   </div>
                 )}
@@ -292,17 +294,17 @@ function ApplicationDetailModal({
             {/* Rejection Form */}
             {showRejectForm && application.status === 'pending' && (
               <div className="space-y-4 border-t border-historical-gold/10 pt-4">
-                <h3 className="font-bold text-red-600">رفض الطلب</h3>
+                <h3 className="font-bold text-red-600">{t.admin.vendorApplications.rejectApplication}</h3>
                 <div>
                   <label className="block text-sm font-medium text-historical-charcoal mb-1">
-                    سبب الرفض *
+                    {t.admin.vendorApplications.rejectionReason} *
                   </label>
                   <textarea
                     value={rejectionReason}
                     onChange={(e) => setRejectionReason(e.target.value)}
                     rows={3}
                     className="w-full px-4 py-2.5 rounded-xl border border-red-200 focus:outline-none focus:ring-2 focus:ring-red-300 resize-none"
-                    placeholder="اكتب سبب الرفض..."
+                    placeholder={t.admin.vendorApplications.rejectionReasonPlaceholder}
                   />
                 </div>
               </div>
@@ -316,7 +318,7 @@ function ApplicationDetailModal({
                 <div className="space-y-4">
                   {/* Commission Rate */}
                   <div className="flex items-center gap-4">
-                    <label className="text-sm text-historical-charcoal/70 whitespace-nowrap">نسبة العمولة:</label>
+                    <label className="text-sm text-historical-charcoal/70 whitespace-nowrap">{t.admin.vendorApplications.commissionRate}</label>
                     <input
                       type="number"
                       value={commissionRate}
@@ -337,7 +339,7 @@ function ApplicationDetailModal({
                       className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-green-500 text-white font-medium hover:bg-green-600 disabled:opacity-50 transition-colors"
                     >
                       {isProcessing ? Icons.loader : Icons.check}
-                      <span>الموافقة وإنشاء البائع</span>
+                      <span>{t.admin.vendorApplications.approveAndCreate}</span>
                     </button>
                     <button
                       onClick={() => setShowRejectForm(true)}
@@ -345,7 +347,7 @@ function ApplicationDetailModal({
                       className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-red-500 text-white font-medium hover:bg-red-600 disabled:opacity-50 transition-colors"
                     >
                       {Icons.x}
-                      <span>رفض</span>
+                      <span>{t.admin.vendorApplications.reject}</span>
                     </button>
                   </div>
                 </div>
@@ -355,7 +357,7 @@ function ApplicationDetailModal({
                     onClick={() => setShowRejectForm(false)}
                     className="flex-1 px-4 py-2.5 rounded-xl border border-historical-gold/20 text-historical-charcoal hover:bg-historical-stone/50 transition-colors"
                   >
-                    إلغاء
+                    {t.admin.users.form.cancel}
                   </button>
                   <button
                     onClick={() => onReject(application.id, rejectionReason)}
@@ -363,7 +365,7 @@ function ApplicationDetailModal({
                     className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-red-500 text-white font-medium hover:bg-red-600 disabled:opacity-50 transition-colors"
                   >
                     {isProcessing ? Icons.loader : Icons.x}
-                    <span>تأكيد الرفض</span>
+                    <span>{t.admin.vendorApplications.confirmRejection}</span>
                   </button>
                 </div>
               )}
@@ -384,6 +386,7 @@ export default function VendorApplicationsPage() {
   // =========================================================================
   // Hook
   // =========================================================================
+  const { t, language } = useLanguage()
   const {
     applications,
     selectedApplication,
@@ -474,8 +477,8 @@ export default function VendorApplicationsPage() {
       {/* Page Header */}
       <motion.div variants={itemVariants} className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-historical-charcoal">طلبات انضمام البائعين</h1>
-          <p className="text-historical-charcoal/50 mt-1">مراجعة طلبات البائعين الجدد والموافقة عليها أو رفضها</p>
+          <h1 className="text-2xl font-bold text-historical-charcoal">{t.admin.vendorApplications.title}</h1>
+          <p className="text-historical-charcoal/50 mt-1">{t.admin.vendorApplications.subtitle}</p>
         </div>
         <button
           onClick={refresh}
@@ -505,7 +508,7 @@ export default function VendorApplicationsPage() {
             </div>
             <div>
               <p className="text-2xl font-bold text-historical-charcoal">{stats?.total || 0}</p>
-              <p className="text-xs text-historical-charcoal/50">إجمالي الطلبات</p>
+              <p className="text-xs text-historical-charcoal/50">{t.admin.vendorApplications.totalApplications}</p>
             </div>
           </div>
         </div>
@@ -516,7 +519,7 @@ export default function VendorApplicationsPage() {
             </div>
             <div>
               <p className="text-2xl font-bold text-yellow-600">{stats?.pending || 0}</p>
-              <p className="text-xs text-historical-charcoal/50">قيد المراجعة</p>
+              <p className="text-xs text-historical-charcoal/50">{t.admin.vendorApplications.underReview}</p>
             </div>
           </div>
         </div>
@@ -527,7 +530,7 @@ export default function VendorApplicationsPage() {
             </div>
             <div>
               <p className="text-2xl font-bold text-green-600">{stats?.approved || 0}</p>
-              <p className="text-xs text-historical-charcoal/50">مقبولة</p>
+              <p className="text-xs text-historical-charcoal/50">{t.admin.vendorApplications.approved}</p>
             </div>
           </div>
         </div>
@@ -538,7 +541,7 @@ export default function VendorApplicationsPage() {
             </div>
             <div>
               <p className="text-2xl font-bold text-red-600">{stats?.rejected || 0}</p>
-              <p className="text-xs text-historical-charcoal/50">مرفوضة</p>
+              <p className="text-xs text-historical-charcoal/50">{t.admin.vendorApplications.rejected}</p>
             </div>
           </div>
         </div>
@@ -554,7 +557,7 @@ export default function VendorApplicationsPage() {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="بحث بالاسم أو البريد..."
+            placeholder={t.admin.vendorApplications.searchPlaceholder}
             className="w-full pr-12 pl-4 py-3 rounded-xl border border-historical-gold/20 bg-white/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
           />
         </div>
@@ -564,10 +567,10 @@ export default function VendorApplicationsPage() {
           onChange={(e) => setFilterStatus(e.target.value as VendorApplicationStatus | '')}
           className="px-4 py-3 rounded-xl border border-historical-gold/20 bg-white/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-historical-gold/30 min-w-[150px]"
         >
-          <option value="">كل الحالات</option>
-          <option value="pending">قيد المراجعة</option>
-          <option value="approved">مقبولة</option>
-          <option value="rejected">مرفوضة</option>
+          <option value="">{t.admin.vendorApplications.allStatuses}</option>
+          <option value="pending">{t.admin.vendorApplications.underReview}</option>
+          <option value="approved">{t.admin.vendorApplications.approved}</option>
+          <option value="rejected">{t.admin.vendorApplications.rejected}</option>
         </select>
       </motion.div>
 
@@ -576,24 +579,24 @@ export default function VendorApplicationsPage() {
         {isLoading && applications.length === 0 ? (
           <div className="flex items-center justify-center py-12">
             {Icons.loader}
-            <span className="mr-2 text-historical-charcoal/50">جاري تحميل الطلبات...</span>
+            <span className="mr-2 text-historical-charcoal/50">{t.admin.vendorApplications.loading}</span>
           </div>
         ) : applications.length === 0 ? (
           <div className="text-center py-12">
             <div className="text-4xl mb-4">📋</div>
-            <p className="text-historical-charcoal/50">لا يوجد طلبات انضمام حالياً</p>
+            <p className="text-historical-charcoal/50">{t.admin.vendorApplications.noApplications}</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-historical-stone/30 border-b border-historical-gold/10">
                 <tr>
-                  <th className="text-right px-6 py-4 text-sm font-medium text-historical-charcoal/70">المتجر</th>
-                  <th className="text-right px-6 py-4 text-sm font-medium text-historical-charcoal/70">المتقدم</th>
-                  <th className="text-right px-6 py-4 text-sm font-medium text-historical-charcoal/70">نوع النشاط</th>
-                  <th className="text-right px-6 py-4 text-sm font-medium text-historical-charcoal/70">الحالة</th>
-                  <th className="text-right px-6 py-4 text-sm font-medium text-historical-charcoal/70">التاريخ</th>
-                  <th className="text-right px-6 py-4 text-sm font-medium text-historical-charcoal/70">إجراءات</th>
+                  <th className="text-right px-6 py-4 text-sm font-medium text-historical-charcoal/70">{t.admin.vendorApplications.store}</th>
+                  <th className="text-right px-6 py-4 text-sm font-medium text-historical-charcoal/70">{t.admin.vendorApplications.applicant}</th>
+                  <th className="text-right px-6 py-4 text-sm font-medium text-historical-charcoal/70">{t.admin.vendorApplications.businessType}</th>
+                  <th className="text-right px-6 py-4 text-sm font-medium text-historical-charcoal/70">{t.admin.vendorApplications.status}</th>
+                  <th className="text-right px-6 py-4 text-sm font-medium text-historical-charcoal/70">{t.admin.vendorApplications.date}</th>
+                  <th className="text-right px-6 py-4 text-sm font-medium text-historical-charcoal/70">{t.admin.vendorApplications.actions}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-historical-gold/10">
@@ -633,7 +636,7 @@ export default function VendorApplicationsPage() {
                         className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-historical-gold bg-historical-gold/10 hover:bg-historical-gold/20 transition-colors"
                       >
                         {Icons.eye}
-                        <span className="text-sm">عرض</span>
+                        <span className="text-sm">{t.admin.vendorApplications.view}</span>
                       </button>
                     </td>
                   </tr>
@@ -651,15 +654,15 @@ export default function VendorApplicationsPage() {
               disabled={!hasPreviousPage || isLoading}
               className="px-4 py-2 rounded-xl border border-historical-gold/20 text-historical-charcoal/70 hover:bg-historical-gold/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              الصفحة السابقة
+              {t.admin.vendorApplications.previousPage}
             </button>
-            <span className="text-historical-charcoal/50">صفحة {currentPage}</span>
+            <span className="text-historical-charcoal/50">{t.admin.vendorApplications.page} {currentPage}</span>
             <button
               onClick={() => handlePageChange('next')}
               disabled={!hasNextPage || isLoading}
               className="px-4 py-2 rounded-xl border border-historical-gold/20 text-historical-charcoal/70 hover:bg-historical-gold/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              الصفحة التالية
+              {t.admin.vendorApplications.nextPage}
             </button>
           </div>
         )}

@@ -17,6 +17,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 import { useBanners } from '@/lib/admin'
 import type { Banner, BannerPayload, BannerLocation } from '@/lib/admin'
+import { useLanguage } from '@/lib/i18n/context'
 
 // =============================================================================
 // Icons
@@ -71,6 +72,26 @@ const Icons = {
 // دوال مساعدة
 // =============================================================================
 
+const getLocationLabel = (location: BannerLocation, t: any) => {
+  const labels = {
+    hero: t.admin.promotions.banners.hero,
+    sidebar: t.admin.promotions.banners.sidebar,
+    popup: t.admin.promotions.banners.popup,
+    category: t.admin.promotions.banners.category,
+  }
+  return labels[location] || location
+}
+
+const getLocationColor = (location: BannerLocation) => {
+  const colors = {
+    hero: 'bg-blue-100 text-blue-700',
+    sidebar: 'bg-purple-100 text-purple-700',
+    popup: 'bg-yellow-100 text-yellow-700',
+    category: 'bg-green-100 text-green-700',
+  }
+  return colors[location] || 'bg-gray-100 text-gray-700'
+}
+
 // =============================================================================
 // Animation Variants
 // =============================================================================
@@ -97,6 +118,7 @@ const itemVariants = {
 // =============================================================================
 
 export default function BannersPage() {
+  const { t } = useLanguage()
   const {
     banners,
     total,
@@ -143,13 +165,13 @@ export default function BannersPage() {
   }, [banners, update, refresh])
 
   const handleDelete = useCallback(async (id: number) => {
-    if (confirm('هل أنت متأكد من حذف هذا البانر؟')) {
+    if (confirm(t.admin.promotions.banners.confirmDelete)) {
       const success = await remove(id)
       if (success) {
         refresh()
       }
     }
-  }, [remove, refresh])
+  }, [remove, refresh, t])
 
   const handleEdit = useCallback((banner: Banner) => {
     setEditingBanner(banner)
@@ -181,8 +203,8 @@ export default function BannersPage() {
             {Icons.back}
           </Link>
           <div>
-            <h1 className="text-2xl font-bold text-historical-charcoal">البانرات الإعلانية</h1>
-            <p className="text-historical-charcoal/50 mt-1">إدارة البانرات في مختلف أقسام الموقع</p>
+            <h1 className="text-2xl font-bold text-historical-charcoal">{t.admin.promotions.banners.pageTitle}</h1>
+            <p className="text-historical-charcoal/50 mt-1">{t.admin.promotions.banners.pageSubtitle}</p>
           </div>
         </div>
         <button
@@ -190,7 +212,7 @@ export default function BannersPage() {
           className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-l from-historical-gold to-historical-red text-white font-medium shadow-lg hover:shadow-xl transition-shadow"
         >
           {Icons.add}
-          <span>إضافة بانر</span>
+          <span>{t.admin.promotions.banners.addBanner}</span>
         </button>
       </motion.div>
 
@@ -201,23 +223,23 @@ export default function BannersPage() {
           onChange={(e) => setFilterLocation(e.target.value as BannerLocation | '')}
           className="px-4 py-3 rounded-xl border border-historical-gold/20 bg-white/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-historical-gold/30 min-w-[180px]"
         >
-          <option value="">كل المواقع</option>
-          <option value="hero">الصفحة الرئيسية</option>
-          <option value="sidebar">الشريط الجانبي</option>
-          <option value="popup">نافذة منبثقة</option>
-          <option value="category">صفحة الفئة</option>
+          <option value="">{t.admin.promotions.banners.allLocations}</option>
+          <option value="hero">{t.admin.promotions.banners.hero}</option>
+          <option value="sidebar">{t.admin.promotions.banners.sidebar}</option>
+          <option value="popup">{t.admin.promotions.banners.popup}</option>
+          <option value="category">{t.admin.promotions.banners.category}</option>
         </select>
         <div className="flex-1" />
         {isLoading ? (
           <div className="flex items-center gap-2 text-sm text-historical-charcoal/50">
             <div className="w-4 h-4 border-2 border-historical-gold border-t-transparent rounded-full animate-spin" />
-            <span>جاري التحميل...</span>
+            <span>{t.admin.promotions.banners.loading}</span>
           </div>
         ) : (
           <div className="flex items-center gap-4 text-sm text-historical-charcoal/50">
-            <span>الإجمالي: {total}</span>
+            <span>{t.admin.promotions.banners.total}: {total}</span>
             <span>•</span>
-            <span className="text-green-600">نشط: {activeBanners.length}</span>
+            <span className="text-green-600">{t.admin.promotions.active}: {activeBanners.length}</span>
           </div>
         )}
       </motion.div>
@@ -244,7 +266,7 @@ export default function BannersPage() {
           variants={itemVariants}
           className="text-center py-12 bg-white/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10"
         >
-          <p className="text-historical-charcoal/50">لا توجد بانرات</p>
+          <p className="text-historical-charcoal/50">{t.admin.promotions.banners.noBanners}</p>
         </motion.div>
       ) : (
         <motion.div variants={containerVariants} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -278,13 +300,13 @@ export default function BannersPage() {
                 </div>
                 <div className="absolute top-3 left-3">
                   <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${getLocationColor(banner.location)}`}>
-                    {getLocationLabel(banner.location)}
+                    {getLocationLabel(banner.location, t)}
                   </span>
                 </div>
                 {!banner.is_active && (
                   <div className="absolute top-3 right-3">
                     <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">
-                      غير نشط
+                      {t.admin.promotions.banners.inactive}
                     </span>
                   </div>
                 )}
@@ -295,11 +317,11 @@ export default function BannersPage() {
                 <div className="flex items-center gap-4 mb-4">
                   <div className="flex items-center gap-2 text-sm text-historical-charcoal/50">
                     {Icons.eye}
-                    <span>{banner.views.toLocaleString()} مشاهدة</span>
+                    <span>{banner.views.toLocaleString()} {t.admin.promotions.views}</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm text-historical-charcoal/50">
                     {Icons.click}
-                    <span>{banner.clicks.toLocaleString()} نقرة</span>
+                    <span>{banner.clicks.toLocaleString()} {t.admin.promotions.clicks}</span>
                   </div>
                   <div className="flex-1" />
                   {banner.views > 0 && (
@@ -310,11 +332,11 @@ export default function BannersPage() {
                 </div>
 
                 <div className="flex items-center gap-2 text-sm text-historical-charcoal/50 mb-4">
-                  <span>من: {new Date(banner.start_date).toLocaleDateString('ar-SY')}</span>
+                  <span>{t.admin.promotions.banners.from}: {new Date(banner.start_date).toLocaleDateString('ar-SY')}</span>
                   {banner.end_date && (
                     <>
                       <span>-</span>
-                      <span>إلى: {new Date(banner.end_date).toLocaleDateString('ar-SY')}</span>
+                      <span>{t.admin.promotions.banners.to}: {new Date(banner.end_date).toLocaleDateString('ar-SY')}</span>
                     </>
                   )}
                 </div>
@@ -403,6 +425,7 @@ function BannerModal({
   onClose,
   onSave,
 }: BannerModalProps) {
+  const { t } = useLanguage()
   const [formData, setFormData] = useState<BannerPayload>({
     title: '',
     title_ar: '',
@@ -476,19 +499,19 @@ function BannerModal({
 
     // Validation
     if (!formData.title_ar.trim()) {
-      setFormErrors({ title_ar: 'العنوان بالعربية مطلوب' })
+      setFormErrors({ title_ar: t.admin.promotions.banners.titleArRequired })
       return
     }
     if (!formData.title.trim()) {
-      setFormErrors({ title: 'العنوان بالإنجليزية مطلوب' })
+      setFormErrors({ title: t.admin.promotions.banners.titleEnRequired })
       return
     }
     if (!formData.link.trim()) {
-      setFormErrors({ link: 'الرابط مطلوب' })
+      setFormErrors({ link: t.admin.promotions.banners.linkRequired })
       return
     }
     if (!banner && !imageFile && !imagePreview) {
-      setFormErrors({ image: 'الصورة مطلوبة' })
+      setFormErrors({ image: t.admin.promotions.banners.imageRequired })
       return
     }
 
@@ -525,7 +548,7 @@ function BannerModal({
         >
           <div className="flex items-center justify-between p-6 border-b border-historical-gold/10">
             <h2 className="text-lg font-bold text-historical-charcoal">
-              {banner ? 'تعديل البانر' : 'إضافة بانر جديد'}
+              {banner ? t.admin.promotions.banners.editBanner : t.admin.promotions.banners.addNewBanner}
             </h2>
             <button
               onClick={onClose}
@@ -538,7 +561,7 @@ function BannerModal({
           <form onSubmit={handleSubmit} className="p-6 space-y-6 overflow-y-auto max-h-[calc(90vh-140px)]">
             {/* Image Upload */}
             <div>
-              <label className="block text-sm font-medium text-historical-charcoal mb-2">الصورة</label>
+              <label className="block text-sm font-medium text-historical-charcoal mb-2">{t.admin.promotions.banners.image}</label>
               <div className="border-2 border-dashed border-historical-gold/30 rounded-xl p-8 text-center bg-historical-stone/30">
                 {imagePreview ? (
                   <div className="relative">
@@ -555,15 +578,15 @@ function BannerModal({
                       }}
                       className="px-4 py-2 rounded-lg bg-red-50 text-red-600 text-sm font-medium hover:bg-red-100"
                     >
-                      إزالة الصورة
+                      {t.admin.promotions.banners.removeImage}
                     </button>
                   </div>
                 ) : (
                   <>
                     <div className="text-historical-gold mb-3">{Icons.image}</div>
-                    <p className="text-sm text-historical-charcoal/70 mb-2">اسحب الصورة هنا أو</p>
+                    <p className="text-sm text-historical-charcoal/70 mb-2">{t.admin.promotions.banners.dragImage}</p>
                     <label className="inline-block px-4 py-2 rounded-lg bg-historical-gold/10 text-historical-gold text-sm font-medium cursor-pointer hover:bg-historical-gold/20 transition-colors">
-                      اختر ملف
+                      {t.admin.promotions.banners.chooseFile}
                       <input
                         type="file"
                         accept="image/*"
@@ -583,7 +606,7 @@ function BannerModal({
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-historical-charcoal mb-2">
-                  العنوان (عربي) *
+                  {t.admin.promotions.banners.titleAr} *
                 </label>
                 <input
                   type="text"
@@ -598,7 +621,7 @@ function BannerModal({
               </div>
               <div>
                 <label className="block text-sm font-medium text-historical-charcoal mb-2">
-                  Title (English) *
+                  {t.admin.promotions.banners.titleEn} *
                 </label>
                 <input
                   type="text"
@@ -617,7 +640,7 @@ function BannerModal({
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-historical-charcoal mb-2">
-                  العنوان الفرعي (عربي)
+                  {t.admin.promotions.banners.subtitleAr}
                 </label>
                 <input
                   type="text"
@@ -628,7 +651,7 @@ function BannerModal({
               </div>
               <div>
                 <label className="block text-sm font-medium text-historical-charcoal mb-2">
-                  Subtitle (English)
+                  {t.admin.promotions.banners.subtitleEn}
                 </label>
                 <input
                   type="text"
@@ -643,21 +666,21 @@ function BannerModal({
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-historical-charcoal mb-2">
-                  نوع الرابط
+                  {t.admin.promotions.banners.linkType}
                 </label>
                 <select
                   value={formData.link_type}
                   onChange={(e) => setFormData({ ...formData, link_type: e.target.value as 'url' | 'product' | 'category' })}
                   className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
                 >
-                  <option value="url">رابط مباشر</option>
-                  <option value="product">منتج</option>
-                  <option value="category">فئة</option>
+                  <option value="url">{t.admin.promotions.banners.directLink}</option>
+                  <option value="product">{t.admin.promotions.banners.product}</option>
+                  <option value="category">{t.admin.promotions.banners.category}</option>
                 </select>
               </div>
               <div>
                 <label className="block text-sm font-medium text-historical-charcoal mb-2">
-                  الرابط *
+                  {t.admin.promotions.banners.link} *
                 </label>
                 <input
                   type="text"
@@ -676,22 +699,22 @@ function BannerModal({
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-historical-charcoal mb-2">
-                  الموقع
+                  {t.admin.promotions.banners.location}
                 </label>
                 <select
                   value={formData.location}
                   onChange={(e) => setFormData({ ...formData, location: e.target.value as BannerLocation })}
                   className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
                 >
-                  <option value="hero">الصفحة الرئيسية</option>
-                  <option value="sidebar">الشريط الجانبي</option>
-                  <option value="popup">نافذة منبثقة</option>
-                  <option value="category">صفحة الفئة</option>
+                  <option value="hero">{t.admin.promotions.banners.hero}</option>
+                  <option value="sidebar">{t.admin.promotions.banners.sidebar}</option>
+                  <option value="popup">{t.admin.promotions.banners.popup}</option>
+                  <option value="category">{t.admin.promotions.banners.category}</option>
                 </select>
               </div>
               <div>
                 <label className="block text-sm font-medium text-historical-charcoal mb-2">
-                  الترتيب
+                  {t.admin.promotions.banners.order}
                 </label>
                 <input
                   type="number"
@@ -706,7 +729,7 @@ function BannerModal({
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-historical-charcoal mb-2">
-                  تاريخ البداية *
+                  {t.admin.promotions.banners.startDate} *
                 </label>
                 <input
                   type="datetime-local"
@@ -718,7 +741,7 @@ function BannerModal({
               </div>
               <div>
                 <label className="block text-sm font-medium text-historical-charcoal mb-2">
-                  تاريخ النهاية
+                  {t.admin.promotions.banners.endDate}
                 </label>
                 <input
                   type="datetime-local"
@@ -737,7 +760,7 @@ function BannerModal({
                   onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
                   className="w-4 h-4 rounded border-historical-gold/30 text-historical-gold focus:ring-historical-gold"
                 />
-                <span className="text-sm text-historical-charcoal">نشط</span>
+                <span className="text-sm text-historical-charcoal">{t.admin.promotions.active}</span>
               </label>
             </div>
           </form>
@@ -748,7 +771,7 @@ function BannerModal({
               onClick={onClose}
               className="px-6 py-2.5 rounded-xl text-historical-charcoal/70 hover:bg-historical-gold/10 transition-colors"
             >
-              إلغاء
+              {t.admin.promotions.banners.cancel}
             </button>
             <button
               type="submit"
@@ -756,7 +779,7 @@ function BannerModal({
               disabled={isProcessing}
               className="px-6 py-2.5 rounded-xl bg-historical-gold text-white font-medium hover:bg-historical-red transition-colors disabled:opacity-50"
             >
-              {isProcessing ? 'جاري الحفظ...' : (banner ? 'حفظ التغييرات' : 'إضافة البانر')}
+              {isProcessing ? t.admin.promotions.banners.saving : (banner ? t.admin.promotions.banners.saveChanges : t.admin.promotions.banners.addBanner)}
             </button>
           </div>
         </motion.div>

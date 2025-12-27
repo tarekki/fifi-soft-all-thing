@@ -17,6 +17,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 import { useCoupons, useCategories, useProducts, useUsers } from '@/lib/admin'
 import type { Coupon, CouponPayload, CouponDiscountType, CouponApplicableTo } from '@/lib/admin'
+import { useLanguage } from '@/lib/i18n/context'
 
 // =============================================================================
 // Icons
@@ -71,20 +72,20 @@ const Icons = {
 // دوال مساعدة
 // =============================================================================
 
-const getDiscountTypeLabel = (type: CouponDiscountType) => {
+const getDiscountTypeLabel = (type: CouponDiscountType, t: any) => {
   const labels = {
-    percentage: 'نسبة مئوية',
-    fixed: 'مبلغ ثابت',
+    percentage: t.admin.promotions.coupons.percentage,
+    fixed: t.admin.promotions.coupons.fixed,
   }
   return labels[type]
 }
 
-const getApplicableToLabel = (applicable: CouponApplicableTo) => {
+const getApplicableToLabel = (applicable: CouponApplicableTo, t: any) => {
   const labels = {
-    all: 'جميع المنتجات',
-    category: 'فئة محددة',
-    product: 'منتج محدد',
-    user: 'مستخدم محدد',
+    all: t.admin.promotions.coupons.allProducts,
+    category: t.admin.promotions.coupons.specificCategory,
+    product: t.admin.promotions.coupons.specificProduct,
+    user: t.admin.promotions.coupons.specificUser,
   }
   return labels[applicable]
 }
@@ -125,6 +126,7 @@ const itemVariants = {
 // =============================================================================
 
 export default function CouponsPage() {
+  const { t } = useLanguage()
   const {
     coupons,
     total,
@@ -176,13 +178,13 @@ export default function CouponsPage() {
   }, [coupons, update, refresh])
 
   const handleDelete = useCallback(async (id: number) => {
-    if (confirm('هل أنت متأكد من حذف هذا الكوبون؟')) {
+    if (confirm(t.admin.promotions.coupons.confirmDelete)) {
       const success = await remove(id)
       if (success) {
         refresh()
       }
     }
-  }, [remove, refresh])
+  }, [remove, refresh, t])
 
   const handleEdit = useCallback((coupon: Coupon) => {
     setEditingCoupon(coupon)
@@ -217,8 +219,8 @@ export default function CouponsPage() {
             {Icons.back}
           </Link>
           <div>
-            <h1 className="text-2xl font-bold text-historical-charcoal">كوبونات الخصم</h1>
-            <p className="text-historical-charcoal/50 mt-1">إنشاء وإدارة أكواد الخصم</p>
+            <h1 className="text-2xl font-bold text-historical-charcoal">{t.admin.promotions.coupons.pageTitle}</h1>
+            <p className="text-historical-charcoal/50 mt-1">{t.admin.promotions.coupons.pageSubtitle}</p>
           </div>
         </div>
         <button
@@ -226,7 +228,7 @@ export default function CouponsPage() {
           className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-l from-historical-gold to-historical-red text-white font-medium shadow-lg hover:shadow-xl transition-shadow"
         >
           {Icons.add}
-          <span>إنشاء كوبون</span>
+          <span>{t.admin.promotions.coupons.createCoupon}</span>
         </button>
       </motion.div>
 
@@ -240,7 +242,7 @@ export default function CouponsPage() {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="بحث بالكود أو الوصف..."
+            placeholder={t.admin.promotions.coupons.searchPlaceholder}
             className="w-full pr-12 pl-4 py-3 rounded-xl border border-historical-gold/20 bg-white/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
           />
         </div>
@@ -249,9 +251,9 @@ export default function CouponsPage() {
           onChange={(e) => setFilterStatus(e.target.value === '' ? '' : e.target.value === 'true')}
           className="px-4 py-3 rounded-xl border border-historical-gold/20 bg-white/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-historical-gold/30 min-w-[150px]"
         >
-          <option value="">كل الحالات</option>
-          <option value="true">نشط</option>
-          <option value="false">غير نشط</option>
+          <option value="">{t.admin.promotions.coupons.allStatuses}</option>
+          <option value="true">{t.admin.promotions.coupons.active}</option>
+          <option value="false">{t.admin.promotions.coupons.inactive}</option>
         </select>
       </motion.div>
 
@@ -282,7 +284,7 @@ export default function CouponsPage() {
           variants={itemVariants}
           className="text-center py-12 bg-white/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10"
         >
-          <p className="text-historical-charcoal/50">لا توجد كوبونات</p>
+          <p className="text-historical-charcoal/50">{t.admin.promotions.coupons.noCoupons}</p>
         </motion.div>
       ) : (
         <motion.div
@@ -293,12 +295,12 @@ export default function CouponsPage() {
             <table className="w-full">
               <thead className="bg-historical-stone/50">
                 <tr>
-                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-4">الكود</th>
-                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-4">الوصف</th>
-                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-4">الخصم</th>
-                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-4">الاستخدام</th>
-                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-4">الصلاحية</th>
-                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-4">الحالة</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-4">{t.admin.promotions.coupons.code}</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-4">{t.admin.promotions.coupons.description}</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-4">{t.admin.promotions.coupons.discount}</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-4">{t.admin.promotions.coupons.usage}</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-4">{t.admin.promotions.coupons.validity}</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-4">{t.admin.promotions.coupons.status}</th>
                   <th className="w-24 px-6 py-4"></th>
                 </tr>
               </thead>
@@ -319,7 +321,7 @@ export default function CouponsPage() {
                             <button
                               onClick={() => handleCopyCode(coupon.id, coupon.code)}
                               className="mr-2 p-1 text-historical-charcoal/30 hover:text-historical-gold transition-colors"
-                              title="نسخ الكود"
+                              title={t.admin.promotions.coupons.copyCode}
                             >
                               {copiedId === coupon.id ? '✓' : Icons.copy}
                             </button>
@@ -328,14 +330,14 @@ export default function CouponsPage() {
                       </td>
                       <td className="px-6 py-4">
                         <p className="text-sm text-historical-charcoal">{coupon.description_ar}</p>
-                        <p className="text-xs text-historical-charcoal/50">{getApplicableToLabel(coupon.applicable_to)}</p>
+                        <p className="text-xs text-historical-charcoal/50">{getApplicableToLabel(coupon.applicable_to, t)}</p>
                       </td>
                       <td className="px-6 py-4">
                         <span className="font-bold text-historical-gold">
-                          {coupon.discount_type === 'percentage' ? `${coupon.discount_value}%` : `${coupon.discount_value} ل.س`}
+                          {coupon.discount_type === 'percentage' ? `${coupon.discount_value}%` : `${coupon.discount_value} ${t.admin.promotions.coupons.syr}`}
                         </span>
                         {coupon.min_order > 0 && (
-                          <p className="text-xs text-historical-charcoal/50">حد أدنى: {coupon.min_order} ل.س</p>
+                          <p className="text-xs text-historical-charcoal/50">{t.admin.promotions.coupons.minOrder}: {coupon.min_order} {t.admin.promotions.coupons.syr}</p>
                         )}
                       </td>
                       <td className="px-6 py-4">
@@ -359,14 +361,14 @@ export default function CouponsPage() {
                         </p>
                         {coupon.end_date && (
                           <p className="text-xs text-historical-charcoal/50">
-                            إلى {new Date(coupon.end_date).toLocaleDateString('ar-SY')}
+                            {t.admin.promotions.coupons.to} {new Date(coupon.end_date).toLocaleDateString('ar-SY')}
                           </p>
                         )}
                       </td>
                       <td className="px-6 py-4">
                         {isExpired ? (
                           <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
-                            منتهي
+                            {t.admin.promotions.coupons.expired}
                           </span>
                         ) : (
                           <button
@@ -459,6 +461,7 @@ function CouponModal({
   onClose,
   onSave,
 }: CouponModalProps) {
+  const { t } = useLanguage()
   const { categoryTree, fetchCategoryTree } = useCategories()
   const { products, fetchProducts } = useProducts()
   const { users, fetchUsers } = useUsers()
@@ -518,7 +521,8 @@ function CouponModal({
         })
       }
     }
-  }, [isOpen, coupon, fetchCategoryTree, fetchProducts, fetchUsers, couponHook])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, coupon?.id])
 
   // Update form when coupon details are loaded
   useEffect(() => {
@@ -586,23 +590,23 @@ function CouponModal({
 
     // Validation
     if (!formData.code.trim()) {
-      setFormErrors({ code: 'كود الخصم مطلوب' })
+      setFormErrors({ code: t.admin.promotions.coupons.codeRequired })
       return
     }
     if (formData.code.length < 3) {
-      setFormErrors({ code: 'كود الخصم يجب أن يكون 3 أحرف على الأقل' })
+      setFormErrors({ code: t.admin.promotions.coupons.codeMinLength })
       return
     }
     if (!formData.description_ar.trim()) {
-      setFormErrors({ description_ar: 'الوصف بالعربية مطلوب' })
+      setFormErrors({ description_ar: t.admin.promotions.coupons.descriptionArRequired })
       return
     }
     if (formData.discount_value <= 0) {
-      setFormErrors({ discount_value: 'قيمة الخصم يجب أن تكون أكبر من صفر' })
+      setFormErrors({ discount_value: t.admin.promotions.coupons.discountValueRequired })
       return
     }
     if (formData.discount_type === 'percentage' && formData.discount_value > 100) {
-      setFormErrors({ discount_value: 'النسبة المئوية لا يمكن أن تتجاوز 100%' })
+      setFormErrors({ discount_value: t.admin.promotions.coupons.discountValueMax })
       return
     }
 
@@ -685,7 +689,7 @@ function CouponModal({
         >
           <div className="flex items-center justify-between p-6 border-b border-historical-gold/10">
             <h2 className="text-lg font-bold text-historical-charcoal">
-              {coupon ? 'تعديل الكوبون' : 'إنشاء كوبون جديد'}
+              {coupon ? t.admin.promotions.coupons.editCoupon : t.admin.promotions.coupons.createNewCoupon}
             </h2>
             <button
               onClick={onClose}
@@ -699,14 +703,14 @@ function CouponModal({
             {/* Code */}
             <div>
               <label className="block text-sm font-medium text-historical-charcoal mb-2">
-                كود الخصم *
+                {t.admin.promotions.coupons.codeLabel} *
               </label>
               <input
                 type="text"
                 value={formData.code}
                 onChange={(e) => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
                 className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 uppercase"
-                placeholder="مثال: SUMMER20"
+                placeholder={t.admin.promotions.coupons.codePlaceholder}
                 dir="ltr"
                 required
               />
@@ -719,7 +723,7 @@ function CouponModal({
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-historical-charcoal mb-2">
-                  الوصف (عربي) *
+                  {t.admin.promotions.coupons.descriptionAr} *
                 </label>
                 <input
                   type="text"
@@ -734,7 +738,7 @@ function CouponModal({
               </div>
               <div>
                 <label className="block text-sm font-medium text-historical-charcoal mb-2">
-                  Description (English)
+                  {t.admin.promotions.coupons.descriptionEn}
                 </label>
                 <input
                   type="text"
@@ -750,7 +754,7 @@ function CouponModal({
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-historical-charcoal mb-2">
-                  نوع الخصم *
+                  {t.admin.promotions.coupons.discountType} *
                 </label>
                 <select
                   value={formData.discount_type}
@@ -758,13 +762,13 @@ function CouponModal({
                   className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
                   required
                 >
-                  <option value="percentage">نسبة مئوية (%)</option>
-                  <option value="fixed">مبلغ ثابت (ل.س)</option>
+                  <option value="percentage">{t.admin.promotions.coupons.percentage}</option>
+                  <option value="fixed">{t.admin.promotions.coupons.fixed}</option>
                 </select>
               </div>
               <div>
                 <label className="block text-sm font-medium text-historical-charcoal mb-2">
-                  قيمة الخصم *
+                  {t.admin.promotions.coupons.discountValue} *
                 </label>
                 <input
                   type="number"
@@ -786,7 +790,7 @@ function CouponModal({
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-historical-charcoal mb-2">
-                  الحد الأدنى للطلب
+                  {t.admin.promotions.coupons.minOrderLabel}
                 </label>
                 <input
                   type="number"
@@ -799,32 +803,32 @@ function CouponModal({
               </div>
               <div>
                 <label className="block text-sm font-medium text-historical-charcoal mb-2">
-                  الحد الأقصى للخصم
+                  {t.admin.promotions.coupons.maxDiscount}
                 </label>
                 <input
                   type="number"
                   value={formData.max_discount || ''}
                   onChange={(e) => setFormData({ ...formData, max_discount: e.target.value ? parseFloat(e.target.value) : null })}
                   className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
-                  placeholder="غير محدد"
+                  placeholder={t.admin.promotions.coupons.unlimited}
                   min="0"
                   step="0.01"
                 />
-                <p className="text-xs text-historical-charcoal/50 mt-1">(للكوبونات النسبية فقط)</p>
+                <p className="text-xs text-historical-charcoal/50 mt-1">{t.admin.promotions.coupons.maxDiscountNote}</p>
               </div>
             </div>
 
             {/* Usage Limit */}
             <div>
               <label className="block text-sm font-medium text-historical-charcoal mb-2">
-                حد الاستخدام
+                {t.admin.promotions.coupons.usageLimit}
               </label>
               <input
                 type="number"
                 value={formData.usage_limit || ''}
                 onChange={(e) => setFormData({ ...formData, usage_limit: e.target.value ? parseInt(e.target.value) : null })}
                 className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
-                placeholder="غير محدود"
+                placeholder={t.admin.promotions.coupons.unlimitedUsage}
                 min="1"
               />
             </div>
@@ -833,7 +837,7 @@ function CouponModal({
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-historical-charcoal mb-2">
-                  تاريخ البداية *
+                  {t.admin.promotions.coupons.startDate} *
                 </label>
                 <input
                   type="datetime-local"
@@ -845,7 +849,7 @@ function CouponModal({
               </div>
               <div>
                 <label className="block text-sm font-medium text-historical-charcoal mb-2">
-                  تاريخ النهاية
+                  {t.admin.promotions.coupons.endDate}
                 </label>
                 <input
                   type="datetime-local"
@@ -859,7 +863,7 @@ function CouponModal({
             {/* Applicable To */}
             <div>
               <label className="block text-sm font-medium text-historical-charcoal mb-2">
-                ينطبق على *
+                {t.admin.promotions.coupons.applicableTo} *
               </label>
               <select
                 value={formData.applicable_to}
@@ -877,10 +881,10 @@ function CouponModal({
                 className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
                 required
               >
-                <option value="all">جميع المنتجات</option>
-                <option value="category">فئة محددة</option>
-                <option value="product">منتج محدد</option>
-                <option value="user">مستخدم محدد</option>
+                <option value="all">{t.admin.promotions.coupons.allProducts}</option>
+                <option value="category">{t.admin.promotions.coupons.specificCategory}</option>
+                <option value="product">{t.admin.promotions.coupons.specificProduct}</option>
+                <option value="user">{t.admin.promotions.coupons.specificUser}</option>
               </select>
             </div>
 
@@ -888,18 +892,18 @@ function CouponModal({
             {formData.applicable_to === 'category' && (
               <div>
                 <label className="block text-sm font-medium text-historical-charcoal mb-2">
-                  اختر الفئات
+                  {t.admin.promotions.coupons.selectCategories}
                 </label>
                 <input
                   type="text"
                   value={searchCategory}
                   onChange={(e) => setSearchCategory(e.target.value)}
-                  placeholder="ابحث عن فئة..."
+                  placeholder={t.admin.promotions.coupons.searchCategory}
                   className="w-full px-4 py-2 rounded-lg border border-historical-gold/20 mb-3 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
                 />
                 <div className="max-h-48 overflow-y-auto border border-historical-gold/20 rounded-lg p-3 space-y-2">
                   {filteredCategories.length === 0 ? (
-                    <p className="text-sm text-historical-charcoal/50 text-center py-4">لا توجد فئات</p>
+                    <p className="text-sm text-historical-charcoal/50 text-center py-4">{t.admin.promotions.coupons.noCategories}</p>
                   ) : (
                     filteredCategories.map((category) => (
                       <label
@@ -919,7 +923,7 @@ function CouponModal({
                 </div>
                 {(formData.applicable_categories || []).length > 0 && (
                   <p className="text-xs text-historical-charcoal/50 mt-2">
-                    تم اختيار {formData.applicable_categories?.length} فئة
+                    {t.admin.promotions.coupons.selectedCategories.replace('{count}', (formData.applicable_categories?.length || 0).toString())}
                   </p>
                 )}
               </div>
@@ -929,18 +933,18 @@ function CouponModal({
             {formData.applicable_to === 'product' && (
               <div>
                 <label className="block text-sm font-medium text-historical-charcoal mb-2">
-                  اختر المنتجات
+                  {t.admin.promotions.coupons.selectProducts}
                 </label>
                 <input
                   type="text"
                   value={searchProduct}
                   onChange={(e) => setSearchProduct(e.target.value)}
-                  placeholder="ابحث عن منتج..."
+                  placeholder={t.admin.promotions.coupons.searchProduct}
                   className="w-full px-4 py-2 rounded-lg border border-historical-gold/20 mb-3 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
                 />
                 <div className="max-h-48 overflow-y-auto border border-historical-gold/20 rounded-lg p-3 space-y-2">
                   {filteredProducts.length === 0 ? (
-                    <p className="text-sm text-historical-charcoal/50 text-center py-4">لا توجد منتجات</p>
+                    <p className="text-sm text-historical-charcoal/50 text-center py-4">{t.admin.promotions.coupons.noProducts}</p>
                   ) : (
                     filteredProducts.map((product) => (
                       <label
@@ -960,7 +964,7 @@ function CouponModal({
                 </div>
                 {(formData.applicable_products || []).length > 0 && (
                   <p className="text-xs text-historical-charcoal/50 mt-2">
-                    تم اختيار {formData.applicable_products?.length} منتج
+                    {t.admin.promotions.coupons.selectedProducts.replace('{count}', (formData.applicable_products?.length || 0).toString())}
                   </p>
                 )}
               </div>
@@ -970,18 +974,18 @@ function CouponModal({
             {formData.applicable_to === 'user' && (
               <div>
                 <label className="block text-sm font-medium text-historical-charcoal mb-2">
-                  اختر المستخدمين
+                  {t.admin.promotions.coupons.selectUsers}
                 </label>
                 <input
                   type="text"
                   value={searchUser}
                   onChange={(e) => setSearchUser(e.target.value)}
-                  placeholder="ابحث عن مستخدم..."
+                  placeholder={t.admin.promotions.coupons.searchUser}
                   className="w-full px-4 py-2 rounded-lg border border-historical-gold/20 mb-3 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
                 />
                 <div className="max-h-48 overflow-y-auto border border-historical-gold/20 rounded-lg p-3 space-y-2">
                   {filteredUsers.length === 0 ? (
-                    <p className="text-sm text-historical-charcoal/50 text-center py-4">لا يوجد مستخدمون</p>
+                    <p className="text-sm text-historical-charcoal/50 text-center py-4">{t.admin.promotions.coupons.noUsers}</p>
                   ) : (
                     filteredUsers.map((user) => (
                       <label
@@ -1003,7 +1007,7 @@ function CouponModal({
                 </div>
                 {(formData.applicable_users || []).length > 0 && (
                   <p className="text-xs text-historical-charcoal/50 mt-2">
-                    تم اختيار {formData.applicable_users?.length} مستخدم
+                    {t.admin.promotions.coupons.selectedUsers.replace('{count}', (formData.applicable_users?.length || 0).toString())}
                   </p>
                 )}
               </div>
@@ -1018,7 +1022,7 @@ function CouponModal({
                   onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
                   className="w-4 h-4 rounded border-historical-gold/30 text-historical-gold focus:ring-historical-gold"
                 />
-                <span className="text-sm text-historical-charcoal">نشط</span>
+                <span className="text-sm text-historical-charcoal">{t.admin.promotions.active}</span>
               </label>
             </div>
           </form>
@@ -1029,7 +1033,7 @@ function CouponModal({
               onClick={onClose}
               className="px-6 py-2.5 rounded-xl text-historical-charcoal/70 hover:bg-historical-gold/10 transition-colors"
             >
-              إلغاء
+              {t.admin.promotions.coupons.cancel}
             </button>
             <button
               type="submit"
@@ -1037,7 +1041,7 @@ function CouponModal({
               disabled={isProcessing}
               className="px-6 py-2.5 rounded-xl bg-historical-gold text-white font-medium hover:bg-historical-red transition-colors disabled:opacity-50"
             >
-              {isProcessing ? 'جاري الحفظ...' : (coupon ? 'حفظ التغييرات' : 'إنشاء الكوبون')}
+              {isProcessing ? t.admin.promotions.coupons.saving : (coupon ? t.admin.promotions.coupons.saveChanges : t.admin.promotions.coupons.createCoupon)}
             </button>
           </div>
         </motion.div>

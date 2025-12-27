@@ -3,6 +3,7 @@
 import { useState, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAdminAuth } from '@/lib/admin'
+import { useLanguage } from '@/lib/i18n/context'
 
 // =============================================================================
 // Types & Interfaces
@@ -101,6 +102,7 @@ const mockNotifications: Notification[] = [
 // =============================================================================
 
 function SearchBar() {
+  const { t } = useLanguage()
   const [isExpanded, setIsExpanded] = useState(false)
   const [query, setQuery] = useState('')
 
@@ -125,7 +127,7 @@ function SearchBar() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               type="text"
-              placeholder="بحث..."
+              placeholder={t.admin.header.search}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               className="flex-1 bg-transparent py-2.5 pl-4 text-sm text-historical-charcoal placeholder:text-historical-charcoal/40 outline-none"
@@ -139,6 +141,7 @@ function SearchBar() {
 }
 
 function NotificationDropdown() {
+  const { t, language } = useLanguage()
   const [isOpen, setIsOpen] = useState(false)
   const [notifications, setNotifications] = useState(mockNotifications)
 
@@ -210,13 +213,13 @@ function NotificationDropdown() {
             >
               {/* Header */}
               <div className="flex items-center justify-between px-4 py-3 border-b border-historical-gold/10 bg-historical-stone/30">
-                <h3 className="font-semibold text-historical-charcoal">الإشعارات</h3>
+                <h3 className="font-semibold text-historical-charcoal">{t.admin.header.notifications}</h3>
                 {unreadCount > 0 && (
                   <button
                     onClick={markAllAsRead}
                     className="text-xs text-historical-gold hover:text-historical-red transition-colors"
                   >
-                    تحديد الكل كمقروء
+                    {language === 'ar' ? 'تحديد الكل كمقروء' : 'Mark all as read'}
                   </button>
                 )}
               </div>
@@ -225,7 +228,7 @@ function NotificationDropdown() {
               <div className="max-h-80 overflow-y-auto custom-scrollbar">
                 {notifications.length === 0 ? (
                   <div className="p-8 text-center text-historical-charcoal/50">
-                    <p>لا توجد إشعارات</p>
+                    <p>{t.admin.header.noNotifications}</p>
                   </div>
                 ) : (
                   notifications.map(notification => (
@@ -261,7 +264,7 @@ function NotificationDropdown() {
               {/* Footer */}
               <div className="px-4 py-3 border-t border-historical-gold/10 bg-historical-stone/30">
                 <button className="w-full text-center text-sm text-historical-gold hover:text-historical-red transition-colors">
-                  عرض جميع الإشعارات
+                  {t.admin.header.viewAll}
                 </button>
               </div>
             </motion.div>
@@ -295,21 +298,88 @@ function ThemeToggle() {
 }
 
 function LanguageToggle() {
-  const [lang, setLang] = useState<'ar' | 'en'>('ar')
+  const { language, setLanguage } = useLanguage()
+
+  const toggleLanguage = () => {
+    setLanguage(language === 'ar' ? 'en' : 'ar')
+  }
+
+  const isArabic = language === 'ar'
 
   return (
-    <button
-      onClick={() => setLang(lang === 'ar' ? 'en' : 'ar')}
-      className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium text-historical-charcoal/60 hover:text-historical-charcoal hover:bg-historical-gold/10 transition-all duration-200"
-      title="تغيير اللغة"
+    <motion.button
+      onClick={toggleLanguage}
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
+      className="relative flex items-center gap-3 px-3 py-2 rounded-xl bg-white border border-historical-gold/30 hover:border-historical-gold/50 shadow-md hover:shadow-lg transition-all duration-200 overflow-hidden group"
+      title={isArabic ? 'Switch to English' : 'التبديل للعربية'}
     >
-      {Icons.globe}
-      <span>{lang === 'ar' ? 'AR' : 'EN'}</span>
-    </button>
+      {/* Background gradient */}
+      <div className="absolute inset-0 bg-gradient-to-r from-historical-gold/5 to-historical-red/5 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+      
+      {/* Content wrapper */}
+      <div className="relative flex items-center gap-2.5 z-10">
+        {/* Arabic option */}
+        <div className="flex items-center gap-2">
+          <motion.div
+            animate={{
+              scale: isArabic ? 1.2 : 1,
+              opacity: isArabic ? 1 : 0.4,
+            }}
+            transition={{ duration: 0.2 }}
+            className="w-6 h-6 rounded-lg bg-gradient-to-br from-green-500 to-green-700 flex items-center justify-center text-white text-[10px] font-bold shadow-sm"
+          >
+            ع
+          </motion.div>
+          <span className={`text-xs font-semibold transition-colors duration-200 ${isArabic ? 'text-historical-charcoal' : 'text-historical-charcoal/40'}`}>
+            عربي
+          </span>
+        </div>
+
+        {/* Divider */}
+        <div className="w-px h-5 bg-historical-charcoal/20" />
+
+        {/* Toggle Switch - Simple Design */}
+        <div className="relative w-11 h-6 rounded-full bg-historical-charcoal/15 p-0.5">
+          <motion.div
+            className="w-5 h-5 rounded-full bg-white shadow-md"
+            animate={{
+              x: isArabic ? 0 : 20,
+            }}
+            transition={{
+              type: "spring",
+              stiffness: 500,
+              damping: 30,
+            }}
+          />
+        </div>
+
+        {/* Divider */}
+        <div className="w-px h-5 bg-historical-charcoal/20" />
+
+        {/* English option */}
+        <div className="flex items-center gap-2">
+          <span className={`text-xs font-semibold transition-colors duration-200 ${!isArabic ? 'text-historical-charcoal' : 'text-historical-charcoal/40'}`}>
+            EN
+          </span>
+          <motion.div
+            animate={{
+              scale: !isArabic ? 1.2 : 1,
+              opacity: !isArabic ? 1 : 0.4,
+            }}
+            transition={{ duration: 0.2 }}
+            className="w-6 h-6 rounded-lg bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white text-[10px] font-bold shadow-sm"
+          >
+            EN
+          </motion.div>
+        </div>
+      </div>
+    </motion.button>
   )
 }
 
 function UserMenu() {
+  const { t, language } = useLanguage()
   const [isOpen, setIsOpen] = useState(false)
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const { user, logout } = useAdminAuth()
@@ -340,15 +410,28 @@ function UserMenu() {
   // Get role display name
   // الحصول على اسم الدور للعرض
   const getRoleDisplay = () => {
-    switch (user?.role) {
-      case 'super_admin':
-        return 'مدير عام'
-      case 'admin':
-        return 'مدير النظام'
-      case 'moderator':
-        return 'مشرف'
-      default:
-        return 'مستخدم'
+    if (language === 'ar') {
+      switch (user?.role) {
+        case 'super_admin':
+          return 'مدير عام'
+        case 'admin':
+          return 'مدير النظام'
+        case 'moderator':
+          return 'مشرف'
+        default:
+          return 'مستخدم'
+      }
+    } else {
+      switch (user?.role) {
+        case 'super_admin':
+          return 'Super Admin'
+        case 'admin':
+          return 'Admin'
+        case 'moderator':
+          return 'Moderator'
+        default:
+          return 'User'
+      }
     }
   }
 

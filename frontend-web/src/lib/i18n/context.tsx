@@ -17,10 +17,15 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     const [direction, setDirection] = useState<Direction>('rtl');
 
     useEffect(() => {
-        // Load from localStorage or default
-        const savedLang = localStorage.getItem('language') as Language;
-        if (savedLang && (savedLang === 'ar' || savedLang === 'en')) {
-            setLanguageState(savedLang);
+        // Load from localStorage or default (only in browser)
+        // تحميل من localStorage أو القيمة الافتراضية (فقط في المتصفح)
+        if (typeof window !== 'undefined') {
+            const savedLang = localStorage.getItem('language') as Language;
+            if (savedLang && (savedLang === 'ar' || savedLang === 'en')) {
+                setLanguageState(savedLang);
+                const dir = savedLang === 'ar' ? 'rtl' : 'ltr';
+                setDirection(dir);
+            }
         }
     }, []);
 
@@ -28,15 +33,22 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
         setLanguageState(lang);
         const dir = lang === 'ar' ? 'rtl' : 'ltr';
         setDirection(dir);
-        localStorage.setItem('language', lang);
-        document.documentElement.dir = dir;
-        document.documentElement.lang = lang;
+        // Only access localStorage and document in browser
+        // الوصول إلى localStorage و document فقط في المتصفح
+        if (typeof window !== 'undefined') {
+            localStorage.setItem('language', lang);
+            document.documentElement.dir = dir;
+            document.documentElement.lang = lang;
+        }
     };
 
-    // Update DOM on mount/change
+    // Update DOM on mount/change (only in browser)
+    // تحديث DOM عند التحميل/التغيير (فقط في المتصفح)
     useEffect(() => {
-        document.documentElement.dir = direction;
-        document.documentElement.lang = language;
+        if (typeof window !== 'undefined') {
+            document.documentElement.dir = direction;
+            document.documentElement.lang = language;
+        }
     }, [language, direction]);
 
     const value = {

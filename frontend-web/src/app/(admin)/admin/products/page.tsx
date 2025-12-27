@@ -17,6 +17,7 @@ import { useState, useCallback, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useProducts, useCategories } from '@/lib/admin'
 import type { Product, ProductStatus, ProductFilters, ProductCreatePayload } from '@/lib/admin'
+import { useLanguage } from '@/lib/i18n/context'
 
 // =============================================================================
 // Types
@@ -143,13 +144,13 @@ const getStatusStyle = (status: ProductStatus) => {
   return styles[status]
 }
 
-const getStatusLabel = (status: ProductStatus) => {
+const getStatusLabel = (status: ProductStatus, t: any) => {
   const labels = {
-    active: 'نشط',
-    draft: 'مسودة',
-    out_of_stock: 'نفذ المخزون',
+    active: t.admin.products.status.active,
+    draft: t.admin.products.status.draft,
+    out_of_stock: t.admin.products.status.outOfStock,
   }
-  return labels[status]
+  return labels[status] || status
 }
 
 const formatPrice = (price: number) => {
@@ -226,7 +227,7 @@ function ProductModal({ isOpen, onClose, onSave, product, categories, isSubmitti
       >
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-bold text-historical-charcoal">
-            {product ? 'تعديل المنتج' : 'إضافة منتج جديد'}
+            {product ? t.admin.products.edit : t.admin.products.addProduct}
           </h2>
           <button onClick={onClose} className="p-2 rounded-lg hover:bg-gray-100 transition-colors">
             {Icons.close}
@@ -236,7 +237,7 @@ function ProductModal({ isOpen, onClose, onSave, product, categories, isSubmitti
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-historical-charcoal/70 mb-1">
-              اسم المنتج
+              {t.admin.products.name}
             </label>
             <input
               type="text"
@@ -249,7 +250,7 @@ function ProductModal({ isOpen, onClose, onSave, product, categories, isSubmitti
 
           <div>
             <label className="block text-sm font-medium text-historical-charcoal/70 mb-1">
-              الوصف
+              {t.admin.categories.description}
             </label>
             <textarea
               value={formData.description}
@@ -262,7 +263,7 @@ function ProductModal({ isOpen, onClose, onSave, product, categories, isSubmitti
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-historical-charcoal/70 mb-1">
-                السعر الأساسي
+                {t.admin.products.basePrice}
               </label>
               <input
                 type="number"
@@ -276,14 +277,14 @@ function ProductModal({ isOpen, onClose, onSave, product, categories, isSubmitti
 
             <div>
               <label className="block text-sm font-medium text-historical-charcoal/70 mb-1">
-                الفئة
+                {t.admin.products.category}
               </label>
               <select
                 value={formData.category_id || ''}
                 onChange={(e) => setFormData({ ...formData, category_id: e.target.value ? Number(e.target.value) : null })}
                 className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
               >
-                <option value="">بدون فئة</option>
+                <option value="">{t.admin.products.noCategory}</option>
                 {categories.map((cat) => (
                   <option key={cat.id} value={cat.id}>
                     {cat.name_ar || cat.name}
@@ -302,7 +303,7 @@ function ProductModal({ isOpen, onClose, onSave, product, categories, isSubmitti
               className="w-4 h-4 rounded border-historical-gold/30 text-historical-gold focus:ring-historical-gold"
             />
             <label htmlFor="is_active" className="text-sm text-historical-charcoal">
-              نشط
+              {t.admin.products.status.active}
             </label>
           </div>
 
@@ -313,14 +314,14 @@ function ProductModal({ isOpen, onClose, onSave, product, categories, isSubmitti
               className="flex-1 flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-l from-historical-gold to-historical-red text-white font-medium shadow-lg hover:shadow-xl transition-shadow disabled:opacity-50"
             >
               {isSubmitting ? Icons.loader : null}
-              {product ? 'تحديث' : 'إضافة'}
+              {product ? t.admin.users.form.update : t.admin.users.form.create}
             </button>
             <button
               type="button"
               onClick={onClose}
               className="px-5 py-3 rounded-xl border border-historical-gold/20 text-historical-charcoal font-medium hover:bg-historical-gold/5 transition-colors"
             >
-              إلغاء
+              {t.admin.users.form.cancel}
             </button>
           </div>
         </form>
@@ -342,6 +343,7 @@ interface DeleteModalProps {
 }
 
 function DeleteModal({ isOpen, onClose, onConfirm, productName, isSubmitting }: DeleteModalProps) {
+  const { t } = useLanguage()
   if (!isOpen) return null
 
   return (
@@ -353,9 +355,9 @@ function DeleteModal({ isOpen, onClose, onConfirm, productName, isSubmitting }: 
         exit={{ opacity: 0, scale: 0.95 }}
         className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl p-6 mx-4"
       >
-        <h2 className="text-xl font-bold text-historical-charcoal mb-4">تأكيد الحذف</h2>
+        <h2 className="text-xl font-bold text-historical-charcoal mb-4">{t.admin.products.confirmDelete}</h2>
         <p className="text-historical-charcoal/70 mb-6">
-          هل أنت متأكد من حذف المنتج &quot;{productName}&quot;؟ هذا الإجراء لا يمكن التراجع عنه.
+          {t.admin.products.confirmDeleteMessage.replace('{name}', productName)}
         </p>
         <div className="flex gap-3">
           <button
@@ -364,13 +366,13 @@ function DeleteModal({ isOpen, onClose, onConfirm, productName, isSubmitting }: 
             className="flex-1 flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-red-500 text-white font-medium hover:bg-red-600 transition-colors disabled:opacity-50"
           >
             {isSubmitting ? Icons.loader : null}
-            حذف
+            {t.admin.products.delete}
           </button>
           <button
             onClick={onClose}
             className="px-5 py-3 rounded-xl border border-historical-gold/20 text-historical-charcoal font-medium hover:bg-historical-gold/5 transition-colors"
           >
-            إلغاء
+            {t.admin.users.form.cancel}
           </button>
         </div>
       </motion.div>
@@ -384,6 +386,7 @@ function DeleteModal({ isOpen, onClose, onConfirm, productName, isSubmitting }: 
 
 export default function ProductsPage() {
   // API Hooks
+  const { t, language } = useLanguage()
   const {
     products,
     totalCount,
@@ -524,7 +527,7 @@ export default function ProductsPage() {
   }
 
   const handleBulkDelete = async () => {
-    if (confirm(`هل أنت متأكد من حذف ${selectedProducts.length} منتج؟`)) {
+    if (confirm(t.admin.products.confirmBulkDelete.replace('{count}', selectedProducts.length.toString()))) {
       await bulkAction(selectedProducts, 'delete')
       setSelectedProducts([])
     }
@@ -546,7 +549,7 @@ export default function ProductsPage() {
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="flex flex-col items-center gap-4">
           {Icons.loader}
-          <p className="text-historical-charcoal/50">جاري تحميل المنتجات...</p>
+          <p className="text-historical-charcoal/50">{t.admin.dashboard.loading}</p>
         </div>
       </div>
     )
@@ -573,9 +576,9 @@ export default function ProductsPage() {
       {/* Page Header */}
       <motion.div variants={itemVariants} className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-historical-charcoal">إدارة المنتجات</h1>
+          <h1 className="text-2xl font-bold text-historical-charcoal">{t.admin.products.title}</h1>
           <p className="text-historical-charcoal/50 mt-1">
-            {totalCount} منتج
+            {totalCount} {t.admin.products.name}
           </p>
         </div>
         <button
@@ -583,7 +586,7 @@ export default function ProductsPage() {
           className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-l from-historical-gold to-historical-red text-white font-medium shadow-lg hover:shadow-xl transition-shadow"
         >
           {Icons.add}
-          <span>إضافة منتج</span>
+          <span>{t.admin.products.addProduct}</span>
         </button>
       </motion.div>
 
@@ -598,7 +601,7 @@ export default function ProductsPage() {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="بحث بالاسم أو SKU..."
+            placeholder={t.admin.products.searchPlaceholder}
             className="w-full pr-12 pl-4 py-3 rounded-xl border border-historical-gold/20 bg-white/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
           />
         </div>
@@ -609,7 +612,7 @@ export default function ProductsPage() {
           onChange={(e) => setFilterCategory(e.target.value ? Number(e.target.value) : '')}
           className="px-4 py-3 rounded-xl border border-historical-gold/20 bg-white/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-historical-gold/30 min-w-[150px]"
         >
-          <option value="">كل الفئات</option>
+          <option value="">{t.admin.products.allCategories}</option>
           {categories.map((cat) => (
             <option key={cat.id} value={cat.id}>
               {cat.name_ar || cat.name}
@@ -623,10 +626,10 @@ export default function ProductsPage() {
           onChange={(e) => setFilterStatus(e.target.value as ProductStatus | '')}
           className="px-4 py-3 rounded-xl border border-historical-gold/20 bg-white/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-historical-gold/30 min-w-[150px]"
         >
-          <option value="">كل الحالات</option>
-          <option value="active">نشط</option>
-          <option value="draft">مسودة</option>
-          <option value="out_of_stock">نفذ المخزون</option>
+          <option value="">{t.admin.products.allStatuses}</option>
+          <option value="active">{t.admin.products.status.active}</option>
+          <option value="draft">{t.admin.products.status.draft}</option>
+          <option value="out_of_stock">{t.admin.products.status.outOfStock}</option>
         </select>
 
         {/* View Mode Toggle */}
@@ -656,7 +659,7 @@ export default function ProductsPage() {
             className="flex items-center gap-4 p-4 rounded-xl bg-historical-gold/10 border border-historical-gold/20"
           >
             <span className="text-sm font-medium text-historical-charcoal">
-              تم تحديد {selectedProducts.length} منتج
+              {t.admin.products.selectedCount.replace('{count}', selectedProducts.length.toString())}
             </span>
             <div className="flex items-center gap-2">
               <button
@@ -664,21 +667,21 @@ export default function ProductsPage() {
                 disabled={isSubmitting}
                 className="px-4 py-2 rounded-lg bg-green-500/10 text-green-600 text-sm font-medium hover:bg-green-500/20 transition-colors disabled:opacity-50"
               >
-                تفعيل
+                {t.admin.products.activate}
               </button>
               <button
                 onClick={handleBulkDeactivate}
                 disabled={isSubmitting}
                 className="px-4 py-2 rounded-lg bg-gray-500/10 text-gray-600 text-sm font-medium hover:bg-gray-500/20 transition-colors disabled:opacity-50"
               >
-                إلغاء التفعيل
+                {t.admin.products.deactivate}
               </button>
               <button
                 onClick={handleBulkDelete}
                 disabled={isSubmitting}
                 className="px-4 py-2 rounded-lg bg-red-500/10 text-red-600 text-sm font-medium hover:bg-red-500/20 transition-colors disabled:opacity-50"
               >
-                حذف
+                {t.admin.products.delete}
               </button>
             </div>
           </motion.div>
@@ -692,13 +695,13 @@ export default function ProductsPage() {
       >
         {products.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16">
-            <p className="text-historical-charcoal/50 text-lg">لا توجد منتجات</p>
+            <p className="text-historical-charcoal/50 text-lg">{t.admin.products.noProducts}</p>
             <button
               onClick={handleAddClick}
               className="mt-4 flex items-center gap-2 px-5 py-2.5 rounded-xl bg-historical-gold/10 text-historical-gold font-medium hover:bg-historical-gold/20 transition-colors"
             >
               {Icons.add}
-              <span>إضافة أول منتج</span>
+              <span>{t.admin.products.addFirstProduct}</span>
             </button>
           </div>
         ) : (
@@ -715,22 +718,22 @@ export default function ProductsPage() {
                         className="w-4 h-4 rounded border-historical-gold/30 text-historical-gold focus:ring-historical-gold"
                       />
                     </th>
-                    <th className="text-right text-xs font-medium text-historical-charcoal/50 px-4 py-4">المنتج</th>
-                    <th className="text-right text-xs font-medium text-historical-charcoal/50 px-4 py-4">الفئة</th>
-                    <th className="text-right text-xs font-medium text-historical-charcoal/50 px-4 py-4">البائع</th>
+                    <th className="text-right text-xs font-medium text-historical-charcoal/50 px-4 py-4">{t.admin.products.name}</th>
+                    <th className="text-right text-xs font-medium text-historical-charcoal/50 px-4 py-4">{t.admin.products.category}</th>
+                    <th className="text-right text-xs font-medium text-historical-charcoal/50 px-4 py-4">{t.admin.products.vendor}</th>
                     <th className="text-right text-xs font-medium text-historical-charcoal/50 px-4 py-4">
                       <button onClick={() => handleSort('price')} className="flex items-center group">
-                        السعر
+                        {t.admin.products.price}
                         <SortIcon field="price" />
                       </button>
                     </th>
                     <th className="text-right text-xs font-medium text-historical-charcoal/50 px-4 py-4">
                       <button onClick={() => handleSort('stock')} className="flex items-center group">
-                        المخزون
+                        {t.admin.products.stock}
                         <SortIcon field="stock" />
                       </button>
                     </th>
-                    <th className="text-right text-xs font-medium text-historical-charcoal/50 px-4 py-4">الحالة</th>
+                    <th className="text-right text-xs font-medium text-historical-charcoal/50 px-4 py-4">{t.admin.products.status}</th>
                     <th className="text-right text-xs font-medium text-historical-charcoal/50 px-4 py-4 w-20"></th>
                   </tr>
                 </thead>
@@ -764,7 +767,7 @@ export default function ProductsPage() {
                           <div className="min-w-0">
                             <p className="font-medium text-historical-charcoal truncate">{product.name}</p>
                             <p className="text-xs text-historical-charcoal/50 truncate">
-                              {product.variants_count} متغير
+                              {product.variants_count} {t.admin.products.variant}
                             </p>
                           </div>
                         </div>
@@ -791,28 +794,28 @@ export default function ProductsPage() {
                       </td>
                       <td className="px-4 py-3">
                         <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${getStatusStyle(product.status)}`}>
-                          {getStatusLabel(product.status)}
+                          {getStatusLabel(product.status, t)}
                         </span>
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                           <button
                             className="p-2 rounded-lg text-historical-charcoal/50 hover:text-historical-charcoal hover:bg-historical-gold/10 transition-colors"
-                            title="عرض"
+                            title={t.admin.products.view}
                           >
                             {Icons.eye}
                           </button>
                           <button
                             onClick={() => handleEditClick(product)}
                             className="p-2 rounded-lg text-historical-charcoal/50 hover:text-historical-charcoal hover:bg-historical-gold/10 transition-colors"
-                            title="تعديل"
+                            title={t.admin.products.edit}
                           >
                             {Icons.edit}
                           </button>
                           <button
                             onClick={() => handleDeleteClick(product)}
                             className="p-2 rounded-lg text-historical-charcoal/50 hover:text-red-500 hover:bg-red-50 transition-colors"
-                            title="حذف"
+                            title={t.admin.products.delete}
                           >
                             {Icons.delete}
                           </button>
@@ -827,7 +830,7 @@ export default function ProductsPage() {
             {/* Pagination */}
             <div className="flex items-center justify-between px-6 py-4 border-t border-historical-gold/10 bg-historical-stone/30">
               <p className="text-sm text-historical-charcoal/50">
-                عرض {((currentPage - 1) * 10) + 1} - {Math.min(currentPage * 10, totalCount)} من {totalCount} منتج
+                {t.admin.products.showingProducts.replace('{start}', (((currentPage - 1) * 10) + 1).toString()).replace('{end}', Math.min(currentPage * 10, totalCount).toString()).replace('{total}', totalCount.toString())}
               </p>
               <div className="flex items-center gap-2">
                 <button

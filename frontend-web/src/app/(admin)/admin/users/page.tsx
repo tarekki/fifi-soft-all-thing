@@ -19,6 +19,7 @@ import { useState, useCallback, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useUsers } from '@/lib/admin'
 import type { User, UserRole, UserCreatePayload } from '@/lib/admin/types/users'
+import { useLanguage } from '@/lib/i18n/context'
 
 
 // =============================================================================
@@ -146,11 +147,11 @@ const getRoleStyle = (role: UserRole) => {
   return styles[role]
 }
 
-const getRoleLabel = (role: UserRole) => {
+const getRoleLabel = (role: UserRole, t: any) => {
   const labels = {
-    customer: 'عميل',
-    vendor: 'بائع',
-    admin: 'مدير',
+    customer: t.admin.users.role.customer,
+    vendor: t.admin.users.role.vendor,
+    admin: t.admin.users.role.admin,
   }
   return labels[role]
 }
@@ -182,6 +183,7 @@ export default function UsersPage() {
   // =========================================================================
   // Hook
   // =========================================================================
+  const { t, language } = useLanguage()
   const {
     users,
     selectedUser,
@@ -303,8 +305,8 @@ export default function UsersPage() {
       {/* Page Header */}
       <motion.div variants={itemVariants} className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-historical-charcoal">إدارة المستخدمين</h1>
-          <p className="text-historical-charcoal/50 mt-1">عرض وإدارة جميع المستخدمين</p>
+          <h1 className="text-2xl font-bold text-historical-charcoal">{t.admin.users.title}</h1>
+          <p className="text-historical-charcoal/50 mt-1">{t.admin.users.subtitle}</p>
         </div>
         <div className="flex items-center gap-3">
           <button
@@ -319,7 +321,7 @@ export default function UsersPage() {
             className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-l from-historical-gold to-historical-red text-white font-medium shadow-lg hover:shadow-xl transition-shadow"
           >
             {Icons.add}
-            <span>إضافة مستخدم</span>
+            <span>{t.admin.users.addUser}</span>
           </button>
         </div>
       </motion.div>
@@ -343,7 +345,7 @@ export default function UsersPage() {
             </div>
             <div>
               <p className="text-2xl font-bold text-historical-charcoal">{stats?.total || 0}</p>
-              <p className="text-xs text-historical-charcoal/50">إجمالي المستخدمين</p>
+              <p className="text-xs text-historical-charcoal/50">{t.admin.users.totalUsers}</p>
             </div>
           </div>
         </div>
@@ -354,7 +356,7 @@ export default function UsersPage() {
             </div>
             <div>
               <p className="text-2xl font-bold text-blue-600">{stats?.customers || 0}</p>
-              <p className="text-xs text-historical-charcoal/50">عملاء</p>
+              <p className="text-xs text-historical-charcoal/50">{t.admin.users.customers}</p>
             </div>
           </div>
         </div>
@@ -365,7 +367,7 @@ export default function UsersPage() {
             </div>
             <div>
               <p className="text-2xl font-bold text-purple-600">{stats?.vendors || 0}</p>
-              <p className="text-xs text-historical-charcoal/50">بائعين</p>
+              <p className="text-xs text-historical-charcoal/50">{t.admin.users.vendors}</p>
             </div>
           </div>
         </div>
@@ -376,7 +378,7 @@ export default function UsersPage() {
             </div>
             <div>
               <p className="text-2xl font-bold text-historical-gold">{stats?.admins || 0}</p>
-              <p className="text-xs text-historical-charcoal/50">مديرين</p>
+              <p className="text-xs text-historical-charcoal/50">{t.admin.users.admins}</p>
             </div>
           </div>
         </div>
@@ -392,7 +394,7 @@ export default function UsersPage() {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="بحث بالاسم أو البريد أو الهاتف..."
+            placeholder={t.admin.users.searchPlaceholder}
             className="w-full pr-12 pl-4 py-3 rounded-xl border border-historical-gold/20 bg-white/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
           />
         </div>
@@ -402,10 +404,10 @@ export default function UsersPage() {
           onChange={(e) => setFilterRole(e.target.value as UserRole | '')}
           className="px-4 py-3 rounded-xl border border-historical-gold/20 bg-white/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-historical-gold/30 min-w-[150px]"
         >
-          <option value="">كل الأدوار</option>
-          <option value="customer">عميل</option>
-          <option value="vendor">بائع</option>
-          <option value="admin">مدير</option>
+          <option value="">{t.admin.users.all}</option>
+          <option value="customer">{t.admin.users.role.customer}</option>
+          <option value="vendor">{t.admin.users.role.vendor}</option>
+          <option value="admin">{t.admin.users.role.admin}</option>
         </select>
 
         <select
@@ -413,9 +415,9 @@ export default function UsersPage() {
           onChange={(e) => setFilterStatus(e.target.value === '' ? '' : e.target.value === 'active')}
           className="px-4 py-3 rounded-xl border border-historical-gold/20 bg-white/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-historical-gold/30 min-w-[150px]"
         >
-          <option value="">كل الحالات</option>
-          <option value="active">نشط</option>
-          <option value="inactive">غير نشط</option>
+          <option value="">{t.admin.users.all}</option>
+          <option value="active">{t.admin.users.active}</option>
+          <option value="inactive">{t.admin.users.inactive}</option>
         </select>
       </motion.div>
 
@@ -429,7 +431,7 @@ export default function UsersPage() {
             className="flex items-center gap-4 p-4 rounded-xl bg-historical-gold/10 border border-historical-gold/20"
           >
             <span className="text-sm font-medium text-historical-charcoal">
-              تم تحديد {selectedUsers.length} مستخدم
+              {t.admin.users.selectedCount.replace('{count}', selectedUsers.length.toString())}
             </span>
             <div className="flex items-center gap-2">
               <button
@@ -437,21 +439,21 @@ export default function UsersPage() {
                 disabled={isProcessing}
                 className="px-4 py-2 rounded-lg bg-green-500/10 text-green-600 text-sm font-medium hover:bg-green-500/20 transition-colors disabled:opacity-50"
               >
-                تفعيل
+                {t.admin.users.activate}
               </button>
               <button
                 onClick={() => handleBulkAction('deactivate')}
                 disabled={isProcessing}
                 className="px-4 py-2 rounded-lg bg-red-500/10 text-red-600 text-sm font-medium hover:bg-red-500/20 transition-colors disabled:opacity-50"
               >
-                تعطيل
+                {t.admin.users.deactivate}
               </button>
               <button
                 onClick={() => handleBulkAction('delete')}
                 disabled={isProcessing}
                 className="px-4 py-2 rounded-lg bg-red-600 text-white text-sm font-medium hover:bg-red-700 transition-colors disabled:opacity-50"
               >
-                حذف
+                {t.admin.users.delete}
               </button>
             </div>
           </motion.div>
@@ -466,12 +468,12 @@ export default function UsersPage() {
         {isLoading && users.length === 0 ? (
           <div className="flex items-center justify-center py-12">
             {Icons.loader}
-            <span className="mr-2 text-historical-charcoal/50">جاري تحميل المستخدمين...</span>
+            <span className="mr-2 text-historical-charcoal/50">{t.admin.users.loading}</span>
           </div>
         ) : users.length === 0 ? (
           <div className="text-center py-12">
             <div className="text-4xl mb-4">👥</div>
-            <p className="text-historical-charcoal/50">لا يوجد مستخدمين حالياً</p>
+            <p className="text-historical-charcoal/50">{t.admin.users.noUsers}</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -486,13 +488,13 @@ export default function UsersPage() {
                       className="w-4 h-4 rounded border-historical-gold/30 text-historical-gold focus:ring-historical-gold"
                     />
                   </th>
-                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-4 py-4">المستخدم</th>
-                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-4 py-4">الهاتف</th>
-                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-4 py-4">الدور</th>
-                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-4 py-4">الطلبات</th>
-                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-4 py-4">الإنفاق</th>
-                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-4 py-4">الحالة</th>
-                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-4 py-4">آخر نشاط</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-4 py-4">{t.admin.users.user}</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-4 py-4">{t.admin.users.phone}</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-4 py-4">{t.admin.users.roleLabel}</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-4 py-4">{t.admin.users.orders}</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-4 py-4">{t.admin.users.spending}</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-4 py-4">{t.admin.users.status}</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-4 py-4">{t.admin.users.lastActivity}</th>
                   <th className="w-24 px-4 py-4"></th>
                 </tr>
               </thead>
@@ -511,7 +513,7 @@ export default function UsersPage() {
                         onChange={() => handleSelectUser(user.id)}
                         disabled={user.is_superuser}
                         className="w-4 h-4 rounded border-historical-gold/30 text-historical-gold focus:ring-historical-gold disabled:opacity-50 disabled:cursor-not-allowed"
-                        title={user.is_superuser ? 'لا يمكن اختيار المستخدم الفائق' : ''}
+                        title={user.is_superuser ? t.admin.users.cannotSelectSuperuser : ''}
                       />
                     </td>
                     <td className="px-4 py-3">
@@ -537,7 +539,7 @@ export default function UsersPage() {
                     <td className="px-4 py-3">
                       <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${getRoleStyle(user.role)}`}>
                         {getRoleIcon(user.role)}
-                        {getRoleLabel(user.role)}
+                        {getRoleLabel(user.role, t)}
                       </span>
                     </td>
                     <td className="px-4 py-3">
@@ -552,7 +554,7 @@ export default function UsersPage() {
                           ? 'bg-green-100 text-green-700' 
                           : 'bg-red-100 text-red-700'
                       }`}>
-                        {user.is_active ? 'نشط' : 'غير نشط'}
+                        {user.is_active ? t.admin.users.active : t.admin.users.inactive}
                       </span>
                     </td>
                     <td className="px-4 py-3">
@@ -569,7 +571,7 @@ export default function UsersPage() {
                             setIsViewModalOpen(true)
                           }}
                           className="p-2 rounded-lg text-historical-charcoal/50 hover:text-historical-charcoal hover:bg-historical-gold/10 transition-colors"
-                          title="عرض"
+                          title={t.admin.users.view}
                         >
                           {Icons.eye}
                         </button>
@@ -580,7 +582,7 @@ export default function UsersPage() {
                             setIsEditModalOpen(true)
                           }}
                           className="p-2 rounded-lg text-historical-charcoal/50 hover:text-historical-charcoal hover:bg-historical-gold/10 transition-colors"
-                          title="تعديل"
+                          title={t.admin.users.edit}
                         >
                           {Icons.edit}
                         </button>
@@ -592,7 +594,7 @@ export default function UsersPage() {
                               ? 'text-historical-charcoal/50 hover:text-red-500 hover:bg-red-50'
                               : 'text-green-500 hover:bg-green-50'
                           }`}
-                          title={user.is_active ? 'تعطيل' : 'تفعيل'}
+                          title={user.is_active ? t.admin.users.deactivate : t.admin.users.activate}
                         >
                           {user.is_active ? Icons.block : Icons.unblock}
                         </button>
@@ -609,7 +611,7 @@ export default function UsersPage() {
         {(hasNextPage || hasPreviousPage) && (
           <div className="flex items-center justify-between px-6 py-4 border-t border-historical-gold/10 bg-historical-stone/30">
             <p className="text-sm text-historical-charcoal/50">
-              عرض {users.length} من {total} مستخدم
+              {t.admin.users.showingUsers.replace('{start}', users.length.toString()).replace('{total}', total.toString())}
             </p>
             <div className="flex items-center gap-2">
               <button
@@ -620,7 +622,7 @@ export default function UsersPage() {
                 {Icons.chevronRight}
               </button>
               <span className="px-4 py-2 text-sm text-historical-charcoal">
-                صفحة {currentPage}
+                {t.admin.users.page} {currentPage}
               </span>
               <button
                 onClick={() => handlePageChange('next')}
@@ -703,6 +705,7 @@ function CreateUserModal({
   onClose,
   onCreate,
 }: CreateUserModalProps) {
+  const { t } = useLanguage()
   const [formData, setFormData] = useState<UserCreatePayload>({
     email: '',
     password: '',
@@ -741,27 +744,27 @@ function CreateUserModal({
 
     // Validation
     if (!formData.email) {
-      setFormErrors({ email: 'البريد الإلكتروني مطلوب' })
+      setFormErrors({ email: t.admin.users.emailRequired })
       return
     }
     if (!formData.password) {
-      setFormErrors({ password: 'كلمة المرور مطلوبة' })
+      setFormErrors({ password: t.admin.users.passwordRequired })
       return
     }
     if (formData.password.length < 8) {
-      setFormErrors({ password: 'كلمة المرور يجب أن تكون 8 أحرف على الأقل' })
+      setFormErrors({ password: t.admin.users.passwordRequired })
       return
     }
     if (formData.password !== formData.password_confirm) {
-      setFormErrors({ password_confirm: 'كلمات المرور غير متطابقة' })
+      setFormErrors({ password_confirm: t.admin.users.passwordMismatch })
       return
     }
     if (!formData.phone) {
-      setFormErrors({ phone: 'رقم الهاتف مطلوب' })
+      setFormErrors({ phone: t.admin.users.phoneRequired })
       return
     }
     if (!formData.full_name) {
-      setFormErrors({ full_name: 'الاسم الكامل مطلوب' })
+      setFormErrors({ full_name: t.admin.users.nameRequired })
       return
     }
 
@@ -791,7 +794,7 @@ function CreateUserModal({
         >
           {/* Header */}
           <div className="flex items-center justify-between px-6 py-4 border-b border-historical-gold/10 bg-historical-stone/30">
-            <h2 className="text-lg font-bold text-historical-charcoal">إضافة مستخدم جديد</h2>
+            <h2 className="text-lg font-bold text-historical-charcoal">{t.admin.users.addNewUser}</h2>
             <button
               onClick={onClose}
               className="p-2 rounded-lg text-historical-charcoal/50 hover:text-historical-charcoal hover:bg-historical-gold/10 transition-colors"
@@ -805,7 +808,7 @@ function CreateUserModal({
             {/* Email */}
             <div>
               <label className="block text-sm font-medium text-historical-charcoal mb-1">
-                البريد الإلكتروني *
+                {t.admin.users.form.email} *
               </label>
               <input
                 type="email"
@@ -823,7 +826,7 @@ function CreateUserModal({
             {/* Password */}
             <div>
               <label className="block text-sm font-medium text-historical-charcoal mb-1">
-                كلمة المرور *
+                {t.admin.users.form.password} *
               </label>
               <input
                 type="password"
@@ -840,7 +843,7 @@ function CreateUserModal({
             {/* Password Confirm */}
             <div>
               <label className="block text-sm font-medium text-historical-charcoal mb-1">
-                تأكيد كلمة المرور *
+                {t.admin.users.form.confirmPassword} *
               </label>
               <input
                 type="password"
@@ -857,7 +860,7 @@ function CreateUserModal({
             {/* Full Name */}
             <div>
               <label className="block text-sm font-medium text-historical-charcoal mb-1">
-                الاسم الكامل *
+                {t.admin.users.form.name} *
               </label>
               <input
                 type="text"
@@ -874,7 +877,7 @@ function CreateUserModal({
             {/* Phone */}
             <div>
               <label className="block text-sm font-medium text-historical-charcoal mb-1">
-                رقم الهاتف *
+                {t.admin.users.form.phone} *
               </label>
               <input
                 type="tel"
@@ -892,23 +895,23 @@ function CreateUserModal({
             {/* Role */}
             <div>
               <label className="block text-sm font-medium text-historical-charcoal mb-1">
-                الدور
+                {t.admin.users.form.role}
               </label>
               <select
                 value={formData.role}
                 onChange={(e) => setFormData({ ...formData, role: e.target.value as UserRole })}
                 className="w-full px-4 py-2.5 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
               >
-                <option value="customer">عميل</option>
-                <option value="vendor">بائع</option>
-                <option value="admin">مدير</option>
+                <option value="customer">{t.admin.users.role.customer}</option>
+                <option value="vendor">{t.admin.users.role.vendor}</option>
+                <option value="admin">{t.admin.users.role.admin}</option>
               </select>
             </div>
 
             {/* Address */}
             <div>
               <label className="block text-sm font-medium text-historical-charcoal mb-1">
-                العنوان
+                {t.admin.users.form.address}
               </label>
               <textarea
                 value={formData.address}
@@ -921,15 +924,15 @@ function CreateUserModal({
             {/* Preferred Language */}
             <div>
               <label className="block text-sm font-medium text-historical-charcoal mb-1">
-                اللغة المفضلة
+                {t.admin.users.form.preferredLanguage}
               </label>
               <select
                 value={formData.preferred_language}
                 onChange={(e) => setFormData({ ...formData, preferred_language: e.target.value as 'ar' | 'en' })}
                 className="w-full px-4 py-2.5 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
               >
-                <option value="ar">العربية</option>
-                <option value="en">English</option>
+                <option value="ar">{t.admin.users.form.arabic}</option>
+                <option value="en">{t.admin.users.form.english}</option>
               </select>
             </div>
 
@@ -942,7 +945,7 @@ function CreateUserModal({
                   onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
                   className="w-4 h-4 rounded border-historical-gold/30 text-historical-gold focus:ring-historical-gold"
                 />
-                <span className="text-sm text-historical-charcoal">نشط</span>
+                <span className="text-sm text-historical-charcoal">{t.admin.users.form.isActive}</span>
               </label>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
@@ -951,7 +954,7 @@ function CreateUserModal({
                   onChange={(e) => setFormData({ ...formData, is_staff: e.target.checked })}
                   className="w-4 h-4 rounded border-historical-gold/30 text-historical-gold focus:ring-historical-gold"
                 />
-                <span className="text-sm text-historical-charcoal">موظف</span>
+                <span className="text-sm text-historical-charcoal">{t.admin.users.form.isStaff}</span>
               </label>
             </div>
           </form>
@@ -963,7 +966,7 @@ function CreateUserModal({
               onClick={onClose}
               className="px-4 py-2.5 rounded-xl border border-historical-gold/20 text-historical-charcoal hover:bg-historical-stone/50 transition-colors"
             >
-              إلغاء
+              {t.admin.users.form.cancel}
             </button>
             <button
               type="submit"
@@ -972,7 +975,7 @@ function CreateUserModal({
               className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-l from-historical-gold to-historical-red text-white font-medium shadow-lg hover:shadow-xl transition-shadow disabled:opacity-50"
             >
               {isProcessing ? Icons.loader : Icons.check}
-              <span>إنشاء</span>
+              <span>{t.admin.users.form.create}</span>
             </button>
           </div>
         </motion.div>
@@ -999,6 +1002,7 @@ function ViewUserModal({
   user,
   onClose,
 }: ViewUserModalProps) {
+  const { t } = useLanguage()
   if (!isOpen) return null
 
   return (
@@ -1048,38 +1052,38 @@ function ViewUserModal({
                 </h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-sm text-historical-charcoal/50">الاسم الكامل</label>
+                    <label className="text-sm text-historical-charcoal/50">{t.admin.users.form.name}</label>
                     <p className="font-medium text-historical-charcoal">{user.full_name || '-'}</p>
                   </div>
                   <div>
-                    <label className="text-sm text-historical-charcoal/50">البريد الإلكتروني</label>
+                    <label className="text-sm text-historical-charcoal/50">{t.admin.users.form.email}</label>
                     <p className="font-medium text-historical-charcoal" dir="ltr">{user.email}</p>
                   </div>
                   <div>
-                    <label className="text-sm text-historical-charcoal/50">رقم الهاتف</label>
+                    <label className="text-sm text-historical-charcoal/50">{t.admin.users.form.phone}</label>
                     <p className="font-medium text-historical-charcoal" dir="ltr">{user.phone}</p>
                   </div>
                   <div>
-                    <label className="text-sm text-historical-charcoal/50">الدور</label>
+                    <label className="text-sm text-historical-charcoal/50">{t.admin.users.form.role}</label>
                     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${getRoleStyle(user.role)}`}>
                       {getRoleIcon(user.role)}
-                      {getRoleLabel(user.role)}
+                      {getRoleLabel(user.role, t)}
                     </span>
                   </div>
                   <div>
-                    <label className="text-sm text-historical-charcoal/50">الحالة</label>
+                    <label className="text-sm text-historical-charcoal/50">{t.admin.users.status}</label>
                     <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${
                       user.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
                     }`}>
-                      {user.is_active ? 'نشط' : 'غير نشط'}
+                      {user.is_active ? t.admin.users.active : t.admin.users.inactive}
                     </span>
                   </div>
                   <div>
-                    <label className="text-sm text-historical-charcoal/50">موظف</label>
+                    <label className="text-sm text-historical-charcoal/50">{t.admin.users.staff}</label>
                     <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${
                       user.is_staff ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'
                     }`}>
-                      {user.is_staff ? 'نعم' : 'لا'}
+                      {user.is_staff ? t.admin.users.yes : t.admin.users.no}
                     </span>
                   </div>
                 </div>
@@ -1088,16 +1092,16 @@ function ViewUserModal({
               {/* Profile Info */}
               {user.profile && (
                 <div className="space-y-4 border-t border-historical-gold/10 pt-4">
-                  <h3 className="font-bold text-historical-charcoal">معلومات الملف الشخصي</h3>
+                  <h3 className="font-bold text-historical-charcoal">{t.admin.users.profileInfo}</h3>
                   <div className="grid grid-cols-2 gap-4">
                     {user.profile.address && (
                       <div className="col-span-2">
-                        <label className="text-sm text-historical-charcoal/50">العنوان</label>
+                        <label className="text-sm text-historical-charcoal/50">{t.admin.users.form.address}</label>
                         <p className="text-historical-charcoal">{user.profile.address}</p>
                       </div>
                     )}
                     <div>
-                      <label className="text-sm text-historical-charcoal/50">اللغة المفضلة</label>
+                      <label className="text-sm text-historical-charcoal/50">{t.admin.users.form.preferredLanguage}</label>
                       <p className="text-historical-charcoal">{user.profile.preferred_language_display}</p>
                     </div>
                   </div>
@@ -1106,14 +1110,14 @@ function ViewUserModal({
 
               {/* Statistics */}
               <div className="space-y-4 border-t border-historical-gold/10 pt-4">
-                <h3 className="font-bold text-historical-charcoal">إحصائيات</h3>
+                <h3 className="font-bold text-historical-charcoal">{t.admin.users.statistics}</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-sm text-historical-charcoal/50">عدد الطلبات</label>
+                    <label className="text-sm text-historical-charcoal/50">{t.admin.users.ordersCount}</label>
                     <p className="text-2xl font-bold text-historical-charcoal">{user.orders_count}</p>
                   </div>
                   <div>
-                    <label className="text-sm text-historical-charcoal/50">إجمالي الإنفاق</label>
+                    <label className="text-sm text-historical-charcoal/50">{t.admin.users.totalSpending}</label>
                     <p className="text-2xl font-bold text-historical-gold">{user.total_spent.toFixed(2)} SYP</p>
                   </div>
                 </div>
@@ -1122,14 +1126,14 @@ function ViewUserModal({
               {/* Vendor Associations */}
               {user.vendor_associations && user.vendor_associations.length > 0 && (
                 <div className="space-y-4 border-t border-historical-gold/10 pt-4">
-                  <h3 className="font-bold text-historical-charcoal">ارتباطات البائعين</h3>
+                  <h3 className="font-bold text-historical-charcoal">{t.admin.users.vendorAssociations}</h3>
                   <div className="space-y-2">
                     {user.vendor_associations.map((assoc) => (
                       <div key={assoc.id} className="flex items-center justify-between p-3 rounded-lg bg-historical-stone/30">
                         <span className="font-medium text-historical-charcoal">{assoc.vendor_name}</span>
                         {assoc.is_owner && (
                           <span className="text-xs px-2 py-1 rounded-full bg-historical-gold/20 text-historical-gold">
-                            مالك
+                            {t.admin.users.owner}
                           </span>
                         )}
                       </div>
@@ -1140,15 +1144,15 @@ function ViewUserModal({
 
               {/* Timestamps */}
               <div className="space-y-4 border-t border-historical-gold/10 pt-4">
-                <h3 className="font-bold text-historical-charcoal">التواريخ</h3>
+                <h3 className="font-bold text-historical-charcoal">{t.admin.users.dates}</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-sm text-historical-charcoal/50">تاريخ الإنشاء</label>
+                    <label className="text-sm text-historical-charcoal/50">{t.admin.users.createdAt}</label>
                     <p className="text-historical-charcoal">{formatDate(user.created_at)}</p>
                   </div>
                   {user.last_login && (
                     <div>
-                      <label className="text-sm text-historical-charcoal/50">آخر تسجيل دخول</label>
+                      <label className="text-sm text-historical-charcoal/50">{t.admin.users.lastLogin}</label>
                       <p className="text-historical-charcoal">{formatDate(user.last_login)}</p>
                     </div>
                   )}
@@ -1163,7 +1167,7 @@ function ViewUserModal({
               onClick={onClose}
               className="px-5 py-2.5 rounded-xl bg-historical-gold/10 text-historical-gold hover:bg-historical-gold/20 transition-colors"
             >
-              إغلاق
+              {t.admin.users.close}
             </button>
           </div>
         </motion.div>
@@ -1267,7 +1271,7 @@ function EditUserModal({
         >
           {/* Header */}
           <div className="flex items-center justify-between px-6 py-4 border-b border-historical-gold/10 bg-historical-stone/30">
-            <h2 className="text-lg font-bold text-historical-charcoal">تعديل المستخدم</h2>
+            <h2 className="text-lg font-bold text-historical-charcoal">{t.admin.users.editUser}</h2>
             <button
               onClick={onClose}
               className="p-2 rounded-lg text-historical-charcoal/50 hover:text-historical-charcoal hover:bg-historical-gold/10 transition-colors"
@@ -1280,7 +1284,7 @@ function EditUserModal({
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
               {Icons.loader}
-              <span className="mr-2 text-historical-charcoal/50">جاري تحميل البيانات...</span>
+              <span className="mr-2 text-historical-charcoal/50">{t.admin.users.loadingData}</span>
             </div>
           ) : !user ? (
             <div className="text-center py-12">
@@ -1291,7 +1295,7 @@ function EditUserModal({
               {/* Email */}
               <div>
                 <label className="block text-sm font-medium text-historical-charcoal mb-1">
-                  البريد الإلكتروني *
+                  {t.admin.users.form.email} *
                 </label>
                 <input
                   type="email"
@@ -1309,7 +1313,7 @@ function EditUserModal({
               {/* Full Name */}
               <div>
                 <label className="block text-sm font-medium text-historical-charcoal mb-1">
-                  الاسم الكامل *
+                  {t.admin.users.form.name} *
                 </label>
                 <input
                   type="text"
@@ -1326,7 +1330,7 @@ function EditUserModal({
               {/* Phone */}
               <div>
                 <label className="block text-sm font-medium text-historical-charcoal mb-1">
-                  رقم الهاتف *
+                  {t.admin.users.form.phone} *
                 </label>
                 <input
                   type="tel"
@@ -1344,23 +1348,23 @@ function EditUserModal({
               {/* Role */}
               <div>
                 <label className="block text-sm font-medium text-historical-charcoal mb-1">
-                  الدور
+                  {t.admin.users.form.role}
                 </label>
                 <select
                   value={formData.role}
                   onChange={(e) => setFormData({ ...formData, role: e.target.value as UserRole })}
                   className="w-full px-4 py-2.5 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
                 >
-                  <option value="customer">عميل</option>
-                  <option value="vendor">بائع</option>
-                  <option value="admin">مدير</option>
+                  <option value="customer">{t.admin.users.role.customer}</option>
+                  <option value="vendor">{t.admin.users.role.vendor}</option>
+                  <option value="admin">{t.admin.users.role.admin}</option>
                 </select>
               </div>
 
               {/* Address */}
               <div>
                 <label className="block text-sm font-medium text-historical-charcoal mb-1">
-                  العنوان
+                  {t.admin.users.form.address}
                 </label>
                 <textarea
                   value={formData.address}
@@ -1373,15 +1377,15 @@ function EditUserModal({
               {/* Preferred Language */}
               <div>
                 <label className="block text-sm font-medium text-historical-charcoal mb-1">
-                  اللغة المفضلة
+                  {t.admin.users.form.preferredLanguage}
                 </label>
                 <select
                   value={formData.preferred_language}
                   onChange={(e) => setFormData({ ...formData, preferred_language: e.target.value as 'ar' | 'en' })}
                   className="w-full px-4 py-2.5 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
                 >
-                  <option value="ar">العربية</option>
-                  <option value="en">English</option>
+                  <option value="ar">{t.admin.users.form.arabic}</option>
+                  <option value="en">{t.admin.users.form.english}</option>
                 </select>
               </div>
 
@@ -1394,7 +1398,7 @@ function EditUserModal({
                     onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
                     className="w-4 h-4 rounded border-historical-gold/30 text-historical-gold focus:ring-historical-gold"
                   />
-                  <span className="text-sm text-historical-charcoal">نشط</span>
+                  <span className="text-sm text-historical-charcoal">{t.admin.users.form.isActive}</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
@@ -1403,7 +1407,7 @@ function EditUserModal({
                     onChange={(e) => setFormData({ ...formData, is_staff: e.target.checked })}
                     className="w-4 h-4 rounded border-historical-gold/30 text-historical-gold focus:ring-historical-gold"
                   />
-                  <span className="text-sm text-historical-charcoal">موظف</span>
+                  <span className="text-sm text-historical-charcoal">{t.admin.users.form.isStaff}</span>
                 </label>
                 {formData.is_superuser !== undefined && (
                   <label className="flex items-center gap-2 cursor-pointer opacity-50">
@@ -1413,7 +1417,7 @@ function EditUserModal({
                       disabled
                       className="w-4 h-4 rounded border-historical-gold/30 text-historical-gold focus:ring-historical-gold"
                     />
-                    <span className="text-sm text-historical-charcoal">مستخدم فائق (غير قابل للتعديل)</span>
+                    <span className="text-sm text-historical-charcoal">{t.admin.users.superuser}</span>
                   </label>
                 )}
               </div>
@@ -1436,7 +1440,7 @@ function EditUserModal({
               className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-l from-historical-gold to-historical-red text-white font-medium shadow-lg hover:shadow-xl transition-shadow disabled:opacity-50"
             >
               {isProcessing ? Icons.loader : Icons.check}
-              <span>حفظ</span>
+              <span>{t.admin.users.save}</span>
             </button>
           </div>
         </motion.div>

@@ -69,6 +69,13 @@ services:
       - ALLOWED_HOSTS=localhost,127.0.0.1,backend
       - SECRET_KEY=django-insecure-dev-key-change-in-production
       - CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:3001,http://127.0.0.1:3000,http://127.0.0.1:3001,http://frontend:3000
+      - PYTHONUNBUFFERED=1
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 1G
     depends_on:
       db:
         condition: service_healthy
@@ -106,9 +113,19 @@ services:
       - NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
       - NEXT_PUBLIC_FRONTEND_URL=http://localhost:3000
       - WATCHPACK_POLLING=true
+      - NEXT_PRIVATE_SKIP_TURBO=1
+      - NODE_OPTIONS=--max-old-space-size=1536 --max-semi-space-size=128
+      - CHOKIDAR_USEPOLLING=true
+      - CHOKIDAR_INTERVAL=1000
       # Internal API URL for server-side requests (SSR)
       # عنوان API الداخلي للطلبات من جانب الخادم (SSR)
       - INTERNAL_API_URL=http://backend:8000/api/v1
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 1G
     depends_on:
       - backend
     networks:

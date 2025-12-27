@@ -14,6 +14,7 @@
 import { useState, useCallback, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useCategories, type Category, type CategoryFormData } from '@/lib/admin'
+import { useLanguage } from '@/lib/i18n/context'
 
 // =============================================================================
 // Icons
@@ -127,6 +128,7 @@ function CategoryItem({
   onToggleActive,
   isDeleting 
 }: CategoryItemProps) {
+  const { t } = useLanguage()
   const [isExpanded, setIsExpanded] = useState(true)
   const hasChildren = category.is_parent
 
@@ -171,8 +173,8 @@ function CategoryItem({
         <div className="flex-1 min-w-0">
           <p className="font-medium text-historical-charcoal truncate">{category.name_ar}</p>
           <p className="text-xs text-historical-charcoal/50">
-            {category.name} • {category.products_count} منتج
-            {!category.is_active && <span className="text-red-500 mr-2">(معطل)</span>}
+            {category.name} • {category.products_count} {t.admin.categories.product}
+            {!category.is_active && <span className="text-red-500 mr-2">{t.admin.categories.disabled}</span>}
           </p>
         </div>
 
@@ -184,7 +186,7 @@ function CategoryItem({
               ? 'text-yellow-500 hover:bg-yellow-50'
               : 'text-historical-charcoal/20 hover:text-yellow-500 hover:bg-yellow-50'
           }`}
-          title={category.is_featured ? 'إلغاء التمييز' : 'تمييز الفئة'}
+          title={category.is_featured ? t.admin.categories.removeFeatured : t.admin.categories.addFeatured}
         >
           {category.is_featured ? Icons.star : Icons.starOutline}
         </button>
@@ -198,7 +200,7 @@ function CategoryItem({
               : 'bg-red-100 text-red-700 hover:bg-red-200'
           }`}
         >
-          {category.is_active ? 'مفعل' : 'معطل'}
+          {category.is_active ? t.admin.categories.enabled : t.admin.categories.disabledStatus}
         </button>
 
         {/* Actions */}
@@ -206,7 +208,7 @@ function CategoryItem({
           <button
             onClick={() => onEdit(category)}
             className="p-2 rounded-lg text-historical-charcoal/50 hover:text-historical-charcoal hover:bg-historical-gold/10 transition-colors"
-            title="تعديل"
+            title={t.admin.categories.edit}
           >
             {Icons.edit}
           </button>
@@ -214,7 +216,7 @@ function CategoryItem({
             onClick={() => onDelete(category)}
             disabled={isDeleting}
             className="p-2 rounded-lg text-historical-charcoal/50 hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-50"
-            title="حذف"
+            title={t.admin.categories.delete}
           >
             {isDeleting ? Icons.loading : Icons.delete}
           </button>
@@ -238,6 +240,16 @@ interface CategoryModalProps {
 }
 
 function CategoryModal({ isOpen, onClose, category, categories, onSave, isLoading }: CategoryModalProps) {
+  const { t } = useLanguage()
+  
+  // Debug: Log categories
+  useEffect(() => {
+    if (isOpen) {
+      console.log('CategoryModal - Categories:', categories)
+      console.log('CategoryModal - Categories length:', categories?.length || 0)
+    }
+  }, [isOpen, categories])
+  
   const [formData, setFormData] = useState<CategoryFormData>({
     name: '',
     name_ar: '',
@@ -317,7 +329,7 @@ function CategoryModal({ isOpen, onClose, category, categories, onSave, isLoadin
           {/* Header */}
           <div className="flex items-center justify-between px-6 py-4 border-b border-historical-gold/10 bg-historical-stone/30">
             <h2 className="text-lg font-bold text-historical-charcoal">
-              {category ? 'تعديل الفئة' : 'إضافة فئة جديدة'}
+              {category ? t.admin.categories.editCategory : t.admin.categories.addNewCategory}
             </h2>
             <button
               onClick={onClose}
@@ -339,7 +351,7 @@ function CategoryModal({ isOpen, onClose, category, categories, onSave, isLoadin
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-historical-charcoal mb-2">
-                  الاسم (عربي) <span className="text-red-500">*</span>
+                  {t.admin.categories.nameAr} <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -353,7 +365,7 @@ function CategoryModal({ isOpen, onClose, category, categories, onSave, isLoadin
               </div>
               <div>
                 <label className="block text-sm font-medium text-historical-charcoal mb-2">
-                  Name (English) <span className="text-red-500">*</span>
+                  {t.admin.categories.nameEn} <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -371,7 +383,7 @@ function CategoryModal({ isOpen, onClose, category, categories, onSave, isLoadin
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-historical-charcoal mb-2">
-                  الرابط (Slug)
+                  {t.admin.categories.slug}
                 </label>
                 <input
                   type="text"
@@ -385,7 +397,7 @@ function CategoryModal({ isOpen, onClose, category, categories, onSave, isLoadin
               </div>
               <div>
                 <label className="block text-sm font-medium text-historical-charcoal mb-2">
-                  الأيقونة (Emoji)
+                  {t.admin.categories.icon}
                 </label>
                 <input
                   type="text"
@@ -400,7 +412,7 @@ function CategoryModal({ isOpen, onClose, category, categories, onSave, isLoadin
 
             <div>
               <label className="block text-sm font-medium text-historical-charcoal mb-2">
-                الفئة الأم
+                  {t.admin.categories.parent}
               </label>
               <select
                 value={formData.parent || ''}
@@ -408,19 +420,24 @@ function CategoryModal({ isOpen, onClose, category, categories, onSave, isLoadin
                 className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 bg-white/50 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
                 disabled={isLoading}
               >
-                <option value="">بدون (فئة رئيسية)</option>
-                {categories
-                  .filter(c => c.id !== category?.id)
-                  .map(c => (
-                    <option key={c.id} value={c.id}>{c.name_ar} - {c.name}</option>
-                  ))
-                }
+                <option value="">{t.admin.categories.noParent}</option>
+                {categories && categories.length > 0 ? (
+                  categories
+                    .filter(c => c.id !== category?.id)
+                    .map(c => (
+                      <option key={c.id} value={c.id}>
+                        {c.name_ar || c.name} {c.name && c.name_ar ? `- ${c.name}` : ''}
+                      </option>
+                    ))
+                ) : (
+                  <option value="" disabled>{t.admin.categories.loading || 'جاري التحميل...'}</option>
+                )}
               </select>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-historical-charcoal mb-2">
-                ترتيب العرض
+                  {t.admin.categories.displayOrder}
               </label>
               <input
                 type="number"
@@ -443,7 +460,7 @@ function CategoryModal({ isOpen, onClose, category, categories, onSave, isLoadin
                   disabled={isLoading}
                 />
                 <label htmlFor="is_active" className="text-sm text-historical-charcoal">
-                  فئة مفعلة
+                  {t.admin.categories.categoryEnabled}
                 </label>
               </div>
               
@@ -457,7 +474,7 @@ function CategoryModal({ isOpen, onClose, category, categories, onSave, isLoadin
                   disabled={isLoading}
                 />
                 <label htmlFor="is_featured" className="text-sm text-historical-charcoal">
-                  فئة مميزة
+                  {t.admin.categories.categoryFeatured}
                 </label>
               </div>
             </div>
@@ -470,7 +487,7 @@ function CategoryModal({ isOpen, onClose, category, categories, onSave, isLoadin
                 disabled={isLoading}
                 className="px-6 py-2.5 rounded-xl text-historical-charcoal/70 hover:bg-historical-gold/10 transition-colors disabled:opacity-50"
               >
-                إلغاء
+                {t.admin.users.form.cancel}
               </button>
               <button
                 type="submit"
@@ -478,7 +495,7 @@ function CategoryModal({ isOpen, onClose, category, categories, onSave, isLoadin
                 className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-l from-historical-gold to-historical-red text-white font-medium shadow-lg hover:shadow-xl transition-shadow disabled:opacity-50"
               >
                 {isLoading && Icons.loading}
-                {category ? 'حفظ التغييرات' : 'إضافة الفئة'}
+                {category ? t.admin.categories.saveChanges : t.admin.categories.addCategoryButton}
               </button>
             </div>
           </form>
@@ -501,6 +518,7 @@ interface DeleteModalProps {
 }
 
 function DeleteModal({ isOpen, onClose, onConfirm, categoryName, isLoading }: DeleteModalProps) {
+  const { t } = useLanguage()
   if (!isOpen) return null
 
   return (
@@ -519,9 +537,9 @@ function DeleteModal({ isOpen, onClose, onConfirm, categoryName, isLoading }: De
           className="w-full max-w-md bg-white rounded-2xl shadow-2xl p-6"
           onClick={(e) => e.stopPropagation()}
         >
-          <h3 className="text-lg font-bold text-historical-charcoal mb-2">تأكيد الحذف</h3>
+          <h3 className="text-lg font-bold text-historical-charcoal mb-2">{t.admin.categories.confirmDelete}</h3>
           <p className="text-historical-charcoal/70 mb-6">
-            هل أنت متأكد من حذف الفئة &quot;{categoryName}&quot;؟ لا يمكن التراجع عن هذا الإجراء.
+            {t.admin.categories.confirmDeleteMessage.replace('{name}', categoryName)}
           </p>
           <div className="flex items-center justify-end gap-3">
             <button
@@ -529,7 +547,7 @@ function DeleteModal({ isOpen, onClose, onConfirm, categoryName, isLoading }: De
               disabled={isLoading}
               className="px-6 py-2.5 rounded-xl text-historical-charcoal/70 hover:bg-historical-gold/10 transition-colors disabled:opacity-50"
             >
-              إلغاء
+              {t.admin.categories.cancel}
             </button>
             <button
               onClick={onConfirm}
@@ -537,7 +555,7 @@ function DeleteModal({ isOpen, onClose, onConfirm, categoryName, isLoading }: De
               className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-red-600 text-white font-medium hover:bg-red-700 transition-colors disabled:opacity-50"
             >
               {isLoading && Icons.loading}
-              حذف
+              {t.admin.categories.delete}
             </button>
           </div>
         </motion.div>
@@ -574,6 +592,7 @@ function LoadingSkeleton() {
 
 export default function CategoriesPage() {
   // Categories hook
+  const { t, language } = useLanguage()
   const {
     categories,
     totalCount,
@@ -594,18 +613,27 @@ export default function CategoriesPage() {
 
   // Local state
   const [searchQuery, setSearchQuery] = useState('')
+  const [filterParent, setFilterParent] = useState<number | null>(null)
+  const [filterStatus, setFilterStatus] = useState<string>('')
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingCategory, setEditingCategory] = useState<Category | null>(null)
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
   const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(null)
 
-  // Handle search
+  // Get main categories for filter
+  const mainCategories = categories.filter(c => !c.parent)
+
+  // Handle search and filters
   useEffect(() => {
     const debounce = setTimeout(() => {
-      fetchCategories({ search: searchQuery || undefined })
+      fetchCategories({ 
+        search: searchQuery || undefined,
+        parent: filterParent || undefined,
+        is_active: filterStatus ? filterStatus === 'active' : undefined,
+      })
     }, 300)
     return () => clearTimeout(debounce)
-  }, [searchQuery]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [searchQuery, filterParent, filterStatus]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Handlers
   const handleEdit = useCallback((category: Category) => {
@@ -680,15 +708,15 @@ export default function CategoriesPage() {
       {/* Page Header */}
       <motion.div variants={itemVariants} className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-historical-charcoal">إدارة الفئات</h1>
-          <p className="text-historical-charcoal/50 mt-1">تنظيم وإدارة فئات المنتجات</p>
+          <h1 className="text-2xl font-bold text-historical-charcoal">{t.admin.categories.title}</h1>
+          <p className="text-historical-charcoal/50 mt-1">{t.admin.categories.subtitle}</p>
         </div>
         <div className="flex items-center gap-3">
           <button
             onClick={refresh}
             disabled={isLoading}
             className="p-2.5 rounded-xl border border-historical-gold/20 text-historical-charcoal/50 hover:text-historical-charcoal hover:bg-historical-gold/10 transition-colors disabled:opacity-50"
-            title="تحديث"
+            title={t.admin.dashboard.refresh}
           >
             {isLoading ? Icons.loading : Icons.refresh}
           </button>
@@ -697,14 +725,14 @@ export default function CategoriesPage() {
             className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-l from-historical-gold to-historical-red text-white font-medium shadow-lg hover:shadow-xl transition-shadow"
           >
             {Icons.add}
-            <span>إضافة فئة</span>
+            <span>{t.admin.categories.addCategory}</span>
           </button>
         </div>
       </motion.div>
 
-      {/* Search & Stats */}
-      <motion.div variants={itemVariants} className="flex items-center gap-4">
-        <div className="flex-1 relative">
+      {/* Search & Filters */}
+      <motion.div variants={itemVariants} className="flex items-center gap-4 flex-wrap">
+        <div className="flex-1 relative min-w-[200px]">
           <span className="absolute right-4 top-1/2 -translate-y-1/2 text-historical-charcoal/30">
             {Icons.search}
           </span>
@@ -712,24 +740,49 @@ export default function CategoriesPage() {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="بحث في الفئات..."
+            placeholder={t.admin.categories.searchPlaceholder}
             className="w-full pr-12 pl-4 py-3 rounded-xl border border-historical-gold/20 bg-white/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
           />
         </div>
+        
+        {/* Parent Category Filter */}
+        <select
+          value={filterParent || ''}
+          onChange={(e) => setFilterParent(e.target.value ? Number(e.target.value) : null)}
+          className="px-4 py-3 rounded-xl border border-historical-gold/20 bg-white/80 backdrop-blur-sm text-sm focus:outline-none focus:ring-2 focus:ring-historical-gold/30 min-w-[150px]"
+        >
+          <option value="">{t.admin.categories.allCategories || 'كل الفئات'}</option>
+          {mainCategories.map((cat) => (
+            <option key={cat.id} value={cat.id}>
+              {cat.name_ar || cat.name}
+            </option>
+          ))}
+        </select>
+
+        {/* Status Filter */}
+        <select
+          value={filterStatus}
+          onChange={(e) => setFilterStatus(e.target.value)}
+          className="px-4 py-3 rounded-xl border border-historical-gold/20 bg-white/80 backdrop-blur-sm text-sm focus:outline-none focus:ring-2 focus:ring-historical-gold/30 min-w-[150px]"
+        >
+          <option value="">{t.admin.categories.allStatuses || 'كل الحالات'}</option>
+          <option value="active">{t.admin.categories.enabled || 'نشط'}</option>
+          <option value="inactive">{t.admin.categories.disabledStatus || 'غير نشط'}</option>
+        </select>
         <div className="flex items-center gap-4 px-4 py-3 rounded-xl bg-white/80 backdrop-blur-sm border border-historical-gold/10">
           <div className="text-center">
             <p className="text-2xl font-bold text-historical-charcoal">{totalCount}</p>
-            <p className="text-xs text-historical-charcoal/50">إجمالي الفئات</p>
+            <p className="text-xs text-historical-charcoal/50">{t.admin.categories.totalCategories}</p>
           </div>
           <div className="w-px h-10 bg-historical-gold/20" />
           <div className="text-center">
             <p className="text-2xl font-bold text-historical-charcoal">{mainCategoriesCount}</p>
-            <p className="text-xs text-historical-charcoal/50">رئيسية</p>
+            <p className="text-xs text-historical-charcoal/50">{t.admin.categories.mainCategories}</p>
           </div>
           <div className="w-px h-10 bg-historical-gold/20" />
           <div className="text-center">
             <p className="text-2xl font-bold text-historical-gold">{subCategoriesCount}</p>
-            <p className="text-xs text-historical-charcoal/50">فرعية</p>
+            <p className="text-xs text-historical-charcoal/50">{t.admin.categories.subCategories}</p>
           </div>
         </div>
       </motion.div>
@@ -743,8 +796,8 @@ export default function CategoriesPage() {
           <LoadingSkeleton />
         ) : categories.length === 0 ? (
           <div className="text-center py-12 text-historical-charcoal/50">
-            <p className="text-lg mb-2">لا توجد فئات</p>
-            <p className="text-sm">ابدأ بإضافة فئة جديدة</p>
+            <p className="text-lg mb-2">{t.admin.categories.noCategories}</p>
+            <p className="text-sm">{t.admin.categories.startAdding}</p>
           </div>
         ) : (
           <div className="p-2">

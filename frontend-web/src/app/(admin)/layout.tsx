@@ -23,6 +23,7 @@ import { useState, type ReactNode } from 'react'
 import { usePathname } from 'next/navigation'
 import { AdminSidebar, AdminHeader } from '@/components/admin'
 import { AdminAuthProvider, ProtectedRoute } from '@/lib/admin'
+import { LanguageProvider, useLanguage } from '@/lib/i18n/context'
 
 interface AdminLayoutProps {
   children: ReactNode
@@ -37,11 +38,31 @@ function AdminLayoutContent({ children }: { children: ReactNode }) {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
 
   return (
-    <div className="min-h-screen flex bg-historical-stone" dir="rtl">
+    <LanguageProvider>
+      <AdminLayoutContentInner isSidebarCollapsed={isSidebarCollapsed} onToggleCollapse={() => setIsSidebarCollapsed(prev => !prev)}>
+        {children}
+      </AdminLayoutContentInner>
+    </LanguageProvider>
+  )
+}
+
+function AdminLayoutContentInner({ 
+  children, 
+  isSidebarCollapsed, 
+  onToggleCollapse 
+}: { 
+  children: ReactNode
+  isSidebarCollapsed: boolean
+  onToggleCollapse: () => void
+}) {
+  const { direction } = useLanguage()
+
+  return (
+    <div className="min-h-screen flex bg-historical-stone" dir={direction}>
       {/* Sidebar */}
       <AdminSidebar
         isCollapsed={isSidebarCollapsed}
-        onToggleCollapse={() => setIsSidebarCollapsed(prev => !prev)}
+        onToggleCollapse={onToggleCollapse}
       />
 
       {/* Main Content Area */}
