@@ -157,14 +157,14 @@ export default function LanguagesSettingsPage() {
       {/* Page Header */}
       <motion.div variants={itemVariants} className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-historical-charcoal">إدارة اللغات</h1>
-          <p className="text-historical-charcoal/50 mt-1">تحديد اللغات المدعومة واللغة الافتراضية</p>
+          <h1 className="text-2xl font-bold text-historical-charcoal dark:text-gray-100 transition-colors duration-300">إدارة اللغات</h1>
+          <p className="text-historical-charcoal/50 dark:text-gray-400 mt-1 transition-colors duration-300">تحديد اللغات المدعومة واللغة الافتراضية</p>
         </div>
         <div className="flex items-center gap-3">
           {unusedLanguages.length > 0 && (
             <button
               onClick={() => setShowAddModal(true)}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-historical-gold/20 text-historical-gold font-medium hover:bg-historical-gold/10 transition-colors"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-historical-gold/20 dark:border-gray-600 text-historical-gold dark:text-yellow-400 font-medium hover:bg-historical-gold/10 dark:hover:bg-gray-700/50 transition-colors"
             >
               {Icons.add}
               <span>إضافة لغة</span>
@@ -176,7 +176,7 @@ export default function LanguagesSettingsPage() {
             className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-medium transition-all duration-200 ${
               hasChanges && !isSaving
                 ? 'bg-gradient-to-l from-historical-gold to-historical-red text-white shadow-lg hover:shadow-xl'
-                : 'bg-historical-charcoal/10 text-historical-charcoal/40 cursor-not-allowed'
+                : 'bg-historical-charcoal/10 dark:bg-gray-700/50 text-historical-charcoal/40 dark:text-gray-500 cursor-not-allowed'
             }`}
           >
             {isSaving ? (
@@ -190,7 +190,7 @@ export default function LanguagesSettingsPage() {
       </motion.div>
 
       {/* Languages List */}
-      <motion.div variants={itemVariants} className="bg-white/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 shadow-soft overflow-hidden">
+      <motion.div variants={itemVariants} className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 dark:border-gray-700 shadow-soft overflow-hidden transition-colors duration-300">
         <div className="p-4 space-y-3">
           <AnimatePresence>
             {languages.map((lang) => (
@@ -202,8 +202,8 @@ export default function LanguagesSettingsPage() {
                 exit={{ opacity: 0, x: 20 }}
                 className={`flex items-center gap-4 p-4 rounded-xl border transition-colors ${
                   lang.isDefault 
-                    ? 'border-historical-gold/30 bg-historical-gold/5' 
-                    : 'border-historical-gold/10 bg-historical-stone/30'
+                    ? 'border-historical-gold/30 dark:border-yellow-600/30 bg-historical-gold/5 dark:bg-yellow-900/20' 
+                    : 'border-historical-gold/10 dark:border-gray-700 bg-historical-stone/30 dark:bg-gray-700/30'
                 } group`}
               >
                 {/* Flag/Icon */}
@@ -214,8 +214,8 @@ export default function LanguagesSettingsPage() {
                 {/* Language Info */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <p className="font-bold text-historical-charcoal">{lang.nativeName}</p>
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-historical-charcoal/10 text-historical-charcoal/50 uppercase">
+                    <p className="font-bold text-historical-charcoal dark:text-gray-200 transition-colors duration-300">{lang.nativeName}</p>
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-historical-charcoal/10 dark:bg-gray-700/50 text-historical-charcoal/50 dark:text-gray-400 uppercase transition-colors duration-300">
                       {lang.code}
                     </span>
                     <span className={`text-xs px-2 py-0.5 rounded-full ${
@@ -230,14 +230,14 @@ export default function LanguagesSettingsPage() {
                       </span>
                     )}
                   </div>
-                  <p className="text-sm text-historical-charcoal/50">{lang.name}</p>
+                  <p className="text-sm text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{lang.name}</p>
                 </div>
 
                 {/* Set Default */}
                 {!lang.isDefault && lang.isActive && (
                   <button
                     onClick={() => handleSetDefault(lang.id)}
-                    className="px-3 py-1.5 rounded-lg text-xs font-medium text-historical-gold border border-historical-gold/20 hover:bg-historical-gold/10 transition-colors opacity-0 group-hover:opacity-100"
+                    className="px-3 py-1.5 rounded-lg text-xs font-medium text-historical-gold dark:text-yellow-400 border border-historical-gold/20 dark:border-gray-600 hover:bg-historical-gold/10 dark:hover:bg-gray-700/50 transition-colors opacity-0 group-hover:opacity-100"
                   >
                     تعيين كافتراضية
                   </button>

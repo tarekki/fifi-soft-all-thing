@@ -195,8 +195,8 @@ export default function SocialSettingsPage() {
       {/* Page Header */}
       <motion.div variants={itemVariants} className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-historical-charcoal">روابط التواصل الاجتماعي</h1>
-          <p className="text-historical-charcoal/50 mt-1">إدارة حسابات التواصل الاجتماعي</p>
+          <h1 className="text-2xl font-bold text-historical-charcoal dark:text-gray-100 transition-colors duration-300">روابط التواصل الاجتماعي</h1>
+          <p className="text-historical-charcoal/50 dark:text-gray-400 mt-1 transition-colors duration-300">إدارة حسابات التواصل الاجتماعي</p>
         </div>
         <button
           onClick={handleSave}
@@ -204,7 +204,7 @@ export default function SocialSettingsPage() {
           className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all duration-200 ${
             hasChanges && !isSaving
               ? 'bg-gradient-to-l from-historical-gold to-historical-red text-white shadow-lg hover:shadow-xl'
-              : 'bg-historical-charcoal/10 text-historical-charcoal/40 cursor-not-allowed'
+              : 'bg-historical-charcoal/10 dark:bg-gray-700/50 text-historical-charcoal/40 dark:text-gray-500 cursor-not-allowed'
           }`}
         >
           {isSaving ? (
@@ -217,7 +217,7 @@ export default function SocialSettingsPage() {
       </motion.div>
 
       {/* Social Links List */}
-      <motion.div variants={itemVariants} className="bg-white/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 shadow-soft overflow-hidden">
+      <motion.div variants={itemVariants} className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 dark:border-gray-700 shadow-soft overflow-hidden transition-colors duration-300">
         <div className="p-4 space-y-3">
           <AnimatePresence>
             {links.map((link) => (
@@ -227,10 +227,10 @@ export default function SocialSettingsPage() {
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 20 }}
-                className="flex items-center gap-4 p-4 rounded-xl border border-historical-gold/10 bg-historical-stone/30 group"
+                className="flex items-center gap-4 p-4 rounded-xl border border-historical-gold/10 dark:border-gray-700 bg-historical-stone/30 dark:bg-gray-700/30 group transition-colors duration-300"
               >
                 {/* Drag Handle */}
-                <button className="p-1 rounded cursor-grab text-historical-charcoal/30 hover:text-historical-charcoal/60 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button className="p-1 rounded cursor-grab text-historical-charcoal/30 dark:text-gray-500 hover:text-historical-charcoal/60 dark:hover:text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity">
                   {Icons.drag}
                 </button>
 
@@ -241,12 +241,12 @@ export default function SocialSettingsPage() {
 
                 {/* Platform Name & URL */}
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-historical-charcoal">{link.name}</p>
+                  <p className="font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300">{link.name}</p>
                   <input
                     type="url"
                     value={link.url}
                     onChange={(e) => handleUpdateUrl(link.id, e.target.value)}
-                    className="w-full text-sm text-historical-charcoal/50 bg-transparent focus:outline-none"
+                    className="w-full text-sm text-historical-charcoal/50 dark:text-gray-400 bg-transparent focus:outline-none placeholder:text-historical-charcoal/30 dark:placeholder:text-gray-500 transition-colors duration-300"
                     placeholder={`https://${link.platform}.com/...`}
                     dir="ltr"
                   />
@@ -256,21 +256,21 @@ export default function SocialSettingsPage() {
                 <button
                   onClick={() => handleToggle(link.id)}
                   className={`relative w-12 h-7 rounded-full transition-colors duration-200 ${
-                    link.isActive ? 'bg-green-500' : 'bg-historical-charcoal/20'
+                    link.isActive ? 'bg-green-500 dark:bg-green-600' : 'bg-historical-charcoal/20 dark:bg-gray-600'
                   }`}
                 >
                   <motion.div
                     initial={false}
                     animate={{ x: link.isActive ? 22 : 4 }}
                     transition={{ duration: 0.2 }}
-                    className="absolute top-1 w-5 h-5 rounded-full bg-white shadow-lg"
+                    className="absolute top-1 w-5 h-5 rounded-full bg-white dark:bg-gray-200 shadow-lg transition-colors duration-300"
                   />
                 </button>
 
                 {/* Delete */}
                 <button
                   onClick={() => handleDelete(link.id)}
-                  className="p-2 rounded-lg text-historical-charcoal/30 hover:text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-all"
+                  className="p-2 rounded-lg text-historical-charcoal/30 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 opacity-0 group-hover:opacity-100 transition-all"
                 >
                   {Icons.delete}
                 </button>
@@ -281,19 +281,19 @@ export default function SocialSettingsPage() {
 
         {/* Add New */}
         {unusedPlatforms.length > 0 && (
-          <div className="p-4 border-t border-historical-gold/10 bg-historical-stone/20">
-            <p className="text-sm text-historical-charcoal/50 mb-3">إضافة منصة جديدة:</p>
+          <div className="p-4 border-t border-historical-gold/10 dark:border-gray-700 bg-historical-stone/20 dark:bg-gray-700/30 transition-colors duration-300">
+            <p className="text-sm text-historical-charcoal/50 dark:text-gray-400 mb-3 transition-colors duration-300">إضافة منصة جديدة:</p>
             <div className="flex flex-wrap gap-2">
               {unusedPlatforms.map((platform) => (
                 <button
                   key={platform}
                   onClick={() => handleAdd(platform)}
-                  className="flex items-center gap-2 px-3 py-2 rounded-lg border border-historical-gold/20 bg-white hover:bg-historical-gold/10 transition-colors"
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700 hover:bg-historical-gold/10 dark:hover:bg-gray-600 transition-colors"
                 >
                   <span className={`w-6 h-6 rounded flex items-center justify-center ${platformColors[platform] || 'bg-gray-500 text-white'}`}>
                     {PlatformIcons[platform]}
                   </span>
-                  <span className="text-sm font-medium text-historical-charcoal capitalize">{platform}</span>
+                  <span className="text-sm font-medium text-historical-charcoal dark:text-gray-200 capitalize transition-colors duration-300">{platform}</span>
                 </button>
               ))}
             </div>

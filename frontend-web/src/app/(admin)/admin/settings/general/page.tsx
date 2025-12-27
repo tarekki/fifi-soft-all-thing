@@ -120,9 +120,9 @@ interface InputFieldProps {
 function InputField({ label, labelAr, value, onChange, placeholder, helperText, type = 'text', dir = 'rtl' }: InputFieldProps) {
   return (
     <div className="space-y-2">
-      <label className="block text-sm font-medium text-historical-charcoal">
+      <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300">
         {label}
-        {labelAr && <span className="text-historical-charcoal/50 mr-2">({labelAr})</span>}
+        {labelAr && <span className="text-historical-charcoal/50 dark:text-gray-400 mr-2 transition-colors duration-300">({labelAr})</span>}
       </label>
       {type === 'textarea' ? (
         <textarea
@@ -131,9 +131,9 @@ function InputField({ label, labelAr, value, onChange, placeholder, helperText, 
           placeholder={placeholder}
           dir={dir}
           rows={3}
-          className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 bg-white/50 
-                     text-historical-charcoal placeholder:text-historical-charcoal/30
-                     focus:outline-none focus:ring-2 focus:ring-historical-gold/30 focus:border-historical-gold
+          className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white/50 dark:bg-gray-700/50
+                     text-historical-charcoal dark:text-gray-200 placeholder:text-historical-charcoal/30 dark:placeholder:text-gray-400
+                     focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 focus:border-historical-gold dark:focus:border-yellow-600
                      transition-all duration-200 resize-none"
         />
       ) : (
@@ -143,14 +143,14 @@ function InputField({ label, labelAr, value, onChange, placeholder, helperText, 
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
           dir={dir}
-          className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 bg-white/50 
-                     text-historical-charcoal placeholder:text-historical-charcoal/30
-                     focus:outline-none focus:ring-2 focus:ring-historical-gold/30 focus:border-historical-gold
+          className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white/50 dark:bg-gray-700/50
+                     text-historical-charcoal dark:text-gray-200 placeholder:text-historical-charcoal/30 dark:placeholder:text-gray-400
+                     focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 focus:border-historical-gold dark:focus:border-yellow-600
                      transition-all duration-200"
         />
       )}
       {helperText && (
-        <p className="text-xs text-historical-charcoal/50 flex items-center gap-1">
+        <p className="text-xs text-historical-charcoal/50 dark:text-gray-400 flex items-center gap-1 transition-colors duration-300">
           {Icons.info}
           {helperText}
         </p>
@@ -169,16 +169,16 @@ interface ImageUploadProps {
 function ImageUpload({ label, imageUrl, onUpload, aspectRatio = 'aspect-video' }: ImageUploadProps) {
   return (
     <div className="space-y-2">
-      <label className="block text-sm font-medium text-historical-charcoal">{label}</label>
+      <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300">{label}</label>
       <div className={`
-        relative ${aspectRatio} w-full max-w-xs rounded-xl border-2 border-dashed border-historical-gold/30
-        bg-historical-stone/30 overflow-hidden group cursor-pointer
-        hover:border-historical-gold/50 transition-colors
+        relative ${aspectRatio} w-full max-w-xs rounded-xl border-2 border-dashed border-historical-gold/30 dark:border-gray-600
+        bg-historical-stone/30 dark:bg-gray-700/30 overflow-hidden group cursor-pointer
+        hover:border-historical-gold/50 dark:hover:border-gray-500 transition-colors
       `}>
         {imageUrl ? (
           <img src={imageUrl} alt={label} className="w-full h-full object-contain" />
         ) : (
-          <div className="absolute inset-0 flex flex-col items-center justify-center text-historical-charcoal/40">
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-historical-charcoal/40 dark:text-gray-400 transition-colors duration-300">
             {Icons.upload}
             <span className="text-xs mt-2">اضغط للرفع</span>
           </div>
@@ -201,27 +201,27 @@ interface ToggleSwitchProps {
 
 function ToggleSwitch({ label, description, checked, onChange, variant = 'default' }: ToggleSwitchProps) {
   const colors = variant === 'danger' 
-    ? 'bg-red-500' 
-    : 'bg-historical-gold'
+    ? 'bg-red-500 dark:bg-red-600' 
+    : 'bg-historical-gold dark:bg-yellow-600'
 
   return (
-    <div className="flex items-center justify-between p-4 rounded-xl border border-historical-gold/10 bg-white/50">
+    <div className="flex items-center justify-between p-4 rounded-xl border border-historical-gold/10 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50 transition-colors duration-300">
       <div>
-        <p className="font-medium text-historical-charcoal">{label}</p>
-        <p className="text-sm text-historical-charcoal/50">{description}</p>
+        <p className="font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300">{label}</p>
+        <p className="text-sm text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{description}</p>
       </div>
       <button
         onClick={() => onChange(!checked)}
         className={`
           relative w-14 h-8 rounded-full transition-colors duration-200
-          ${checked ? colors : 'bg-historical-charcoal/20'}
+          ${checked ? colors : 'bg-historical-charcoal/20 dark:bg-gray-600'}
         `}
       >
         <motion.div
           initial={false}
           animate={{ x: checked ? 24 : 4 }}
           transition={{ duration: 0.2 }}
-          className="absolute top-1 w-6 h-6 rounded-full bg-white shadow-lg"
+          className="absolute top-1 w-6 h-6 rounded-full bg-white dark:bg-gray-200 shadow-lg transition-colors duration-300"
         />
       </button>
     </div>
@@ -238,17 +238,17 @@ interface SelectFieldProps {
 function SelectField({ label, value, onChange, options }: SelectFieldProps) {
   return (
     <div className="space-y-2">
-      <label className="block text-sm font-medium text-historical-charcoal">{label}</label>
+      <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300">{label}</label>
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 bg-white/50 
-                   text-historical-charcoal
-                   focus:outline-none focus:ring-2 focus:ring-historical-gold/30 focus:border-historical-gold
+        className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white/50 dark:bg-gray-700/50
+                   text-historical-charcoal dark:text-gray-200
+                   focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 focus:border-historical-gold dark:focus:border-yellow-600
                    transition-all duration-200 appearance-none cursor-pointer"
       >
         {options.map((option) => (
-          <option key={option.value} value={option.value}>
+          <option key={option.value} value={option.value} className="bg-white dark:bg-gray-700">
             {option.label}
           </option>
         ))}
@@ -289,8 +289,8 @@ export default function SettingsGeneralPage() {
       {/* Page Header */}
       <motion.div variants={itemVariants} className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-historical-charcoal">الإعدادات العامة</h1>
-          <p className="text-historical-charcoal/50 mt-1">إعدادات الموقع الأساسية والهوية البصرية</p>
+          <h1 className="text-2xl font-bold text-historical-charcoal dark:text-gray-100 transition-colors duration-300">الإعدادات العامة</h1>
+          <p className="text-historical-charcoal/50 dark:text-gray-400 mt-1 transition-colors duration-300">إعدادات الموقع الأساسية والهوية البصرية</p>
         </div>
         <button
           onClick={handleSave}
@@ -299,7 +299,7 @@ export default function SettingsGeneralPage() {
             flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all duration-200
             ${hasChanges && !isSaving
               ? 'bg-gradient-to-l from-historical-gold to-historical-red text-white shadow-lg hover:shadow-xl'
-              : 'bg-historical-charcoal/10 text-historical-charcoal/40 cursor-not-allowed'
+              : 'bg-historical-charcoal/10 dark:bg-gray-700/50 text-historical-charcoal/40 dark:text-gray-500 cursor-not-allowed'
             }
           `}
         >
@@ -313,8 +313,8 @@ export default function SettingsGeneralPage() {
       </motion.div>
 
       {/* Site Identity */}
-      <motion.div variants={itemVariants} className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-historical-gold/10 shadow-soft">
-        <h2 className="text-lg font-bold text-historical-charcoal mb-6">هوية الموقع</h2>
+      <motion.div variants={itemVariants} className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 border border-historical-gold/10 dark:border-gray-700 shadow-soft transition-colors duration-300">
+        <h2 className="text-lg font-bold text-historical-charcoal dark:text-gray-100 mb-6 transition-colors duration-300">هوية الموقع</h2>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <InputField
@@ -347,8 +347,8 @@ export default function SettingsGeneralPage() {
       </motion.div>
 
       {/* Logo & Favicon */}
-      <motion.div variants={itemVariants} className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-historical-gold/10 shadow-soft">
-        <h2 className="text-lg font-bold text-historical-charcoal mb-6">الشعار والأيقونة</h2>
+      <motion.div variants={itemVariants} className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 border border-historical-gold/10 dark:border-gray-700 shadow-soft transition-colors duration-300">
+        <h2 className="text-lg font-bold text-historical-charcoal dark:text-gray-100 mb-6 transition-colors duration-300">الشعار والأيقونة</h2>
         
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           <ImageUpload
@@ -371,8 +371,8 @@ export default function SettingsGeneralPage() {
       </motion.div>
 
       {/* Currency Settings */}
-      <motion.div variants={itemVariants} className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-historical-gold/10 shadow-soft">
-        <h2 className="text-lg font-bold text-historical-charcoal mb-6">إعدادات العملة</h2>
+      <motion.div variants={itemVariants} className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 border border-historical-gold/10 dark:border-gray-700 shadow-soft transition-colors duration-300">
+        <h2 className="text-lg font-bold text-historical-charcoal dark:text-gray-100 mb-6 transition-colors duration-300">إعدادات العملة</h2>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <InputField
@@ -404,8 +404,8 @@ export default function SettingsGeneralPage() {
       </motion.div>
 
       {/* Maintenance Mode */}
-      <motion.div variants={itemVariants} className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-historical-gold/10 shadow-soft">
-        <h2 className="text-lg font-bold text-historical-charcoal mb-6">وضع الصيانة</h2>
+      <motion.div variants={itemVariants} className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 border border-historical-gold/10 dark:border-gray-700 shadow-soft transition-colors duration-300">
+        <h2 className="text-lg font-bold text-historical-charcoal dark:text-gray-100 mb-6 transition-colors duration-300">وضع الصيانة</h2>
         
         <div className="space-y-6">
           <ToggleSwitch
@@ -421,9 +421,9 @@ export default function SettingsGeneralPage() {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              className="p-4 rounded-xl bg-red-50 border border-red-200"
+              className="p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 transition-colors duration-300"
             >
-              <div className="flex items-center gap-2 text-red-600 mb-4">
+              <div className="flex items-center gap-2 text-red-600 dark:text-red-400 mb-4 transition-colors duration-300">
                 {Icons.warning}
                 <span className="font-medium">تحذير: وضع الصيانة مفعل</span>
               </div>

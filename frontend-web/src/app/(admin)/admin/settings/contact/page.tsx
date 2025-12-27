@@ -133,8 +133,8 @@ export default function ContactSettingsPage() {
       {/* Page Header */}
       <motion.div variants={itemVariants} className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-historical-charcoal">معلومات الاتصال</h1>
-          <p className="text-historical-charcoal/50 mt-1">بيانات التواصل والعنوان</p>
+          <h1 className="text-2xl font-bold text-historical-charcoal dark:text-gray-100 transition-colors duration-300">معلومات الاتصال</h1>
+          <p className="text-historical-charcoal/50 dark:text-gray-400 mt-1 transition-colors duration-300">بيانات التواصل والعنوان</p>
         </div>
         <button
           onClick={handleSave}
@@ -142,7 +142,7 @@ export default function ContactSettingsPage() {
           className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all duration-200 ${
             hasChanges && !isSaving
               ? 'bg-gradient-to-l from-historical-gold to-historical-red text-white shadow-lg hover:shadow-xl'
-              : 'bg-historical-charcoal/10 text-historical-charcoal/40 cursor-not-allowed'
+              : 'bg-historical-charcoal/10 dark:bg-gray-700/50 text-historical-charcoal/40 dark:text-gray-500 cursor-not-allowed'
           }`}
         >
           {isSaving ? (
@@ -155,48 +155,48 @@ export default function ContactSettingsPage() {
       </motion.div>
 
       {/* Contact Methods */}
-      <motion.div variants={itemVariants} className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-historical-gold/10 shadow-soft">
+      <motion.div variants={itemVariants} className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 border border-historical-gold/10 dark:border-gray-700 shadow-soft transition-colors duration-300">
         <div className="flex items-center gap-3 mb-6">
-          <div className="p-2 rounded-lg bg-historical-gold/10 text-historical-gold">
+          <div className="p-2 rounded-lg bg-historical-gold/10 dark:bg-yellow-900/30 text-historical-gold dark:text-yellow-400 transition-colors duration-300">
             {Icons.phone}
           </div>
-          <h2 className="text-lg font-bold text-historical-charcoal">طرق التواصل</h2>
+          <h2 className="text-lg font-bold text-historical-charcoal dark:text-gray-100 transition-colors duration-300">طرق التواصل</h2>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>
-            <label className="block text-sm font-medium text-historical-charcoal mb-2">
+            <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 mb-2 transition-colors duration-300">
               البريد الإلكتروني
             </label>
             <input
               type="email"
               value={settings.email}
               onChange={(e) => updateSetting('email', e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 bg-white/50 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+              className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white/50 dark:bg-gray-700/50 text-historical-charcoal dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 transition-colors duration-300"
               dir="ltr"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-historical-charcoal mb-2">
+            <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 mb-2 transition-colors duration-300">
               رقم الهاتف
             </label>
             <input
               type="tel"
               value={settings.phone}
               onChange={(e) => updateSetting('phone', e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 bg-white/50 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+              className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white/50 dark:bg-gray-700/50 text-historical-charcoal dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 transition-colors duration-300"
               dir="ltr"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-historical-charcoal mb-2">
+            <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 mb-2 transition-colors duration-300">
               واتساب
             </label>
             <input
               type="tel"
               value={settings.whatsapp}
               onChange={(e) => updateSetting('whatsapp', e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 bg-white/50 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+              className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white/50 dark:bg-gray-700/50 text-historical-charcoal dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 transition-colors duration-300"
               dir="ltr"
             />
           </div>
@@ -204,87 +204,87 @@ export default function ContactSettingsPage() {
       </motion.div>
 
       {/* Address */}
-      <motion.div variants={itemVariants} className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-historical-gold/10 shadow-soft">
+      <motion.div variants={itemVariants} className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 border border-historical-gold/10 dark:border-gray-700 shadow-soft transition-colors duration-300">
         <div className="flex items-center gap-3 mb-6">
-          <div className="p-2 rounded-lg bg-historical-gold/10 text-historical-gold">
+          <div className="p-2 rounded-lg bg-historical-gold/10 dark:bg-yellow-900/30 text-historical-gold dark:text-yellow-400 transition-colors duration-300">
             {Icons.location}
           </div>
-          <h2 className="text-lg font-bold text-historical-charcoal">العنوان</h2>
+          <h2 className="text-lg font-bold text-historical-charcoal dark:text-gray-100 transition-colors duration-300">العنوان</h2>
         </div>
 
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-historical-charcoal mb-2">
+              <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 mb-2 transition-colors duration-300">
                 Address (English)
               </label>
               <input
                 type="text"
                 value={settings.address}
                 onChange={(e) => updateSetting('address', e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 bg-white/50 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+                className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white/50 dark:bg-gray-700/50 text-historical-charcoal dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 transition-colors duration-300"
                 dir="ltr"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-historical-charcoal mb-2">
+              <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 mb-2 transition-colors duration-300">
                 العنوان (عربي)
               </label>
               <input
                 type="text"
                 value={settings.addressAr}
                 onChange={(e) => updateSetting('addressAr', e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 bg-white/50 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+                className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white/50 dark:bg-gray-700/50 text-historical-charcoal dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 transition-colors duration-300"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium text-historical-charcoal mb-2">
+              <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 mb-2 transition-colors duration-300">
                 المدينة
               </label>
               <input
                 type="text"
                 value={settings.city}
                 onChange={(e) => updateSetting('city', e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 bg-white/50 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+                className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white/50 dark:bg-gray-700/50 text-historical-charcoal dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 transition-colors duration-300"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-historical-charcoal mb-2">
+              <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 mb-2 transition-colors duration-300">
                 البلد
               </label>
               <input
                 type="text"
                 value={settings.country}
                 onChange={(e) => updateSetting('country', e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 bg-white/50 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+                className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white/50 dark:bg-gray-700/50 text-historical-charcoal dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 transition-colors duration-300"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-historical-charcoal mb-2">
+              <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 mb-2 transition-colors duration-300">
                 الرمز البريدي
               </label>
               <input
                 type="text"
                 value={settings.postalCode}
                 onChange={(e) => updateSetting('postalCode', e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 bg-white/50 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+                className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white/50 dark:bg-gray-700/50 text-historical-charcoal dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 transition-colors duration-300"
                 dir="ltr"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-historical-charcoal mb-2">
+            <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 mb-2 transition-colors duration-300">
               رابط خرائط Google
             </label>
             <input
               type="url"
               value={settings.googleMapsUrl}
               onChange={(e) => updateSetting('googleMapsUrl', e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 bg-white/50 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+              className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white/50 dark:bg-gray-700/50 text-historical-charcoal dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 transition-colors duration-300"
               dir="ltr"
             />
           </div>
@@ -292,37 +292,37 @@ export default function ContactSettingsPage() {
       </motion.div>
 
       {/* Working Hours */}
-      <motion.div variants={itemVariants} className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-historical-gold/10 shadow-soft">
+      <motion.div variants={itemVariants} className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 border border-historical-gold/10 dark:border-gray-700 shadow-soft transition-colors duration-300">
         <div className="flex items-center gap-3 mb-6">
-          <div className="p-2 rounded-lg bg-historical-gold/10 text-historical-gold">
+          <div className="p-2 rounded-lg bg-historical-gold/10 dark:bg-yellow-900/30 text-historical-gold dark:text-yellow-400 transition-colors duration-300">
             {Icons.clock}
           </div>
-          <h2 className="text-lg font-bold text-historical-charcoal">ساعات العمل</h2>
+          <h2 className="text-lg font-bold text-historical-charcoal dark:text-gray-100 transition-colors duration-300">ساعات العمل</h2>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium text-historical-charcoal mb-2">
+            <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 mb-2 transition-colors duration-300">
               أيام الأسبوع (السبت - الخميس)
             </label>
             <input
               type="text"
               value={settings.workingHours.weekdays}
               onChange={(e) => updateSetting('workingHours', { ...settings.workingHours, weekdays: e.target.value })}
-              className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 bg-white/50 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+              className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white/50 dark:bg-gray-700/50 text-historical-charcoal dark:text-gray-200 placeholder:text-historical-charcoal/30 dark:placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 transition-colors duration-300"
               placeholder="9:00 AM - 6:00 PM"
               dir="ltr"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-historical-charcoal mb-2">
+            <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 mb-2 transition-colors duration-300">
               نهاية الأسبوع (الجمعة)
             </label>
             <input
               type="text"
               value={settings.workingHours.weekend}
               onChange={(e) => updateSetting('workingHours', { ...settings.workingHours, weekend: e.target.value })}
-              className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 bg-white/50 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+              className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white/50 dark:bg-gray-700/50 text-historical-charcoal dark:text-gray-200 placeholder:text-historical-charcoal/30 dark:placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 transition-colors duration-300"
               placeholder="مغلق أو 10:00 AM - 2:00 PM"
               dir="ltr"
             />

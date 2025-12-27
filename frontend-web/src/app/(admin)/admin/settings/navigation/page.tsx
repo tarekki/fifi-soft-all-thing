@@ -152,36 +152,36 @@ interface NavItemRowProps {
 
 function NavItemRow({ item, onEdit, onDelete, onToggle }: NavItemRowProps) {
   return (
-    <div className="flex items-center gap-3 p-3 rounded-lg border border-historical-gold/10 bg-white/50 group">
-      <button className="p-1 rounded cursor-grab text-historical-charcoal/30 hover:text-historical-charcoal/60">
+    <div className="flex items-center gap-3 p-3 rounded-lg border border-historical-gold/10 dark:border-gray-700 bg-white/50 dark:bg-gray-700/50 group transition-colors duration-300">
+      <button className="p-1 rounded cursor-grab text-historical-charcoal/30 dark:text-gray-500 hover:text-historical-charcoal/60 dark:hover:text-gray-300 transition-colors duration-300">
         {Icons.drag}
       </button>
       <div className="flex-1 min-w-0">
-        <p className="font-medium text-historical-charcoal truncate">{item.labelAr}</p>
-        <p className="text-xs text-historical-charcoal/50" dir="ltr">{item.url}</p>
+        <p className="font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300 truncate">{item.labelAr}</p>
+        <p className="text-xs text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300" dir="ltr">{item.url}</p>
       </div>
       <button
         onClick={() => onToggle(item.id)}
         className={`relative w-10 h-6 rounded-full transition-colors duration-200 ${
-          item.isActive ? 'bg-green-500' : 'bg-historical-charcoal/20'
+          item.isActive ? 'bg-green-500 dark:bg-green-600' : 'bg-historical-charcoal/20 dark:bg-gray-600'
         }`}
       >
         <motion.div
           initial={false}
           animate={{ x: item.isActive ? 18 : 4 }}
           transition={{ duration: 0.2 }}
-          className="absolute top-1 w-4 h-4 rounded-full bg-white shadow"
+          className="absolute top-1 w-4 h-4 rounded-full bg-white dark:bg-gray-200 shadow transition-colors duration-300"
         />
       </button>
       <button
         onClick={() => onEdit(item)}
-        className="p-1.5 rounded-lg text-historical-charcoal/40 hover:text-historical-charcoal hover:bg-historical-gold/10 opacity-0 group-hover:opacity-100 transition-all"
+        className="p-1.5 rounded-lg text-historical-charcoal/40 dark:text-gray-500 hover:text-historical-charcoal dark:hover:text-gray-200 hover:bg-historical-gold/10 dark:hover:bg-gray-700/50 opacity-0 group-hover:opacity-100 transition-all duration-300"
       >
         {Icons.edit}
       </button>
       <button
         onClick={() => onDelete(item.id)}
-        className="p-1.5 rounded-lg text-historical-charcoal/40 hover:text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-all"
+        className="p-1.5 rounded-lg text-historical-charcoal/40 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 opacity-0 group-hover:opacity-100 transition-all duration-300"
       >
         {Icons.delete}
       </button>
@@ -276,8 +276,8 @@ export default function NavigationSettingsPage() {
       {/* Page Header */}
       <motion.div variants={itemVariants} className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-historical-charcoal">قوائم التنقل</h1>
-          <p className="text-historical-charcoal/50 mt-1">إدارة قوائم الهيدر والفوتر</p>
+          <h1 className="text-2xl font-bold text-historical-charcoal dark:text-gray-200 transition-colors duration-300">قوائم التنقل</h1>
+          <p className="text-historical-charcoal/50 dark:text-gray-400 mt-1 transition-colors duration-300">إدارة قوائم الهيدر والفوتر</p>
         </div>
         <button
           onClick={handleSave}
@@ -285,7 +285,7 @@ export default function NavigationSettingsPage() {
           className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-medium transition-all duration-200 ${
             hasChanges && !isSaving
               ? 'bg-gradient-to-l from-historical-gold to-historical-red text-white shadow-lg hover:shadow-xl'
-              : 'bg-historical-charcoal/10 text-historical-charcoal/40 cursor-not-allowed'
+              : 'bg-historical-charcoal/10 dark:bg-gray-700/50 text-historical-charcoal/40 dark:text-gray-500 cursor-not-allowed'
           }`}
         >
           {isSaving ? (
@@ -305,8 +305,8 @@ export default function NavigationSettingsPage() {
             onClick={() => setActiveMenu(menu.id)}
             className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-colors ${
               activeMenu === menu.id
-                ? 'bg-historical-gold text-white'
-                : 'bg-white/80 border border-historical-gold/20 text-historical-charcoal hover:bg-historical-gold/10'
+                ? 'bg-historical-gold dark:bg-yellow-600 text-white'
+                : 'bg-white/80 dark:bg-gray-800/80 border border-historical-gold/20 dark:border-gray-600 text-historical-charcoal dark:text-gray-200 hover:bg-historical-gold/10 dark:hover:bg-gray-700/50 transition-colors duration-300'
             }`}
           >
             {menu.name}
@@ -318,15 +318,15 @@ export default function NavigationSettingsPage() {
       </motion.div>
 
       {/* Current Menu Items */}
-      <motion.div variants={itemVariants} className="bg-white/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 shadow-soft overflow-hidden">
-        <div className="flex items-center justify-between p-4 border-b border-historical-gold/10">
+      <motion.div variants={itemVariants} className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl transition-colors duration-300 border border-historical-gold/10 dark:border-gray-700 shadow-soft overflow-hidden">
+        <div className="flex items-center justify-between p-4 border-b border-historical-gold/10 dark:border-gray-700 transition-colors duration-300">
           <div>
-            <h2 className="font-bold text-historical-charcoal">{currentMenu?.name}</h2>
-            <p className="text-sm text-historical-charcoal/50">{currentMenu?.location}</p>
+            <h2 className="font-bold text-historical-charcoal dark:text-gray-200 transition-colors duration-300">{currentMenu?.name}</h2>
+            <p className="text-sm text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{currentMenu?.location}</p>
           </div>
           <button
             onClick={handleAddNew}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl border border-historical-gold/20 text-historical-gold font-medium hover:bg-historical-gold/10 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl border border-historical-gold/20 dark:border-gray-600 text-historical-gold dark:text-yellow-400 font-medium hover:bg-historical-gold/10 dark:hover:bg-gray-700/50 transition-colors duration-300"
           >
             {Icons.add}
             <span>إضافة عنصر</span>
@@ -335,7 +335,7 @@ export default function NavigationSettingsPage() {
 
         <div className="p-4 space-y-2">
           {currentMenu?.items.length === 0 ? (
-            <p className="text-center py-8 text-historical-charcoal/50">لا توجد عناصر في هذه القائمة</p>
+            <p className="text-center py-8 text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">لا توجد عناصر في هذه القائمة</p>
           ) : (
             currentMenu?.items.map((item) => (
               <NavItemRow
@@ -364,16 +364,16 @@ export default function NavigationSettingsPage() {
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden"
+              className="w-full max-w-md bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden transition-colors duration-300"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex items-center justify-between p-4 border-b border-historical-gold/10">
-                <h2 className="text-lg font-bold text-historical-charcoal">
+              <div className="flex items-center justify-between p-4 border-b border-historical-gold/10 dark:border-gray-700 transition-colors duration-300">
+                <h2 className="text-lg font-bold text-historical-charcoal dark:text-gray-200 transition-colors duration-300">
                   {editingItem ? 'تعديل العنصر' : 'إضافة عنصر جديد'}
                 </h2>
                 <button
                   onClick={() => setIsModalOpen(false)}
-                  className="p-2 rounded-lg text-historical-charcoal/50 hover:bg-historical-gold/10"
+                  className="p-2 rounded-lg text-historical-charcoal/50 dark:text-gray-400 hover:text-historical-charcoal dark:hover:text-gray-200 hover:bg-historical-gold/10 dark:hover:bg-gray-700/50 transition-colors duration-300"
                 >
                   {Icons.close}
                 </button>
@@ -391,39 +391,39 @@ export default function NavigationSettingsPage() {
                 className="p-4 space-y-4"
               >
                 <div>
-                  <label className="block text-sm font-medium text-historical-charcoal mb-2">
+                  <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300 mb-2">
                     العنوان (عربي)
                   </label>
                   <input
                     type="text"
                     name="labelAr"
                     defaultValue={editingItem?.labelAr}
-                    className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 bg-white/50 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+                    className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white/50 dark:bg-gray-700/50 text-historical-charcoal dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 transition-colors duration-300"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-historical-charcoal mb-2">
+                  <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300 mb-2">
                     Label (English)
                   </label>
                   <input
                     type="text"
                     name="label"
                     defaultValue={editingItem?.label}
-                    className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 bg-white/50 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+                    className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white/50 dark:bg-gray-700/50 text-historical-charcoal dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 transition-colors duration-300"
                     dir="ltr"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-historical-charcoal mb-2">
+                  <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300 mb-2">
                     الرابط (URL)
                   </label>
                   <input
                     type="text"
                     name="url"
                     defaultValue={editingItem?.url}
-                    className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 bg-white/50 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+                    className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white/50 dark:bg-gray-700/50 text-historical-charcoal dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 transition-colors duration-300"
                     placeholder="/page-name"
                     dir="ltr"
                     required
@@ -433,7 +433,7 @@ export default function NavigationSettingsPage() {
                   <button
                     type="button"
                     onClick={() => setIsModalOpen(false)}
-                    className="px-4 py-2 rounded-xl text-historical-charcoal/70 hover:bg-historical-gold/10"
+                    className="px-4 py-2 rounded-xl text-historical-charcoal/70 dark:text-gray-300 hover:text-historical-charcoal dark:hover:text-gray-200 hover:bg-historical-gold/10 dark:hover:bg-gray-700/50 transition-colors duration-300"
                   >
                     إلغاء
                   </button>

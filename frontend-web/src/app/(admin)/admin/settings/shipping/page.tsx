@@ -200,8 +200,8 @@ export default function ShippingSettingsPage() {
       {/* Page Header */}
       <motion.div variants={itemVariants} className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-historical-charcoal">طرق الشحن</h1>
-          <p className="text-historical-charcoal/50 mt-1">إعداد مناطق وطرق الشحن</p>
+          <h1 className="text-2xl font-bold text-historical-charcoal dark:text-gray-200 transition-colors duration-300">طرق الشحن</h1>
+          <p className="text-historical-charcoal dark:text-gray-200 transition-colors duration-300/50 mt-1">إعداد مناطق وطرق الشحن</p>
         </div>
         <button
           onClick={handleSave}
@@ -209,7 +209,7 @@ export default function ShippingSettingsPage() {
           className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-medium transition-all duration-200 ${
             hasChanges && !isSaving
               ? 'bg-gradient-to-l from-historical-gold to-historical-red text-white shadow-lg hover:shadow-xl'
-              : 'bg-historical-charcoal/10 text-historical-charcoal/40 cursor-not-allowed'
+              : 'bg-historical-charcoal/10 text-historical-charcoal dark:text-gray-200 transition-colors duration-300/40 cursor-not-allowed'
           }`}
         >
           {isSaving ? (
@@ -228,7 +228,7 @@ export default function ShippingSettingsPage() {
           className={`px-6 py-3 rounded-xl font-medium transition-colors ${
             activeTab === 'methods'
               ? 'bg-historical-gold text-white'
-              : 'bg-white/80 border border-historical-gold/20 text-historical-charcoal hover:bg-historical-gold/10'
+              : 'bg-white/80 border border-historical-gold/20 text-historical-charcoal dark:text-gray-200 transition-colors duration-300 hover:bg-historical-gold/10'
           }`}
         >
           طرق الشحن
@@ -238,7 +238,7 @@ export default function ShippingSettingsPage() {
           className={`px-6 py-3 rounded-xl font-medium transition-colors ${
             activeTab === 'zones'
               ? 'bg-historical-gold text-white'
-              : 'bg-white/80 border border-historical-gold/20 text-historical-charcoal hover:bg-historical-gold/10'
+              : 'bg-white/80 border border-historical-gold/20 text-historical-charcoal dark:text-gray-200 transition-colors duration-300 hover:bg-historical-gold/10'
           }`}
         >
           مناطق الشحن
@@ -258,7 +258,7 @@ export default function ShippingSettingsPage() {
             {methods.map((method) => (
               <div
                 key={method.id}
-                className={`bg-white/80 backdrop-blur-sm rounded-2xl border shadow-soft overflow-hidden transition-colors ${
+                className={`bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl transition-colors duration-300 border shadow-soft overflow-hidden transition-colors ${
                   method.isActive ? 'border-green-200' : 'border-historical-gold/10'
                 }`}
               >
@@ -274,8 +274,8 @@ export default function ShippingSettingsPage() {
                     {method.estimatedDays === '0' || method.estimatedDays === '1' ? Icons.express : Icons.truck}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-bold text-historical-charcoal">{method.nameAr}</h3>
-                    <p className="text-sm text-historical-charcoal/50">{method.descriptionAr}</p>
+                    <h3 className="font-bold text-historical-charcoal dark:text-gray-200 transition-colors duration-300">{method.nameAr}</h3>
+                    <p className="text-sm text-historical-charcoal dark:text-gray-200 transition-colors duration-300/50">{method.descriptionAr}</p>
                   </div>
                   <div className="text-left">
                     <p className="text-lg font-bold text-historical-gold">${method.price}</p>
@@ -312,11 +312,11 @@ export default function ShippingSettingsPage() {
                       <div className="p-5 space-y-4 bg-historical-stone/30">
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                           <div>
-                            <label className="block text-sm font-medium text-historical-charcoal mb-2">
+                            <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300 mb-2">
                               سعر الشحن
                             </label>
                             <div className="flex">
-                              <span className="px-4 py-2.5 rounded-r-xl border border-l-0 border-historical-gold/20 bg-historical-stone text-historical-charcoal/70">
+                              <span className="px-4 py-2.5 rounded-r-xl border border-l-0 border-historical-gold/20 bg-historical-stone text-historical-charcoal dark:text-gray-200 transition-colors duration-300/70">
                                 $
                               </span>
                               <input
@@ -330,11 +330,11 @@ export default function ShippingSettingsPage() {
                             </div>
                           </div>
                           <div>
-                            <label className="block text-sm font-medium text-historical-charcoal mb-2">
+                            <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300 mb-2">
                               الشحن المجاني فوق
                             </label>
                             <div className="flex">
-                              <span className="px-4 py-2.5 rounded-r-xl border border-l-0 border-historical-gold/20 bg-historical-stone text-historical-charcoal/70">
+                              <span className="px-4 py-2.5 rounded-r-xl border border-l-0 border-historical-gold/20 bg-historical-stone text-historical-charcoal dark:text-gray-200 transition-colors duration-300/70">
                                 $
                               </span>
                               <input
@@ -348,7 +348,7 @@ export default function ShippingSettingsPage() {
                             </div>
                           </div>
                           <div>
-                            <label className="block text-sm font-medium text-historical-charcoal mb-2">
+                            <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300 mb-2">
                               مدة التوصيل
                             </label>
                             <input
@@ -360,10 +360,10 @@ export default function ShippingSettingsPage() {
                           </div>
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-historical-charcoal mb-2">
+                          <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300 mb-2">
                             المناطق المتاحة
                           </label>
-                          <p className="text-sm text-historical-charcoal/70 bg-white px-4 py-3 rounded-xl border border-historical-gold/20">
+                          <p className="text-sm text-historical-charcoal dark:text-gray-200 transition-colors duration-300/70 bg-white px-4 py-3 rounded-xl border border-historical-gold/20">
                             {getZoneNames(method.zones) || 'جميع المناطق'}
                           </p>
                         </div>
@@ -383,7 +383,7 @@ export default function ShippingSettingsPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="bg-white/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 shadow-soft overflow-hidden"
+            className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl transition-colors duration-300 border border-historical-gold/10 dark:border-gray-700 shadow-soft overflow-hidden"
           >
             <div className="p-4 space-y-3">
               {zones.map((zone) => (
@@ -397,8 +397,8 @@ export default function ShippingSettingsPage() {
                     {Icons.location}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-bold text-historical-charcoal">{zone.nameAr}</h3>
-                    <p className="text-sm text-historical-charcoal/50">{zone.cities.join('، ')}</p>
+                    <h3 className="font-bold text-historical-charcoal dark:text-gray-200 transition-colors duration-300">{zone.nameAr}</h3>
+                    <p className="text-sm text-historical-charcoal dark:text-gray-200 transition-colors duration-300/50">{zone.cities.join('، ')}</p>
                   </div>
                   <button
                     onClick={() => handleToggleZone(zone.id)}

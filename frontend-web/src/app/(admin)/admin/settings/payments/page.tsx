@@ -229,8 +229,8 @@ export default function PaymentSettingsPage() {
       {/* Page Header */}
       <motion.div variants={itemVariants} className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-historical-charcoal">طرق الدفع</h1>
-          <p className="text-historical-charcoal/50 mt-1">تفعيل وإعداد طرق الدفع المتاحة</p>
+          <h1 className="text-2xl font-bold text-historical-charcoal dark:text-gray-200 transition-colors duration-300">طرق الدفع</h1>
+          <p className="text-historical-charcoal dark:text-gray-200 transition-colors duration-300/50 mt-1">تفعيل وإعداد طرق الدفع المتاحة</p>
         </div>
         <button
           onClick={handleSave}
@@ -238,7 +238,7 @@ export default function PaymentSettingsPage() {
           className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-medium transition-all duration-200 ${
             hasChanges && !isSaving
               ? 'bg-gradient-to-l from-historical-gold to-historical-red text-white shadow-lg hover:shadow-xl'
-              : 'bg-historical-charcoal/10 text-historical-charcoal/40 cursor-not-allowed'
+              : 'bg-historical-charcoal/10 text-historical-charcoal dark:text-gray-200 transition-colors duration-300/40 cursor-not-allowed'
           }`}
         >
           {isSaving ? (
@@ -255,7 +255,7 @@ export default function PaymentSettingsPage() {
         {methods.map((method) => (
           <div
             key={method.id}
-            className={`bg-white/80 backdrop-blur-sm rounded-2xl border shadow-soft overflow-hidden transition-colors ${
+            className={`bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl transition-colors duration-300 border shadow-soft overflow-hidden transition-colors ${
               method.isActive ? 'border-green-200' : 'border-historical-gold/10'
             }`}
           >
@@ -269,19 +269,19 @@ export default function PaymentSettingsPage() {
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <h3 className="font-bold text-historical-charcoal">{method.nameAr}</h3>
+                  <h3 className="font-bold text-historical-charcoal dark:text-gray-200 transition-colors duration-300">{method.nameAr}</h3>
                   <span className={`text-xs px-2 py-0.5 rounded-full ${getTypeColor(method.type)}`}>
                     {getTypeLabel(method.type)}
                   </span>
                 </div>
-                <p className="text-sm text-historical-charcoal/50">{method.descriptionAr}</p>
+                <p className="text-sm text-historical-charcoal dark:text-gray-200 transition-colors duration-300/50">{method.descriptionAr}</p>
               </div>
               {method.fee > 0 && (
                 <div className="text-left">
-                  <p className="text-sm font-medium text-historical-charcoal">
+                  <p className="text-sm font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300">
                     {method.fee}{method.feeType === 'percentage' ? '%' : '$'}
                   </p>
-                  <p className="text-xs text-historical-charcoal/50">رسوم</p>
+                  <p className="text-xs text-historical-charcoal dark:text-gray-200 transition-colors duration-300/50">رسوم</p>
                 </div>
               )}
               <button
@@ -314,7 +314,7 @@ export default function PaymentSettingsPage() {
                   <div className="p-5 space-y-4 bg-historical-stone/30">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-historical-charcoal mb-2">
+                        <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300 mb-2">
                           الرسوم
                         </label>
                         <div className="flex">
@@ -326,13 +326,13 @@ export default function PaymentSettingsPage() {
                             min="0"
                             step="0.1"
                           />
-                          <span className="px-4 py-2.5 rounded-l-xl border border-historical-gold/20 bg-historical-stone text-historical-charcoal/70">
+                          <span className="px-4 py-2.5 rounded-l-xl border border-historical-gold/20 bg-historical-stone text-historical-charcoal dark:text-gray-200 transition-colors duration-300/70">
                             {method.feeType === 'percentage' ? '%' : '$'}
                           </span>
                         </div>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-historical-charcoal mb-2">
+                        <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300 mb-2">
                           الحد الأدنى
                         </label>
                         <input
@@ -343,7 +343,7 @@ export default function PaymentSettingsPage() {
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-historical-charcoal mb-2">
+                        <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300 mb-2">
                           الحد الأقصى
                         </label>
                         <input
@@ -356,7 +356,7 @@ export default function PaymentSettingsPage() {
                     </div>
                     {method.instructions && (
                       <div>
-                        <label className="block text-sm font-medium text-historical-charcoal mb-2">
+                        <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300 mb-2">
                           تعليمات للعميل
                         </label>
                         <textarea

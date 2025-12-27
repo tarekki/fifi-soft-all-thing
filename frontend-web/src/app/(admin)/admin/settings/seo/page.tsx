@@ -120,8 +120,8 @@ export default function SEOSettingsPage() {
       {/* Page Header */}
       <motion.div variants={itemVariants} className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-historical-charcoal">إعدادات SEO</h1>
-          <p className="text-historical-charcoal/50 mt-1">تحسين ظهور الموقع في محركات البحث</p>
+          <h1 className="text-2xl font-bold text-historical-charcoal dark:text-gray-100 transition-colors duration-300">إعدادات SEO</h1>
+          <p className="text-historical-charcoal/50 dark:text-gray-400 mt-1 transition-colors duration-300">تحسين ظهور الموقع في محركات البحث</p>
         </div>
         <button
           onClick={handleSave}
@@ -129,7 +129,7 @@ export default function SEOSettingsPage() {
           className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all duration-200 ${
             hasChanges && !isSaving
               ? 'bg-gradient-to-l from-historical-gold to-historical-red text-white shadow-lg hover:shadow-xl'
-              : 'bg-historical-charcoal/10 text-historical-charcoal/40 cursor-not-allowed'
+              : 'bg-historical-charcoal/10 dark:bg-gray-700/50 text-historical-charcoal/40 dark:text-gray-500 cursor-not-allowed'
           }`}
         >
           {isSaving ? (
@@ -142,97 +142,97 @@ export default function SEOSettingsPage() {
       </motion.div>
 
       {/* Meta Tags */}
-      <motion.div variants={itemVariants} className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-historical-gold/10 shadow-soft">
+      <motion.div variants={itemVariants} className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 border border-historical-gold/10 dark:border-gray-700 shadow-soft transition-colors duration-300">
         <div className="flex items-center gap-3 mb-6">
-          <div className="p-2 rounded-lg bg-historical-gold/10 text-historical-gold">
+          <div className="p-2 rounded-lg bg-historical-gold/10 dark:bg-yellow-900/30 text-historical-gold dark:text-yellow-400 transition-colors duration-300">
             {Icons.search}
           </div>
-          <h2 className="text-lg font-bold text-historical-charcoal">Meta Tags</h2>
+          <h2 className="text-lg font-bold text-historical-charcoal dark:text-gray-100 transition-colors duration-300">Meta Tags</h2>
         </div>
 
         <div className="space-y-6">
           {/* Meta Title */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-historical-charcoal mb-2">
+              <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 mb-2 transition-colors duration-300">
                 Meta Title (English)
               </label>
               <input
                 type="text"
                 value={settings.metaTitle}
                 onChange={(e) => updateSetting('metaTitle', e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 bg-white/50 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+                className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white/50 dark:bg-gray-700/50 text-historical-charcoal dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 transition-colors duration-300"
                 dir="ltr"
               />
-              <p className="text-xs text-historical-charcoal/50 mt-1">{settings.metaTitle.length}/60 حرف</p>
+              <p className="text-xs text-historical-charcoal/50 dark:text-gray-400 mt-1 transition-colors duration-300">{settings.metaTitle.length}/60 حرف</p>
             </div>
             <div>
-              <label className="block text-sm font-medium text-historical-charcoal mb-2">
+              <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 mb-2 transition-colors duration-300">
                 عنوان الصفحة (عربي)
               </label>
               <input
                 type="text"
                 value={settings.metaTitleAr}
                 onChange={(e) => updateSetting('metaTitleAr', e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 bg-white/50 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+                className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white/50 dark:bg-gray-700/50 text-historical-charcoal dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 transition-colors duration-300"
               />
-              <p className="text-xs text-historical-charcoal/50 mt-1">{settings.metaTitleAr.length}/60 حرف</p>
+              <p className="text-xs text-historical-charcoal/50 dark:text-gray-400 mt-1 transition-colors duration-300">{settings.metaTitleAr.length}/60 حرف</p>
             </div>
           </div>
 
           {/* Meta Description */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-historical-charcoal mb-2">
+              <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 mb-2 transition-colors duration-300">
                 Meta Description (English)
               </label>
               <textarea
                 value={settings.metaDescription}
                 onChange={(e) => updateSetting('metaDescription', e.target.value)}
                 rows={3}
-                className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 bg-white/50 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 resize-none"
+                className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white/50 dark:bg-gray-700/50 text-historical-charcoal dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 resize-none transition-colors duration-300"
                 dir="ltr"
               />
-              <p className="text-xs text-historical-charcoal/50 mt-1">{settings.metaDescription.length}/160 حرف</p>
+              <p className="text-xs text-historical-charcoal/50 dark:text-gray-400 mt-1 transition-colors duration-300">{settings.metaDescription.length}/160 حرف</p>
             </div>
             <div>
-              <label className="block text-sm font-medium text-historical-charcoal mb-2">
+              <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 mb-2 transition-colors duration-300">
                 وصف الصفحة (عربي)
               </label>
               <textarea
                 value={settings.metaDescriptionAr}
                 onChange={(e) => updateSetting('metaDescriptionAr', e.target.value)}
                 rows={3}
-                className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 bg-white/50 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 resize-none"
+                className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white/50 dark:bg-gray-700/50 text-historical-charcoal dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 resize-none transition-colors duration-300"
               />
-              <p className="text-xs text-historical-charcoal/50 mt-1">{settings.metaDescriptionAr.length}/160 حرف</p>
+              <p className="text-xs text-historical-charcoal/50 dark:text-gray-400 mt-1 transition-colors duration-300">{settings.metaDescriptionAr.length}/160 حرف</p>
             </div>
           </div>
 
           {/* Keywords */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-historical-charcoal mb-2">
+              <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 mb-2 transition-colors duration-300">
                 Keywords (English)
               </label>
               <input
                 type="text"
                 value={settings.metaKeywords}
                 onChange={(e) => updateSetting('metaKeywords', e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 bg-white/50 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+                className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white/50 dark:bg-gray-700/50 text-historical-charcoal dark:text-gray-200 placeholder:text-historical-charcoal/30 dark:placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 transition-colors duration-300"
                 placeholder="keyword1, keyword2, keyword3"
                 dir="ltr"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-historical-charcoal mb-2">
+              <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 mb-2 transition-colors duration-300">
                 الكلمات المفتاحية (عربي)
               </label>
               <input
                 type="text"
                 value={settings.metaKeywordsAr}
                 onChange={(e) => updateSetting('metaKeywordsAr', e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 bg-white/50 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+                className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white/50 dark:bg-gray-700/50 text-historical-charcoal dark:text-gray-200 placeholder:text-historical-charcoal/30 dark:placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 transition-colors duration-300"
                 placeholder="كلمة1، كلمة2، كلمة3"
               />
             </div>
@@ -241,58 +241,58 @@ export default function SEOSettingsPage() {
       </motion.div>
 
       {/* Tracking Codes */}
-      <motion.div variants={itemVariants} className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-historical-gold/10 shadow-soft">
-        <h2 className="text-lg font-bold text-historical-charcoal mb-6">أكواد التتبع</h2>
+      <motion.div variants={itemVariants} className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 border border-historical-gold/10 dark:border-gray-700 shadow-soft transition-colors duration-300">
+        <h2 className="text-lg font-bold text-historical-charcoal dark:text-gray-100 mb-6 transition-colors duration-300">أكواد التتبع</h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium text-historical-charcoal mb-2">
+            <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 mb-2 transition-colors duration-300">
               Google Analytics ID
             </label>
             <input
               type="text"
               value={settings.googleAnalyticsId}
               onChange={(e) => updateSetting('googleAnalyticsId', e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 bg-white/50 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 font-mono text-sm"
+              className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white/50 dark:bg-gray-700/50 text-historical-charcoal dark:text-gray-200 placeholder:text-historical-charcoal/30 dark:placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 font-mono text-sm transition-colors duration-300"
               placeholder="G-XXXXXXXXXX"
               dir="ltr"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-historical-charcoal mb-2">
+            <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 mb-2 transition-colors duration-300">
               Google Tag Manager ID
             </label>
             <input
               type="text"
               value={settings.googleTagManagerId}
               onChange={(e) => updateSetting('googleTagManagerId', e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 bg-white/50 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 font-mono text-sm"
+              className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white/50 dark:bg-gray-700/50 text-historical-charcoal dark:text-gray-200 placeholder:text-historical-charcoal/30 dark:placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 font-mono text-sm transition-colors duration-300"
               placeholder="GTM-XXXXXXX"
               dir="ltr"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-historical-charcoal mb-2">
+            <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 mb-2 transition-colors duration-300">
               Facebook Pixel ID
             </label>
             <input
               type="text"
               value={settings.facebookPixelId}
               onChange={(e) => updateSetting('facebookPixelId', e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 bg-white/50 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 font-mono text-sm"
+              className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white/50 dark:bg-gray-700/50 text-historical-charcoal dark:text-gray-200 placeholder:text-historical-charcoal/30 dark:placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 font-mono text-sm transition-colors duration-300"
               placeholder="XXXXXXXXXXXXXXXX"
               dir="ltr"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-historical-charcoal mb-2">
+            <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 mb-2 transition-colors duration-300">
               Twitter Handle
             </label>
             <input
               type="text"
               value={settings.twitterHandle}
               onChange={(e) => updateSetting('twitterHandle', e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 bg-white/50 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+              className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white/50 dark:bg-gray-700/50 text-historical-charcoal dark:text-gray-200 placeholder:text-historical-charcoal/30 dark:placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 transition-colors duration-300"
               placeholder="@username"
               dir="ltr"
             />
@@ -301,33 +301,33 @@ export default function SEOSettingsPage() {
       </motion.div>
 
       {/* Indexing */}
-      <motion.div variants={itemVariants} className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-historical-gold/10 shadow-soft">
-        <h2 className="text-lg font-bold text-historical-charcoal mb-6">الفهرسة</h2>
+      <motion.div variants={itemVariants} className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 border border-historical-gold/10 dark:border-gray-700 shadow-soft transition-colors duration-300">
+        <h2 className="text-lg font-bold text-historical-charcoal dark:text-gray-100 mb-6 transition-colors duration-300">الفهرسة</h2>
 
-        <div className="flex items-center justify-between p-4 rounded-xl border border-historical-gold/10 bg-historical-stone/30">
+        <div className="flex items-center justify-between p-4 rounded-xl border border-historical-gold/10 dark:border-gray-700 bg-historical-stone/30 dark:bg-gray-700/30 transition-colors duration-300">
           <div>
-            <p className="font-medium text-historical-charcoal">السماح بفهرسة الموقع</p>
-            <p className="text-sm text-historical-charcoal/50">السماح لمحركات البحث بفهرسة صفحات الموقع</p>
+            <p className="font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300">السماح بفهرسة الموقع</p>
+            <p className="text-sm text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">السماح لمحركات البحث بفهرسة صفحات الموقع</p>
           </div>
           <button
             onClick={() => updateSetting('enableIndexing', !settings.enableIndexing)}
             className={`relative w-14 h-8 rounded-full transition-colors duration-200 ${
-              settings.enableIndexing ? 'bg-historical-gold' : 'bg-historical-charcoal/20'
+              settings.enableIndexing ? 'bg-historical-gold dark:bg-yellow-600' : 'bg-historical-charcoal/20 dark:bg-gray-600'
             }`}
           >
             <motion.div
               initial={false}
               animate={{ x: settings.enableIndexing ? 24 : 4 }}
               transition={{ duration: 0.2 }}
-              className="absolute top-1 w-6 h-6 rounded-full bg-white shadow-lg"
+              className="absolute top-1 w-6 h-6 rounded-full bg-white dark:bg-gray-200 shadow-lg transition-colors duration-300"
             />
           </button>
         </div>
 
         {!settings.enableIndexing && (
-          <div className="mt-4 p-4 rounded-xl bg-yellow-50 border border-yellow-200 flex items-start gap-3">
+          <div className="mt-4 p-4 rounded-xl bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 flex items-start gap-3 transition-colors duration-300">
             {Icons.info}
-            <p className="text-sm text-yellow-700">
+            <p className="text-sm text-yellow-700 dark:text-yellow-400 transition-colors duration-300">
               تم تعطيل الفهرسة. لن تظهر صفحات الموقع في نتائج محركات البحث.
             </p>
           </div>
