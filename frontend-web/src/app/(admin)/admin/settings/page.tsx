@@ -73,75 +73,77 @@ const Icons = {
 }
 
 // =============================================================================
-// Settings Sections
+// Helper Functions
 // =============================================================================
 
-const settingsSections: SettingsSection[] = [
-  {
-    id: 'general',
-    title: t.admin.settings.general.title,
-    description: t.admin.settings.general.title,
-    icon: Icons.general,
-    href: '/admin/settings/general',
-    status: 'ready',
-  },
-  {
-    id: 'seo',
-    title: t.admin.settings.seo.title,
-    description: t.admin.settings.seo.title,
-    icon: Icons.seo,
-    href: '/admin/settings/seo',
-    status: 'ready',
-  },
-  {
-    id: 'contact',
-    title: t.admin.settings.contact.title,
-    description: t.admin.settings.contact.title,
-    icon: Icons.contact,
-    href: '/admin/settings/contact',
-    status: 'ready',
-  },
-  {
-    id: 'social',
-    title: t.admin.settings.social.title,
-    description: t.admin.settings.social.title,
-    icon: Icons.social,
-    href: '/admin/settings/social',
-    status: 'ready',
-  },
-  {
-    id: 'languages',
-    title: t.admin.settings.languages.title,
-    description: t.admin.settings.languages.subtitle,
-    icon: Icons.languages,
-    href: '/admin/settings/languages',
-    status: 'ready',
-  },
-  {
-    id: 'navigation',
-    title: t.admin.settings.navigation.title,
-    description: t.admin.settings.navigation.subtitle,
-    icon: Icons.navigation,
-    href: '/admin/settings/navigation',
-    status: 'ready',
-  },
-  {
-    id: 'payments',
-    title: t.admin.settings.payments.title,
-    description: t.admin.settings.payments.subtitle,
-    icon: Icons.payments,
-    href: '/admin/settings/payments',
-    status: 'ready',
-  },
-  {
-    id: 'shipping',
-    title: t.admin.settings.shipping.title,
-    description: 'إعداد مناطق ورسوم الشحن',
-    icon: Icons.shipping,
-    href: '/admin/settings/shipping',
-    status: 'ready',
-  },
-]
+function getSettingsSections(t: any): SettingsSection[] {
+  return [
+    {
+      id: 'general',
+      title: t.admin.settings.general.title,
+      description: t.admin.settings.general.subtitle || t.admin.settings.general.title,
+      icon: Icons.general,
+      href: '/admin/settings/general',
+      status: 'ready',
+    },
+    {
+      id: 'seo',
+      title: t.admin.settings.seo.title,
+      description: t.admin.settings.seo.subtitle || t.admin.settings.seo.title,
+      icon: Icons.seo,
+      href: '/admin/settings/seo',
+      status: 'ready',
+    },
+    {
+      id: 'contact',
+      title: t.admin.settings.contact.title,
+      description: t.admin.settings.contact.subtitle || t.admin.settings.contact.title,
+      icon: Icons.contact,
+      href: '/admin/settings/contact',
+      status: 'ready',
+    },
+    {
+      id: 'social',
+      title: t.admin.settings.social.title,
+      description: t.admin.settings.social.subtitle || t.admin.settings.social.title,
+      icon: Icons.social,
+      href: '/admin/settings/social',
+      status: 'ready',
+    },
+    {
+      id: 'languages',
+      title: t.admin.settings.languages.title,
+      description: t.admin.settings.languages.subtitle,
+      icon: Icons.languages,
+      href: '/admin/settings/languages',
+      status: 'ready',
+    },
+    {
+      id: 'navigation',
+      title: t.admin.settings.navigation.title,
+      description: t.admin.settings.navigation.subtitle,
+      icon: Icons.navigation,
+      href: '/admin/settings/navigation',
+      status: 'ready',
+    },
+    {
+      id: 'payments',
+      title: t.admin.settings.payments.title,
+      description: t.admin.settings.payments.subtitle || t.admin.settings.payments.title,
+      icon: Icons.payments,
+      href: '/admin/settings/payments',
+      status: 'ready',
+    },
+    {
+      id: 'shipping',
+      title: t.admin.settings.shipping.title,
+      description: t.admin.settings.shipping.subtitle || 'إعداد مناطق ورسوم الشحن',
+      icon: Icons.shipping,
+      href: '/admin/settings/shipping',
+      status: 'ready',
+    },
+  ]
+}
 
 // =============================================================================
 // Animation Variants

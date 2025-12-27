@@ -299,6 +299,7 @@ export const translations = {
                 noNotifications: 'لا توجد إشعارات',
                 viewAll: 'عرض الكل',
                 profile: 'الملف الشخصي',
+                settings: 'الإعدادات',
                 logout: 'تسجيل الخروج',
             },
             users: {
@@ -1173,6 +1174,7 @@ export const translations = {
                 noNotifications: 'No notifications',
                 viewAll: 'View All',
                 profile: 'Profile',
+                settings: 'Settings',
                 logout: 'Logout',
             },
             users: {

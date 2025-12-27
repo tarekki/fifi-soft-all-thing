@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useRouter } from 'next/navigation'
 import { useAdminAuth } from '@/lib/admin'
 import { useLanguage } from '@/lib/i18n/context'
 import { useNotifications } from '@/lib/admin/hooks/useNotifications'
@@ -493,6 +494,7 @@ function LanguageToggle() {
 
 function UserMenu() {
   const { t, language } = useLanguage()
+  const router = useRouter()
   const [isOpen, setIsOpen] = useState(false)
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const { user, logout } = useAdminAuth()
@@ -506,6 +508,20 @@ function UserMenu() {
     } finally {
       setIsLoggingOut(false)
     }
+  }
+
+  // Handle profile navigation
+  // معالجة التنقل إلى الملف الشخصي
+  const handleProfileClick = () => {
+    setIsOpen(false)
+    router.push('/admin/users')
+  }
+
+  // Handle settings navigation
+  // معالجة التنقل إلى الإعدادات
+  const handleSettingsClick = () => {
+    setIsOpen(false)
+    router.push('/admin/settings')
   }
 
   // Get user initials for avatar
@@ -601,13 +617,19 @@ function UserMenu() {
               </div>
               
               <div className="p-2">
-                <button className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm text-historical-charcoal dark:text-gray-200 hover:bg-historical-gold/10 dark:hover:bg-gray-700 transition-colors">
+                <button 
+                  onClick={handleProfileClick}
+                  className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm text-historical-charcoal dark:text-gray-200 hover:bg-historical-gold/10 dark:hover:bg-gray-700 transition-colors"
+                >
                   {Icons.user}
-                  <span>الملف الشخصي</span>
+                  <span>{t.admin.header.profile || (language === 'ar' ? 'الملف الشخصي' : 'Profile')}</span>
                 </button>
-                <button className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm text-historical-charcoal dark:text-gray-200 hover:bg-historical-gold/10 dark:hover:bg-gray-700 transition-colors">
+                <button 
+                  onClick={handleSettingsClick}
+                  className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm text-historical-charcoal dark:text-gray-200 hover:bg-historical-gold/10 dark:hover:bg-gray-700 transition-colors"
+                >
                   {Icons.search}
-                  <span>الإعدادات</span>
+                  <span>{t.admin.header.settings || (language === 'ar' ? 'الإعدادات' : 'Settings')}</span>
                 </button>
               </div>
               <div className="border-t border-historical-gold/10 dark:border-gray-700 p-2 transition-colors duration-300">
