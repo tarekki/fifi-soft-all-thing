@@ -424,11 +424,11 @@ function LanguageToggle() {
       onClick={toggleLanguage}
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
-      className="relative flex items-center gap-3 px-3 py-2 rounded-xl bg-white border border-historical-gold/30 hover:border-historical-gold/50 shadow-md hover:shadow-lg transition-all duration-200 overflow-hidden group"
+      className="relative flex items-center gap-3 px-3 py-2 rounded-xl bg-white dark:bg-gray-800 border border-historical-gold/30 dark:border-gray-600 hover:border-historical-gold/50 dark:hover:border-gray-500 shadow-md hover:shadow-lg transition-all duration-200 overflow-hidden group"
       title={isArabic ? 'Switch to English' : 'التبديل للعربية'}
     >
       {/* Background gradient */}
-      <div className="absolute inset-0 bg-gradient-to-r from-historical-gold/5 to-historical-red/5 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+      <div className="absolute inset-0 bg-gradient-to-r from-historical-gold/5 to-historical-red/5 dark:from-yellow-900/20 dark:to-red-900/20 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
       
       {/* Content wrapper */}
       <div className="relative flex items-center gap-2.5 z-10">
@@ -444,18 +444,18 @@ function LanguageToggle() {
           >
             ع
           </motion.div>
-          <span className={`text-xs font-semibold transition-colors duration-200 ${isArabic ? 'text-historical-charcoal' : 'text-historical-charcoal/40'}`}>
+          <span className={`text-xs font-semibold transition-colors duration-200 ${isArabic ? 'text-historical-charcoal dark:text-gray-200' : 'text-historical-charcoal/40 dark:text-gray-500'}`}>
             عربي
           </span>
         </div>
 
         {/* Divider */}
-        <div className="w-px h-5 bg-historical-charcoal/20" />
+        <div className="w-px h-5 bg-historical-charcoal/20 dark:bg-gray-600 transition-colors duration-200" />
 
         {/* Toggle Switch - Simple Design */}
-        <div className="relative w-11 h-6 rounded-full bg-historical-charcoal/15 p-0.5">
+        <div className="relative w-11 h-6 rounded-full bg-historical-charcoal/15 dark:bg-gray-700 p-0.5 transition-colors duration-200">
           <motion.div
-            className="w-5 h-5 rounded-full bg-white shadow-md"
+            className="w-5 h-5 rounded-full bg-white dark:bg-gray-600 shadow-md transition-colors duration-200"
             animate={{
               x: isArabic ? 0 : 20,
             }}
@@ -468,11 +468,11 @@ function LanguageToggle() {
         </div>
 
         {/* Divider */}
-        <div className="w-px h-5 bg-historical-charcoal/20" />
+        <div className="w-px h-5 bg-historical-charcoal/20 dark:bg-gray-600 transition-colors duration-200" />
 
         {/* English option */}
         <div className="flex items-center gap-2">
-          <span className={`text-xs font-semibold transition-colors duration-200 ${!isArabic ? 'text-historical-charcoal' : 'text-historical-charcoal/40'}`}>
+          <span className={`text-xs font-semibold transition-colors duration-200 ${!isArabic ? 'text-historical-charcoal dark:text-gray-200' : 'text-historical-charcoal/40 dark:text-gray-500'}`}>
             EN
           </span>
           <motion.div

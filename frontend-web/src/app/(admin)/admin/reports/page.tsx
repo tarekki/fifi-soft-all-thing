@@ -242,14 +242,14 @@ export default function ReportsPage() {
       {/* Page Header */}
       <motion.div variants={itemVariants} className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-historical-charcoal">{t.admin.reports.title}</h1>
-          <p className="text-historical-charcoal/50 mt-1">{t.admin.reports.subtitle}</p>
+          <h1 className="text-2xl font-bold text-historical-charcoal dark:text-gray-100 transition-colors duration-300">{t.admin.reports.title}</h1>
+          <p className="text-historical-charcoal/50 dark:text-gray-400 mt-1 transition-colors duration-300">{t.admin.reports.subtitle}</p>
         </div>
         <div className="flex items-center gap-3 flex-wrap">
           <select
             value={dateRange}
             onChange={(e) => setDateRange(e.target.value as DateRange)}
-            className="px-4 py-2.5 rounded-xl border border-historical-gold/20 bg-white/80 text-sm focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+            className="px-4 py-2.5 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm text-sm text-historical-charcoal dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 transition-colors duration-300"
           >
             <option value="7days">{t.admin.reports.dateRange['7days']}</option>
             <option value="30days">{t.admin.reports.dateRange['30days']}</option>
@@ -263,7 +263,7 @@ export default function ReportsPage() {
               console.log('Report type changed to:', newType)
               setSelectedReportType(newType)
             }}
-            className="px-4 py-2.5 rounded-xl border border-blue-500/30 bg-white/80 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 font-medium"
+            className="px-4 py-2.5 rounded-xl border border-blue-500/30 dark:border-blue-500/50 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm text-sm text-historical-charcoal dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/30 dark:focus:ring-blue-500/50 font-medium transition-colors duration-300"
             title={t.admin.reports.selectReportType || (language === 'ar' ? 'اختر نوع التقرير للتصدير' : 'Select report type to export')}
           >
             <option value="sales">📊 {t.admin.reports.reportType.sales}</option>
@@ -274,7 +274,7 @@ export default function ReportsPage() {
           <button 
             onClick={handleExport}
             disabled={isLoading}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-historical-gold/10 text-historical-gold font-medium hover:bg-historical-gold/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-historical-gold/10 dark:bg-yellow-900/30 text-historical-gold dark:text-yellow-400 font-medium hover:bg-historical-gold/20 dark:hover:bg-yellow-900/40 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             title={
               selectedReportType === 'sales' ? t.admin.reports.exportSales :
               selectedReportType === 'products' ? t.admin.reports.exportProducts :
@@ -298,79 +298,79 @@ export default function ReportsPage() {
       {/* Summary Cards */}
       <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Total Revenue */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-5 border border-historical-gold/10 shadow-soft">
+        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-5 border border-historical-gold/10 dark:border-gray-700 shadow-soft transition-colors duration-300">
           <div className="flex items-center justify-between mb-3">
-            <div className="p-2.5 rounded-xl bg-historical-gold/10 text-historical-gold">
+            <div className="p-2.5 rounded-xl bg-historical-gold/10 dark:bg-yellow-900/30 text-historical-gold dark:text-yellow-400 transition-colors duration-300">
               {Icons.money}
             </div>
-            <span className={`flex items-center gap-1 text-sm font-medium ${
-              summaryData.totalRevenue.change >= 0 ? 'text-green-600' : 'text-red-500'
+            <span className={`flex items-center gap-1 text-sm font-medium transition-colors duration-300 ${
+              summaryData.totalRevenue.change >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400'
             }`}>
               {summaryData.totalRevenue.change >= 0 ? Icons.arrowUp : Icons.arrowDown}
               {Math.abs(summaryData.totalRevenue.change)}%
             </span>
           </div>
-          <p className="text-2xl font-bold text-historical-charcoal">
+          <p className="text-2xl font-bold text-historical-charcoal dark:text-gray-100 transition-colors duration-300">
             {formatCurrency(summaryData.totalRevenue.value, language === 'ar' ? 'ar-SY' : 'en-US')}
           </p>
-          <p className="text-sm text-historical-charcoal/50 mt-1">{t.admin.reports.totalRevenue}</p>
+          <p className="text-sm text-historical-charcoal/50 dark:text-gray-400 mt-1 transition-colors duration-300">{t.admin.reports.totalRevenue}</p>
         </div>
 
         {/* Total Orders */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-5 border border-blue-200 shadow-soft">
+        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-5 border border-blue-200 dark:border-blue-700 shadow-soft transition-colors duration-300">
           <div className="flex items-center justify-between mb-3">
-            <div className="p-2.5 rounded-xl bg-blue-100 text-blue-600">
+            <div className="p-2.5 rounded-xl bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 transition-colors duration-300">
               {Icons.chart}
             </div>
-            <span className={`flex items-center gap-1 text-sm font-medium ${
-              summaryData.totalOrders.change >= 0 ? 'text-green-600' : 'text-red-500'
+            <span className={`flex items-center gap-1 text-sm font-medium transition-colors duration-300 ${
+              summaryData.totalOrders.change >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400'
             }`}>
               {summaryData.totalOrders.change >= 0 ? Icons.arrowUp : Icons.arrowDown}
               {Math.abs(summaryData.totalOrders.change)}%
             </span>
           </div>
-          <p className="text-2xl font-bold text-historical-charcoal">
+          <p className="text-2xl font-bold text-historical-charcoal dark:text-gray-100 transition-colors duration-300">
             {formatNumber(summaryData.totalOrders.value, language === 'ar' ? 'ar-SY' : 'en-US')}
           </p>
-          <p className="text-sm text-historical-charcoal/50 mt-1">{t.admin.reports.totalOrders}</p>
+          <p className="text-sm text-historical-charcoal/50 dark:text-gray-400 mt-1 transition-colors duration-300">{t.admin.reports.totalOrders}</p>
         </div>
 
         {/* Avg Order Value */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-5 border border-purple-200 shadow-soft">
+        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-5 border border-purple-200 dark:border-purple-700 shadow-soft transition-colors duration-300">
           <div className="flex items-center justify-between mb-3">
-            <div className="p-2.5 rounded-xl bg-purple-100 text-purple-600">
+            <div className="p-2.5 rounded-xl bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 transition-colors duration-300">
               {Icons.package}
             </div>
-            <span className={`flex items-center gap-1 text-sm font-medium ${
-              summaryData.avgOrderValue.change >= 0 ? 'text-green-600' : 'text-red-500'
+            <span className={`flex items-center gap-1 text-sm font-medium transition-colors duration-300 ${
+              summaryData.avgOrderValue.change >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400'
             }`}>
               {summaryData.avgOrderValue.change >= 0 ? Icons.arrowUp : Icons.arrowDown}
               {Math.abs(summaryData.avgOrderValue.change)}%
             </span>
           </div>
-          <p className="text-2xl font-bold text-historical-charcoal">
+          <p className="text-2xl font-bold text-historical-charcoal dark:text-gray-100 transition-colors duration-300">
             {formatCurrency(summaryData.avgOrderValue.value, language === 'ar' ? 'ar-SY' : 'en-US')}
           </p>
-          <p className="text-sm text-historical-charcoal/50 mt-1">{t.admin.reports.avgOrderValue}</p>
+          <p className="text-sm text-historical-charcoal/50 dark:text-gray-400 mt-1 transition-colors duration-300">{t.admin.reports.avgOrderValue}</p>
         </div>
 
         {/* New Users */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-5 border border-green-200 shadow-soft">
+        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-5 border border-green-200 dark:border-green-700 shadow-soft transition-colors duration-300">
           <div className="flex items-center justify-between mb-3">
-            <div className="p-2.5 rounded-xl bg-green-100 text-green-600">
+            <div className="p-2.5 rounded-xl bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 transition-colors duration-300">
               {Icons.users}
             </div>
-            <span className={`flex items-center gap-1 text-sm font-medium ${
-              summaryData.newUsers.change >= 0 ? 'text-green-600' : 'text-red-500'
+            <span className={`flex items-center gap-1 text-sm font-medium transition-colors duration-300 ${
+              summaryData.newUsers.change >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400'
             }`}>
               {summaryData.newUsers.change >= 0 ? Icons.arrowUp : Icons.arrowDown}
               {Math.abs(summaryData.newUsers.change)}%
             </span>
           </div>
-          <p className="text-2xl font-bold text-historical-charcoal">
+          <p className="text-2xl font-bold text-historical-charcoal dark:text-gray-100 transition-colors duration-300">
             {formatNumber(summaryData.newUsers.value, language === 'ar' ? 'ar-SY' : 'en-US')}
           </p>
-          <p className="text-sm text-historical-charcoal/50 mt-1">{t.admin.reports.newUsers}</p>
+          <p className="text-sm text-historical-charcoal/50 dark:text-gray-400 mt-1 transition-colors duration-300">{t.admin.reports.newUsers}</p>
         </div>
       </motion.div>
 
@@ -378,7 +378,7 @@ export default function ReportsPage() {
       {error && (
         <motion.div 
           variants={itemVariants}
-          className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl"
+          className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-xl transition-colors duration-300"
         >
           <p>{error}</p>
         </motion.div>
@@ -390,8 +390,8 @@ export default function ReportsPage() {
           variants={itemVariants}
           className="text-center py-12"
         >
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-historical-gold mb-4"></div>
-          <p className="text-historical-charcoal/50">{t.admin.reports.loading}</p>
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-historical-gold dark:border-yellow-400 mb-4"></div>
+          <p className="text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{t.admin.reports.loading}</p>
         </motion.div>
       )}
 
@@ -399,7 +399,7 @@ export default function ReportsPage() {
       {!isLoading && !salesReport && !productsReport && !usersReport && !commissionsReport && !error && (
         <motion.div 
           variants={itemVariants}
-          className="bg-blue-50 border border-blue-200 text-blue-700 px-6 py-8 rounded-xl text-center"
+          className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-400 px-6 py-8 rounded-xl text-center transition-colors duration-300"
         >
           <p className="text-lg font-medium mb-2">{t.admin.reports.noDataMessage}</p>
           <p className="text-sm">{t.admin.reports.noDataSubmessage}</p>
@@ -411,9 +411,9 @@ export default function ReportsPage() {
           {/* Daily Sales Chart */}
           <motion.div
             variants={itemVariants}
-            className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-historical-gold/10 shadow-soft"
+            className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 border border-historical-gold/10 dark:border-gray-700 shadow-soft transition-colors duration-300"
           >
-            <h3 className="text-lg font-bold text-historical-charcoal mb-6">{t.admin.reports.dailySales}</h3>
+            <h3 className="text-lg font-bold text-historical-charcoal dark:text-gray-100 mb-6 transition-colors duration-300">{t.admin.reports.dailySales}</h3>
             {dailySales.length > 0 ? (
               <div className="flex items-end justify-between gap-2 h-48">
                 {dailySales.map((data, index) => (
@@ -422,20 +422,20 @@ export default function ReportsPage() {
                   initial={{ height: 0 }}
                   animate={{ height: `${(Number(data.sales) / maxSales) * 100}%` }}
                   transition={{ duration: 0.5, delay: index * 0.1 }}
-                  className="w-full bg-gradient-to-t from-historical-gold to-historical-gold/50 rounded-t-lg relative group cursor-pointer"
+                  className="w-full bg-gradient-to-t from-historical-gold to-historical-gold/50 dark:from-yellow-500 dark:to-yellow-500/50 rounded-t-lg relative group cursor-pointer"
                 >
                   <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                    <div className="bg-historical-charcoal text-white text-xs px-2 py-1 rounded-lg whitespace-nowrap">
+                    <div className="bg-historical-charcoal dark:bg-gray-700 text-white dark:text-gray-100 text-xs px-2 py-1 rounded-lg whitespace-nowrap transition-colors duration-300">
                       {formatCurrency(Number(data.sales), language === 'ar' ? 'ar-SY' : 'en-US')}
                     </div>
                   </div>
                 </motion.div>
-                  <span className="text-xs text-historical-charcoal/50">{data.day}</span>
+                  <span className="text-xs text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{data.day}</span>
                 </div>
               ))}
             </div>
             ) : (
-              <div className="flex items-center justify-center h-48 text-historical-charcoal/50">
+              <div className="flex items-center justify-center h-48 text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">
                 {t.admin.reports.noData}
               </div>
             )}
@@ -444,30 +444,30 @@ export default function ReportsPage() {
           {/* Sales by Category */}
           <motion.div
             variants={itemVariants}
-            className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-historical-gold/10 shadow-soft"
+            className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 border border-historical-gold/10 dark:border-gray-700 shadow-soft transition-colors duration-300"
           >
-            <h3 className="text-lg font-bold text-historical-charcoal mb-6">{t.admin.reports.salesByCategory}</h3>
+            <h3 className="text-lg font-bold text-historical-charcoal dark:text-gray-100 mb-6 transition-colors duration-300">{t.admin.reports.salesByCategory}</h3>
             {salesByCategory.length > 0 ? (
               <div className="space-y-4">
                 {salesByCategory.map((cat, index) => (
               <div key={cat.category}>
                 <div className="flex items-center justify-between mb-1.5">
-                  <span className="text-sm font-medium text-historical-charcoal">{cat.category}</span>
-                  <span className="text-sm text-historical-charcoal/50">{formatCurrency(Number(cat.sales), language === 'ar' ? 'ar-SY' : 'en-US')}</span>
+                  <span className="text-sm font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300">{cat.category}</span>
+                  <span className="text-sm text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{formatCurrency(Number(cat.sales), language === 'ar' ? 'ar-SY' : 'en-US')}</span>
                 </div>
-                <div className="h-2.5 bg-historical-stone rounded-full overflow-hidden">
+                <div className="h-2.5 bg-historical-stone dark:bg-gray-700 rounded-full overflow-hidden transition-colors duration-300">
                   <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: `${cat.percentage}%` }}
                     transition={{ duration: 0.5, delay: index * 0.1 }}
-                    className="h-full bg-gradient-to-l from-historical-gold to-historical-red rounded-full"
+                    className="h-full bg-gradient-to-l from-historical-gold to-historical-red dark:from-yellow-500 dark:to-red-500 rounded-full"
                   />
                   </div>
                 </div>
               ))}
             </div>
             ) : (
-              <div className="flex items-center justify-center h-48 text-historical-charcoal/50">
+              <div className="flex items-center justify-center h-48 text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">
                 {t.admin.reports.noData}
               </div>
             )}
@@ -477,53 +477,53 @@ export default function ReportsPage() {
       {/* Top Products */}
         <motion.div
           variants={itemVariants}
-          className="bg-white/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 shadow-soft overflow-hidden"
+          className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 dark:border-gray-700 shadow-soft overflow-hidden transition-colors duration-300"
         >
-          <div className="px-6 py-4 border-b border-historical-gold/10">
-            <h3 className="text-lg font-bold text-historical-charcoal">{t.admin.reports.topProducts}</h3>
+          <div className="px-6 py-4 border-b border-historical-gold/10 dark:border-gray-700 transition-colors duration-300">
+            <h3 className="text-lg font-bold text-historical-charcoal dark:text-gray-100 transition-colors duration-300">{t.admin.reports.topProducts}</h3>
           </div>
           {topProducts.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-historical-stone/50">
+                <thead className="bg-historical-stone/50 dark:bg-gray-700/50 transition-colors duration-300">
                   <tr>
-                    <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">#</th>
-                    <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">{t.admin.reports.product}</th>
-                    <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">{t.admin.reports.vendor}</th>
-                    <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">{t.admin.reports.category}</th>
-                    <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">{t.admin.reports.sales}</th>
-                    <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">{t.admin.reports.revenue}</th>
-                    <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">{t.admin.reports.stock}</th>
+                    <th className="text-right text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-6 py-3 transition-colors duration-300">#</th>
+                    <th className="text-right text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-6 py-3 transition-colors duration-300">{t.admin.reports.product}</th>
+                    <th className="text-right text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-6 py-3 transition-colors duration-300">{t.admin.reports.vendor}</th>
+                    <th className="text-right text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-6 py-3 transition-colors duration-300">{t.admin.reports.category}</th>
+                    <th className="text-right text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-6 py-3 transition-colors duration-300">{t.admin.reports.sales}</th>
+                    <th className="text-right text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-6 py-3 transition-colors duration-300">{t.admin.reports.revenue}</th>
+                    <th className="text-right text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-6 py-3 transition-colors duration-300">{t.admin.reports.stock}</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-historical-gold/5">
+                <tbody className="divide-y divide-historical-gold/5 dark:divide-gray-700 transition-colors duration-300">
                   {topProducts.map((product, index) => (
-                    <tr key={product.id || product.name} className="hover:bg-historical-gold/5 transition-colors">
+                    <tr key={product.id || product.name} className="hover:bg-historical-gold/5 dark:hover:bg-gray-700/50 transition-colors">
                       <td className="px-6 py-4">
-                        <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-                          index < 3 ? 'bg-historical-gold/20 text-historical-gold' : 'bg-historical-stone text-historical-charcoal/50'
+                        <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-colors duration-300 ${
+                          index < 3 ? 'bg-historical-gold/20 dark:bg-yellow-900/30 text-historical-gold dark:text-yellow-400' : 'bg-historical-stone dark:bg-gray-700 text-historical-charcoal/50 dark:text-gray-400'
                         }`}>
                           {index + 1}
                         </span>
                       </td>
                       <td className="px-6 py-4">
-                        <span className="font-medium text-historical-charcoal">{product.name}</span>
+                        <span className="font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300">{product.name}</span>
                       </td>
                       <td className="px-6 py-4">
-                        <span className="text-sm text-historical-charcoal/70">{product.vendor_name || t.admin.reports.unknown || (language === 'ar' ? 'غير معروف' : 'Unknown')}</span>
+                        <span className="text-sm text-historical-charcoal/70 dark:text-gray-300 transition-colors duration-300">{product.vendor_name || t.admin.reports.unknown || (language === 'ar' ? 'غير معروف' : 'Unknown')}</span>
                       </td>
                       <td className="px-6 py-4">
-                        <span className="text-sm text-historical-charcoal/70">{product.category_name || t.admin.reports.other || (language === 'ar' ? 'أخرى' : 'Other')}</span>
+                        <span className="text-sm text-historical-charcoal/70 dark:text-gray-300 transition-colors duration-300">{product.category_name || t.admin.reports.other || (language === 'ar' ? 'أخرى' : 'Other')}</span>
                       </td>
                       <td className="px-6 py-4">
-                        <span className="text-sm text-historical-charcoal/70">{product.sales} {t.admin.reports.unit}</span>
+                        <span className="text-sm text-historical-charcoal/70 dark:text-gray-300 transition-colors duration-300">{product.sales} {t.admin.reports.unit}</span>
                       </td>
                       <td className="px-6 py-4">
-                        <span className="font-bold text-historical-gold">{formatCurrency(Number(product.revenue), language === 'ar' ? 'ar-SY' : 'en-US')}</span>
+                        <span className="font-bold text-historical-gold dark:text-yellow-400 transition-colors duration-300">{formatCurrency(Number(product.revenue), language === 'ar' ? 'ar-SY' : 'en-US')}</span>
                       </td>
                       <td className="px-6 py-4">
-                        <span className={`text-sm font-medium ${
-                          (product.stock_quantity || 0) < 10 ? 'text-red-600' : 'text-historical-charcoal/70'
+                        <span className={`text-sm font-medium transition-colors duration-300 ${
+                          (product.stock_quantity || 0) < 10 ? 'text-red-600 dark:text-red-400' : 'text-historical-charcoal/70 dark:text-gray-300'
                         }`}>
                           {product.stock_quantity || 0}
                         </span>
@@ -534,7 +534,7 @@ export default function ReportsPage() {
               </table>
             </div>
           ) : (
-            <div className="px-6 py-12 text-center text-historical-charcoal/50">
+            <div className="px-6 py-12 text-center text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">
               {t.admin.reports.noData}
             </div>
           )}
@@ -544,58 +544,58 @@ export default function ReportsPage() {
       {salesReport && salesReport.orders && salesReport.orders.length > 0 && (
         <motion.div
           variants={itemVariants}
-          className="bg-white/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 shadow-soft overflow-hidden"
+          className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 dark:border-gray-700 shadow-soft overflow-hidden transition-colors duration-300"
         >
-          <div className="px-6 py-4 border-b border-historical-gold/10">
-            <h3 className="text-lg font-bold text-historical-charcoal">{t.admin.reports.detailedOrders}</h3>
-            <p className="text-sm text-historical-charcoal/50 mt-1">
+          <div className="px-6 py-4 border-b border-historical-gold/10 dark:border-gray-700 transition-colors duration-300">
+            <h3 className="text-lg font-bold text-historical-charcoal dark:text-gray-100 transition-colors duration-300">{t.admin.reports.detailedOrders}</h3>
+            <p className="text-sm text-historical-charcoal/50 dark:text-gray-400 mt-1 transition-colors duration-300">
               {t.admin.reports.showingOrders.replace('{count}', salesReport.orders.length.toString())}
             </p>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-historical-stone/50">
+              <thead className="bg-historical-stone/50 dark:bg-gray-700/50 transition-colors duration-300">
                 <tr>
-                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">{t.admin.reports.orderNumber}</th>
-                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">{t.admin.reports.customer}</th>
-                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">{t.admin.reports.phone}</th>
-                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">{t.admin.reports.status}</th>
-                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">{t.admin.reports.itemsCount}</th>
-                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">{t.admin.reports.total}</th>
-                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">{t.admin.reports.date}</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-6 py-3 transition-colors duration-300">{t.admin.reports.orderNumber}</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-6 py-3 transition-colors duration-300">{t.admin.reports.customer}</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-6 py-3 transition-colors duration-300">{t.admin.reports.phone}</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-6 py-3 transition-colors duration-300">{t.admin.reports.status}</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-6 py-3 transition-colors duration-300">{t.admin.reports.itemsCount}</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-6 py-3 transition-colors duration-300">{t.admin.reports.total}</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-6 py-3 transition-colors duration-300">{t.admin.reports.date}</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-historical-gold/5">
+              <tbody className="divide-y divide-historical-gold/5 dark:divide-gray-700 transition-colors duration-300">
                 {salesReport.orders.map((order) => (
-                  <tr key={order.id} className="hover:bg-historical-gold/5 transition-colors">
+                  <tr key={order.id} className="hover:bg-historical-gold/5 dark:hover:bg-gray-700/50 transition-colors">
                     <td className="px-6 py-4">
-                      <span className="font-medium text-historical-charcoal">{order.order_number}</span>
+                      <span className="font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300">{order.order_number}</span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm text-historical-charcoal">{order.customer_name}</span>
+                      <span className="text-sm text-historical-charcoal dark:text-gray-200 transition-colors duration-300">{order.customer_name}</span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm text-historical-charcoal/70">{order.customer_phone || '-'}</span>
+                      <span className="text-sm text-historical-charcoal/70 dark:text-gray-300 transition-colors duration-300">{order.customer_phone || '-'}</span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`px-2 py-1 rounded-lg text-xs font-medium ${
-                        order.status === 'delivered' ? 'bg-green-100 text-green-700' :
-                        order.status === 'confirmed' ? 'bg-blue-100 text-blue-700' :
-                        order.status === 'shipped' ? 'bg-purple-100 text-purple-700' :
-                        order.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
-                        'bg-red-100 text-red-700'
+                      <span className={`px-2 py-1 rounded-lg text-xs font-medium transition-colors duration-300 ${
+                        order.status === 'delivered' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' :
+                        order.status === 'confirmed' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' :
+                        order.status === 'shipped' ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400' :
+                        order.status === 'pending' ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400' :
+                        'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
                       }`}>
                         {getStatusLabel(order.status, t)}
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm text-historical-charcoal/70">{t.admin.reports.item.replace('{count}', order.items_count.toString())}</span>
+                      <span className="text-sm text-historical-charcoal/70 dark:text-gray-300 transition-colors duration-300">{t.admin.reports.item.replace('{count}', order.items_count.toString())}</span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="font-bold text-historical-gold">{formatCurrency(Number(order.total), language === 'ar' ? 'ar-SY' : 'en-US')}</span>
+                      <span className="font-bold text-historical-gold dark:text-yellow-400 transition-colors duration-300">{formatCurrency(Number(order.total), language === 'ar' ? 'ar-SY' : 'en-US')}</span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm text-historical-charcoal/70">
+                      <span className="text-sm text-historical-charcoal/70 dark:text-gray-300 transition-colors duration-300">
                         {new Date(order.created_at).toLocaleDateString('ar-SY')}
                       </span>
                     </td>
@@ -611,55 +611,55 @@ export default function ReportsPage() {
       {usersReport && usersReport.users && usersReport.users.length > 0 && (
         <motion.div
           variants={itemVariants}
-          className="bg-white/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 shadow-soft overflow-hidden"
+          className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 dark:border-gray-700 shadow-soft overflow-hidden transition-colors duration-300"
         >
-          <div className="px-6 py-4 border-b border-historical-gold/10">
-            <h3 className="text-lg font-bold text-historical-charcoal">{t.admin.reports.detailedUsers}</h3>
-            <p className="text-sm text-historical-charcoal/50 mt-1">
+          <div className="px-6 py-4 border-b border-historical-gold/10 dark:border-gray-700 transition-colors duration-300">
+            <h3 className="text-lg font-bold text-historical-charcoal dark:text-gray-100 transition-colors duration-300">{t.admin.reports.detailedUsers}</h3>
+            <p className="text-sm text-historical-charcoal/50 dark:text-gray-400 mt-1 transition-colors duration-300">
               {t.admin.reports.showingUsers.replace('{count}', usersReport.users.length.toString())}
             </p>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-historical-stone/50">
+              <thead className="bg-historical-stone/50 dark:bg-gray-700/50 transition-colors duration-300">
                 <tr>
-                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">{t.admin.reports.name}</th>
-                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">{t.admin.reports.email}</th>
-                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">{t.admin.reports.phone}</th>
-                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">{t.admin.reports.ordersCount}</th>
-                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">{t.admin.reports.totalSpent}</th>
-                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">{t.admin.reports.dateJoined}</th>
-                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">{t.admin.reports.status}</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-6 py-3 transition-colors duration-300">{t.admin.reports.name}</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-6 py-3 transition-colors duration-300">{t.admin.reports.email}</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-6 py-3 transition-colors duration-300">{t.admin.reports.phone}</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-6 py-3 transition-colors duration-300">{t.admin.reports.ordersCount}</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-6 py-3 transition-colors duration-300">{t.admin.reports.totalSpent}</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-6 py-3 transition-colors duration-300">{t.admin.reports.dateJoined}</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-6 py-3 transition-colors duration-300">{t.admin.reports.status}</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-historical-gold/5">
+              <tbody className="divide-y divide-historical-gold/5 dark:divide-gray-700 transition-colors duration-300">
                 {usersReport.users.map((user) => (
-                  <tr key={user.id} className="hover:bg-historical-gold/5 transition-colors">
+                  <tr key={user.id} className="hover:bg-historical-gold/5 dark:hover:bg-gray-700/50 transition-colors">
                     <td className="px-6 py-4">
-                      <span className="font-medium text-historical-charcoal">
+                      <span className="font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300">
                         {user.first_name} {user.last_name}
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm text-historical-charcoal/70">{user.email}</span>
+                      <span className="text-sm text-historical-charcoal/70 dark:text-gray-300 transition-colors duration-300">{user.email}</span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm text-historical-charcoal/70">{user.phone || '-'}</span>
+                      <span className="text-sm text-historical-charcoal/70 dark:text-gray-300 transition-colors duration-300">{user.phone || '-'}</span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm text-historical-charcoal/70">{t.admin.reports.ordersCountText.replace('{count}', user.orders_count.toString())}</span>
+                      <span className="text-sm text-historical-charcoal/70 dark:text-gray-300 transition-colors duration-300">{t.admin.reports.ordersCountText.replace('{count}', user.orders_count.toString())}</span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="font-bold text-historical-gold">{formatCurrency(Number(user.total_spent), language === 'ar' ? 'ar-SY' : 'en-US')}</span>
+                      <span className="font-bold text-historical-gold dark:text-yellow-400 transition-colors duration-300">{formatCurrency(Number(user.total_spent), language === 'ar' ? 'ar-SY' : 'en-US')}</span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm text-historical-charcoal/70">
+                      <span className="text-sm text-historical-charcoal/70 dark:text-gray-300 transition-colors duration-300">
                         {new Date(user.date_joined).toLocaleDateString(language === 'ar' ? 'ar-SY' : 'en-US')}
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`px-2 py-1 rounded-lg text-xs font-medium ${
-                        user.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                      <span className={`px-2 py-1 rounded-lg text-xs font-medium transition-colors duration-300 ${
+                        user.is_active ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
                       }`}>
                         {user.is_active ? t.admin.reports.isActive : t.admin.reports.isInactive}
                       </span>
@@ -676,50 +676,50 @@ export default function ReportsPage() {
       {commissionsReport && commissionsReport.commissions && commissionsReport.commissions.length > 0 && (
         <motion.div
           variants={itemVariants}
-          className="bg-white/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 shadow-soft overflow-hidden"
+          className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 dark:border-gray-700 shadow-soft overflow-hidden transition-colors duration-300"
         >
-          <div className="px-6 py-4 border-b border-historical-gold/10">
-            <h3 className="text-lg font-bold text-historical-charcoal">{t.admin.reports.detailedCommissions}</h3>
-            <p className="text-sm text-historical-charcoal/50 mt-1">
+          <div className="px-6 py-4 border-b border-historical-gold/10 dark:border-gray-700 transition-colors duration-300">
+            <h3 className="text-lg font-bold text-historical-charcoal dark:text-gray-100 transition-colors duration-300">{t.admin.reports.detailedCommissions}</h3>
+            <p className="text-sm text-historical-charcoal/50 dark:text-gray-400 mt-1 transition-colors duration-300">
               {t.admin.reports.showingCommissions.replace('{count}', commissionsReport.commissions.length.toString())}
             </p>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-historical-stone/50">
+              <thead className="bg-historical-stone/50 dark:bg-gray-700/50 transition-colors duration-300">
                 <tr>
-                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">{t.admin.reports.orderNumber}</th>
-                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">{t.admin.reports.customer}</th>
-                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">{t.admin.reports.vendor}</th>
-                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">{t.admin.reports.orderTotal}</th>
-                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">{t.admin.reports.commissionAmount}</th>
-                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">{t.admin.reports.commissionPercentage}</th>
-                  <th className="text-right text-xs font-medium text-historical-charcoal/50 px-6 py-3">{t.admin.reports.date}</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-6 py-3 transition-colors duration-300">{t.admin.reports.orderNumber}</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-6 py-3 transition-colors duration-300">{t.admin.reports.customer}</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-6 py-3 transition-colors duration-300">{t.admin.reports.vendor}</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-6 py-3 transition-colors duration-300">{t.admin.reports.orderTotal}</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-6 py-3 transition-colors duration-300">{t.admin.reports.commissionAmount}</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-6 py-3 transition-colors duration-300">{t.admin.reports.commissionPercentage}</th>
+                  <th className="text-right text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-6 py-3 transition-colors duration-300">{t.admin.reports.date}</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-historical-gold/5">
+              <tbody className="divide-y divide-historical-gold/5 dark:divide-gray-700 transition-colors duration-300">
                 {commissionsReport.commissions.map((commission) => (
-                  <tr key={commission.order_id} className="hover:bg-historical-gold/5 transition-colors">
+                  <tr key={commission.order_id} className="hover:bg-historical-gold/5 dark:hover:bg-gray-700/50 transition-colors">
                     <td className="px-6 py-4">
-                      <span className="font-medium text-historical-charcoal">{commission.order_number}</span>
+                      <span className="font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300">{commission.order_number}</span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm text-historical-charcoal">{commission.customer_name}</span>
+                      <span className="text-sm text-historical-charcoal dark:text-gray-200 transition-colors duration-300">{commission.customer_name}</span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm text-historical-charcoal/70">{commission.vendor_name}</span>
+                      <span className="text-sm text-historical-charcoal/70 dark:text-gray-300 transition-colors duration-300">{commission.vendor_name}</span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm text-historical-charcoal/70">{formatCurrency(Number(commission.order_total), language === 'ar' ? 'ar-SY' : 'en-US')}</span>
+                      <span className="text-sm text-historical-charcoal/70 dark:text-gray-300 transition-colors duration-300">{formatCurrency(Number(commission.order_total), language === 'ar' ? 'ar-SY' : 'en-US')}</span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="font-bold text-historical-gold">{formatCurrency(Number(commission.commission_amount), language === 'ar' ? 'ar-SY' : 'en-US')}</span>
+                      <span className="font-bold text-historical-gold dark:text-yellow-400 transition-colors duration-300">{formatCurrency(Number(commission.commission_amount), language === 'ar' ? 'ar-SY' : 'en-US')}</span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm text-historical-charcoal/70">{commission.commission_percentage}%</span>
+                      <span className="text-sm text-historical-charcoal/70 dark:text-gray-300 transition-colors duration-300">{commission.commission_percentage}%</span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm text-historical-charcoal/70">
+                      <span className="text-sm text-historical-charcoal/70 dark:text-gray-300 transition-colors duration-300">
                         {new Date(commission.created_at).toLocaleDateString(language === 'ar' ? 'ar-SY' : 'en-US')}
                       </span>
                     </td>
