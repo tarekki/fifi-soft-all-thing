@@ -14,7 +14,7 @@
  * @author Yalla Buy Team
  */
 
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useVendors } from '@/lib/admin'
 import type {
@@ -144,11 +144,11 @@ const itemVariants = {
  * Format currency
  * تنسيق العملة
  */
-const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat('ar-SY', {
+const formatCurrency = (amount: number, currencySymbol: string = 'ل.س', locale: string = 'ar-SY') => {
+  return new Intl.NumberFormat(locale, {
     style: 'decimal',
     minimumFractionDigits: 0,
-  }).format(amount) + ' ل.س'
+  }).format(amount) + ' ' + currencySymbol
 }
 
 
@@ -166,9 +166,13 @@ interface VendorCardProps {
 }
 
 function VendorCard({ vendor, onEdit, onToggleStatus, onDelete, isUpdating }: VendorCardProps) {
+  const { t, language } = useLanguage()
+  const locale = language === 'ar' ? 'ar-SY' : 'en-US'
   return (
     <motion.div
       variants={itemVariants}
+      initial="visible"
+      animate="visible"
       className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 dark:border-gray-700 shadow-soft overflow-hidden hover:shadow-soft-lg transition-all duration-300 group"
     >
       {/* Header */}
@@ -189,10 +193,10 @@ function VendorCard({ vendor, onEdit, onToggleStatus, onDelete, isUpdating }: Ve
           <div className="flex-1 min-w-0">
             <h3 className="font-bold text-historical-charcoal dark:text-gray-100 truncate transition-colors duration-300">{vendor.name}</h3>
             <p className="text-sm text-historical-charcoal/50 dark:text-gray-400 truncate transition-colors duration-300">{vendor.slug}</p>
-            <span className={`inline-flex mt-1 px-2 py-0.5 rounded-full text-xs font-medium ${
+            <span className={`inline-flex mt-1 px-2 py-0.5 rounded-full text-xs font-medium transition-colors duration-300 ${
               vendor.is_active
-                ? 'bg-green-100 text-green-700'
-                : 'bg-red-100 text-red-700'
+                ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+                : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
             }`}>
               {vendor.is_active ? t.admin.vendors.status.active : t.admin.vendors.status.inactive}
             </span>
@@ -201,39 +205,39 @@ function VendorCard({ vendor, onEdit, onToggleStatus, onDelete, isUpdating }: Ve
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-3 divide-x divide-historical-gold/10 rtl:divide-x-reverse">
+      <div className="grid grid-cols-3 divide-x divide-historical-gold/10 dark:divide-gray-700 rtl:divide-x-reverse transition-colors duration-300">
         <div className="p-3 text-center">
-          <p className="text-lg font-bold text-historical-charcoal">{vendor.products_count}</p>
-          <p className="text-xs text-historical-charcoal/50">منتج</p>
+          <p className="text-lg font-bold text-historical-charcoal dark:text-gray-200 transition-colors duration-300">{vendor.products_count}</p>
+          <p className="text-xs text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{t.admin.vendors.productsCount}</p>
         </div>
         <div className="p-3 text-center">
-          <p className="text-lg font-bold text-historical-charcoal">{vendor.orders_count}</p>
-          <p className="text-xs text-historical-charcoal/50">طلب</p>
+          <p className="text-lg font-bold text-historical-charcoal dark:text-gray-200 transition-colors duration-300">{vendor.orders_count}</p>
+          <p className="text-xs text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{t.admin.vendors.ordersCount}</p>
         </div>
         <div className="p-3 text-center">
-          <p className="text-lg font-bold text-historical-gold">{formatCurrency(vendor.total_revenue)}</p>
-          <p className="text-xs text-historical-charcoal/50">إيرادات</p>
+          <p className="text-lg font-bold text-historical-gold dark:text-yellow-400 transition-colors duration-300">{formatCurrency(vendor.total_revenue, t.common.currency, locale)}</p>
+          <p className="text-xs text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{t.admin.vendors.revenue}</p>
         </div>
       </div>
 
       {/* Commission */}
-      <div className="px-4 py-3 border-t border-historical-gold/10 bg-historical-stone/20">
+      <div className="px-4 py-3 border-t border-historical-gold/10 dark:border-gray-700 bg-historical-stone/20 dark:bg-gray-700/30 transition-colors duration-300">
         <div className="flex items-center justify-between">
-          <span className="text-sm text-historical-charcoal/70">نسبة العمولة</span>
-          <span className="font-bold text-historical-gold">{vendor.commission_rate}%</span>
+          <span className="text-sm text-historical-charcoal/70 dark:text-gray-300 transition-colors duration-300">{t.admin.vendors.commissionRateLabel}</span>
+          <span className="font-bold text-historical-gold dark:text-yellow-400 transition-colors duration-300">{vendor.commission_rate}%</span>
         </div>
         <div className="flex items-center justify-between mt-1">
-          <span className="text-sm text-historical-charcoal/70">المخزون</span>
-          <span className="font-medium text-historical-charcoal">{vendor.total_stock} وحدة</span>
+          <span className="text-sm text-historical-charcoal/70 dark:text-gray-300 transition-colors duration-300">{t.admin.vendors.stock}</span>
+          <span className="font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300">{vendor.total_stock} {t.admin.vendors.unit}</span>
         </div>
       </div>
 
       {/* Actions */}
-      <div className="p-4 border-t border-historical-gold/10 bg-historical-stone/30">
-        <div className="flex items-center gap-2">
+      <div className="p-4 border-t border-historical-gold/10 dark:border-gray-700 bg-historical-stone/30 dark:bg-gray-700/30 transition-colors duration-300">
+        <div className="flex items-center gap-2 flex-wrap">
           <button
             onClick={() => onEdit(vendor)}
-            className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-historical-gold/10 text-historical-gold font-medium hover:bg-historical-gold/20 transition-colors"
+            className="flex-1 min-w-[100px] flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-historical-gold/10 dark:bg-yellow-900/30 text-historical-gold dark:text-yellow-400 font-medium hover:bg-historical-gold/20 dark:hover:bg-yellow-900/40 transition-colors"
           >
             {Icons.edit}
             <span>{t.admin.vendors.edit}</span>
@@ -241,14 +245,23 @@ function VendorCard({ vendor, onEdit, onToggleStatus, onDelete, isUpdating }: Ve
           <button
             onClick={() => onToggleStatus(vendor.id, !vendor.is_active)}
             disabled={isUpdating}
-            className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-medium transition-colors ${
+            className={`flex-1 min-w-[100px] flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-medium transition-colors ${
               vendor.is_active
-                ? 'bg-red-100 text-red-700 hover:bg-red-200'
-                : 'bg-green-100 text-green-700 hover:bg-green-200'
+                ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/40'
+                : 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/40'
             }`}
           >
             {isUpdating ? Icons.loader : (vendor.is_active ? Icons.x : Icons.check)}
             <span>{vendor.is_active ? t.admin.vendors.deactivate : t.admin.vendors.activate}</span>
+          </button>
+          <button
+            onClick={() => onDelete(vendor.id)}
+            disabled={isUpdating}
+            className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 font-medium hover:bg-red-200 dark:hover:bg-red-900/40 transition-colors disabled:opacity-50"
+            title={t.admin.vendors.delete}
+          >
+            {Icons.trash}
+            <span>{t.admin.vendors.delete}</span>
           </button>
         </div>
       </div>
@@ -256,6 +269,69 @@ function VendorCard({ vendor, onEdit, onToggleStatus, onDelete, isUpdating }: Ve
   )
 }
 
+
+// =============================================================================
+// Delete Confirmation Modal
+// مودال تأكيد الحذف
+// =============================================================================
+
+interface DeleteModalProps {
+  isOpen: boolean
+  onClose: () => void
+  onConfirm: () => Promise<void>
+  vendorName: string
+  isDeleting: boolean
+}
+
+function DeleteModal({ isOpen, onClose, onConfirm, vendorName, isDeleting }: DeleteModalProps) {
+  const { t } = useLanguage()
+  if (!isOpen) return null
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-50 flex items-center justify-center p-4"
+        onClick={onClose}
+      >
+        <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.95, y: 20 }}
+          className="relative w-full max-w-md bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-6 mx-4 transition-colors duration-300"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <h2 className="text-xl font-bold text-historical-charcoal dark:text-gray-100 mb-4 transition-colors duration-300">
+            {t.admin.vendors.confirmDelete || 'تأكيد الحذف'}
+          </h2>
+          <p className="text-historical-charcoal/70 dark:text-gray-300 mb-6 transition-colors duration-300">
+            {(t.admin.vendors.confirmDeleteMessage || 'هل أنت متأكد من حذف البائع "{name}"؟ لا يمكن التراجع عن هذا الإجراء.').replace('{name}', vendorName)}
+          </p>
+          <div className="flex gap-3">
+            <button
+              onClick={onConfirm}
+              disabled={isDeleting}
+              className="flex-1 flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-red-500 text-white font-medium hover:bg-red-600 transition-colors disabled:opacity-50"
+            >
+              {isDeleting ? Icons.loader : Icons.trash}
+              {t.admin.vendors.delete}
+            </button>
+            <button
+              onClick={onClose}
+              disabled={isDeleting}
+              className="px-5 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 text-historical-charcoal dark:text-gray-200 font-medium hover:bg-historical-gold/5 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
+            >
+              {t.admin.users.form.cancel || 'إلغاء'}
+            </button>
+          </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
+  )
+}
 
 // =============================================================================
 // Vendor Modal Component
@@ -327,17 +403,17 @@ function VendorModal({ isOpen, vendor, isSaving, onClose, onSave }: VendorModalP
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          className="w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden"
+          className="w-full max-w-lg bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden transition-colors duration-300"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-historical-gold/10 bg-historical-stone/30">
-            <h2 className="text-lg font-bold text-historical-charcoal">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-historical-gold/10 dark:border-gray-700 bg-historical-stone/30 dark:bg-gray-700/30 transition-colors duration-300">
+            <h2 className="text-lg font-bold text-historical-charcoal dark:text-gray-100 transition-colors duration-300">
               {vendor ? t.admin.vendors.edit : t.admin.vendors.addVendor}
             </h2>
             <button
               onClick={onClose}
-              className="p-2 rounded-lg text-historical-charcoal/50 hover:text-historical-charcoal hover:bg-historical-gold/10 transition-colors"
+              className="p-2 rounded-lg text-historical-charcoal/50 dark:text-gray-400 hover:text-historical-charcoal dark:hover:text-gray-200 hover:bg-historical-gold/10 dark:hover:bg-gray-700 transition-colors"
             >
               {Icons.close}
             </button>
@@ -347,7 +423,7 @@ function VendorModal({ isOpen, vendor, isSaving, onClose, onSave }: VendorModalP
           <form onSubmit={handleSubmit} className="p-6 space-y-4">
             {/* Name */}
             <div>
-              <label className="block text-sm font-medium text-historical-charcoal mb-1">
+              <label className="block text-sm font-medium text-historical-charcoal/70 dark:text-gray-300 mb-1 transition-colors duration-300">
                 {t.admin.vendors.name} *
               </label>
               <input
@@ -355,21 +431,21 @@ function VendorModal({ isOpen, vendor, isSaving, onClose, onSave }: VendorModalP
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
-                className="w-full px-4 py-2.5 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+                className="w-full px-4 py-2.5 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 text-historical-charcoal dark:text-gray-200 transition-colors duration-300"
                 placeholder={t.admin.vendors.namePlaceholder}
               />
             </div>
 
             {/* Description */}
             <div>
-              <label className="block text-sm font-medium text-historical-charcoal mb-1">
+              <label className="block text-sm font-medium text-historical-charcoal/70 dark:text-gray-300 mb-1 transition-colors duration-300">
                 {t.admin.vendors.description}
               </label>
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={3}
-                className="w-full px-4 py-2.5 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 resize-none"
+                className="w-full px-4 py-2.5 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 text-historical-charcoal dark:text-gray-200 resize-none transition-colors duration-300"
                 placeholder={t.admin.vendors.descriptionPlaceholder}
               />
             </div>
@@ -377,7 +453,7 @@ function VendorModal({ isOpen, vendor, isSaving, onClose, onSave }: VendorModalP
             {/* Color and Commission */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-historical-charcoal mb-1">
+                <label className="block text-sm font-medium text-historical-charcoal/70 dark:text-gray-300 mb-1 transition-colors duration-300">
                   {t.admin.vendors.primaryColor}
                 </label>
                 <div className="flex items-center gap-2">
@@ -385,19 +461,19 @@ function VendorModal({ isOpen, vendor, isSaving, onClose, onSave }: VendorModalP
                     type="color"
                     value={primaryColor}
                     onChange={(e) => setPrimaryColor(e.target.value)}
-                    className="w-12 h-10 rounded-lg border border-historical-gold/20 cursor-pointer"
+                    className="w-12 h-10 rounded-lg border border-historical-gold/20 dark:border-gray-600 cursor-pointer transition-colors duration-300"
                   />
                   <input
                     type="text"
                     value={primaryColor}
                     onChange={(e) => setPrimaryColor(e.target.value)}
-                    className="flex-1 px-3 py-2 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 text-sm"
+                    className="flex-1 px-3 py-2 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 text-sm text-historical-charcoal dark:text-gray-200 transition-colors duration-300"
                     placeholder="#D4AF37"
                   />
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-historical-charcoal mb-1">
+                <label className="block text-sm font-medium text-historical-charcoal/70 dark:text-gray-300 mb-1 transition-colors duration-300">
                   {t.admin.vendors.commissionRate}
                 </label>
                 <input
@@ -407,21 +483,21 @@ function VendorModal({ isOpen, vendor, isSaving, onClose, onSave }: VendorModalP
                   min={0}
                   max={100}
                   step={0.5}
-                  className="w-full px-4 py-2.5 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+                  className="w-full px-4 py-2.5 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 text-historical-charcoal dark:text-gray-200 transition-colors duration-300"
                 />
               </div>
             </div>
 
             {/* Logo */}
             <div>
-              <label className="block text-sm font-medium text-historical-charcoal mb-1">
+              <label className="block text-sm font-medium text-historical-charcoal/70 dark:text-gray-300 mb-1 transition-colors duration-300">
                 {t.admin.vendors.logo}
               </label>
               <input
                 type="file"
                 accept="image/*"
                 onChange={(e) => setLogo(e.target.files?.[0] || null)}
-                className="w-full px-4 py-2.5 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+                className="w-full px-4 py-2.5 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 text-historical-charcoal dark:text-gray-200 transition-colors duration-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-historical-gold/10 dark:file:bg-yellow-900/30 file:text-historical-gold dark:file:text-yellow-400 hover:file:bg-historical-gold/20 dark:hover:file:bg-yellow-900/40"
               />
             </div>
 
@@ -432,10 +508,10 @@ function VendorModal({ isOpen, vendor, isSaving, onClose, onSave }: VendorModalP
                 id="is_active"
                 checked={isActive}
                 onChange={(e) => setIsActive(e.target.checked)}
-                className="w-4 h-4 rounded border-historical-gold/30 text-historical-gold focus:ring-historical-gold"
+                className="w-5 h-5 rounded border-2 border-historical-gold/40 dark:border-gray-500 bg-white dark:bg-gray-700 text-historical-gold dark:text-yellow-400 focus:ring-2 focus:ring-historical-gold/50 dark:focus:ring-yellow-500/50 cursor-pointer transition-all duration-300 flex-shrink-0"
               />
-              <label htmlFor="is_active" className="text-sm text-historical-charcoal">
-                {t.admin.vendors.isActive}
+              <label htmlFor="is_active" className="text-base font-semibold text-historical-charcoal dark:text-gray-100 transition-colors duration-300 cursor-pointer select-none">
+                تفعيل البائع - {isActive ? t.admin.vendors.status.active : t.admin.vendors.status.inactive}
               </label>
             </div>
 
@@ -444,7 +520,7 @@ function VendorModal({ isOpen, vendor, isSaving, onClose, onSave }: VendorModalP
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 px-4 py-2.5 rounded-xl border border-historical-gold/20 text-historical-charcoal hover:bg-historical-stone/50 transition-colors"
+                className="flex-1 px-4 py-2.5 rounded-xl border border-historical-gold/20 dark:border-gray-600 text-historical-charcoal dark:text-gray-200 hover:bg-historical-stone/50 dark:hover:bg-gray-700 transition-colors"
               >
                 {t.admin.users.form.cancel}
               </button>
@@ -485,15 +561,32 @@ export default function VendorsPage() {
     hasPreviousPage,
     isLoading,
     isSaving,
+    isDeleting,
     error,
     filters,
     fetchVendors,
     create,
     update,
+    remove,
     toggleStatus,
     setFilters,
     refresh,
   } = useVendors()
+
+  // Debug: Log vendors data
+  useEffect(() => {
+    console.log('=== VENDORS DEBUG ===')
+    console.log('Vendors:', vendors)
+    console.log('Vendors Length:', vendors.length)
+    console.log('Is Loading:', isLoading)
+    console.log('Error:', error)
+    console.log('Total:', total)
+    console.log('Condition 1 (isLoading && vendors.length === 0):', isLoading && vendors.length === 0)
+    console.log('Condition 2 (!isLoading && vendors.length === 0):', !isLoading && vendors.length === 0)
+    console.log('Condition 3 (vendors.length > 0):', vendors.length > 0)
+    console.log('Should show vendors?', !isLoading && vendors.length > 0)
+    console.log('====================')
+  }, [vendors, isLoading, error, total])
 
   // =========================================================================
   // Local State
@@ -503,10 +596,13 @@ export default function VendorsPage() {
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'inactive'>('all')
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingVendor, setEditingVendor] = useState<Vendor | null>(null)
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+  const [deletingVendor, setDeletingVendor] = useState<Vendor | null>(null)
+  const isInitialMount = useRef(true)
 
   // =========================================================================
-  // Handlers
-  // المعالجات
+  // Effects
+  // التأثيرات
   // =========================================================================
 
   /**
@@ -514,6 +610,13 @@ export default function VendorsPage() {
    * معالجة البحث مع تأخير
    */
   useEffect(() => {
+    // Skip initial mount - hook already fetches vendors
+    // تخطي التحميل الأول - الـ hook يجلب البائعين بالفعل
+    if (isInitialMount.current) {
+      isInitialMount.current = false
+      return
+    }
+
     const timer = setTimeout(() => {
       const newFilters: VendorFilters = { ...filters, search: searchQuery, page: 1 }
       if (filterStatus === 'active') {
@@ -579,10 +682,28 @@ export default function VendorsPage() {
    * Handle delete vendor
    * معالجة حذف بائع
    */
-  const handleDeleteVendor = useCallback(async (id: number) => {
-    // TODO: Add confirmation dialog
-    console.log('Delete vendor:', id)
-  }, [])
+  const handleDeleteVendor = useCallback((id: number) => {
+    const vendor = vendors.find(v => v.id === id)
+    if (!vendor) return
+    setDeletingVendor(vendor)
+    setIsDeleteModalOpen(true)
+  }, [vendors])
+
+  /**
+   * Handle confirm delete
+   * معالجة تأكيد الحذف
+   */
+  const handleConfirmDelete = useCallback(async () => {
+    if (deletingVendor) {
+      const success = await remove(deletingVendor.id)
+      if (success) {
+        setIsDeleteModalOpen(false)
+        setDeletingVendor(null)
+        // Refresh vendors list
+        await fetchVendors()
+      }
+    }
+  }, [deletingVendor, remove, fetchVendors])
 
   /**
    * Handle page change
@@ -610,8 +731,8 @@ export default function VendorsPage() {
       {/* Page Header */}
       <motion.div variants={itemVariants} className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-historical-charcoal">{t.admin.vendors.title}</h1>
-          <p className="text-historical-charcoal/50 mt-1">{t.admin.vendors.subtitle}</p>
+          <h1 className="text-2xl font-bold text-historical-charcoal dark:text-gray-100 transition-colors duration-300">{t.admin.vendors.title}</h1>
+          <p className="text-historical-charcoal/50 dark:text-gray-400 mt-1 transition-colors duration-300">{t.admin.vendors.subtitle}</p>
         </div>
         <div className="flex items-center gap-3">
           <button
@@ -635,7 +756,7 @@ export default function VendorsPage() {
       {error && (
         <motion.div
           variants={itemVariants}
-          className="bg-red-50 border border-red-200 rounded-xl p-4 text-red-700"
+          className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 text-red-700 dark:text-red-400 transition-colors duration-300"
         >
           {error}
         </motion.div>
@@ -643,55 +764,55 @@ export default function VendorsPage() {
 
       {/* Stats Cards */}
       <motion.div variants={itemVariants} className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-historical-gold/10">
+        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-historical-gold/10 dark:border-gray-700 transition-colors duration-300">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-historical-gold/10 text-historical-gold">
+            <div className="p-2 rounded-lg bg-historical-gold/10 dark:bg-yellow-900/30 text-historical-gold dark:text-yellow-400 transition-colors duration-300">
               {Icons.store}
             </div>
             <div>
-              <p className="text-2xl font-bold text-historical-charcoal">
+              <p className="text-2xl font-bold text-historical-charcoal dark:text-gray-200 transition-colors duration-300">
                 {stats?.total_vendors || 0}
               </p>
-              <p className="text-xs text-historical-charcoal/50">{t.admin.vendors.stats.total}</p>
+              <p className="text-xs text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{t.admin.vendors.stats.total}</p>
             </div>
           </div>
         </div>
-        <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-green-200">
+        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-green-200 dark:border-green-800 transition-colors duration-300">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-green-100 text-green-600">
+            <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 transition-colors duration-300">
               {Icons.check}
             </div>
             <div>
-              <p className="text-2xl font-bold text-green-600">
+              <p className="text-2xl font-bold text-green-600 dark:text-green-400 transition-colors duration-300">
                 {stats?.active_vendors || 0}
               </p>
-              <p className="text-xs text-historical-charcoal/50">{t.admin.vendors.status.active}</p>
+              <p className="text-xs text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{t.admin.vendors.status.active}</p>
             </div>
           </div>
         </div>
-        <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-red-200">
+        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-red-200 dark:border-red-800 transition-colors duration-300">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-red-100 text-red-600">
+            <div className="p-2 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 transition-colors duration-300">
               {Icons.x}
             </div>
             <div>
-              <p className="text-2xl font-bold text-red-600">
+              <p className="text-2xl font-bold text-red-600 dark:text-red-400 transition-colors duration-300">
                 {stats?.inactive_vendors || 0}
               </p>
-              <p className="text-xs text-historical-charcoal/50">{t.admin.vendors.status.inactive}</p>
+              <p className="text-xs text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{t.admin.vendors.status.inactive}</p>
             </div>
           </div>
         </div>
-        <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-blue-200">
+        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-blue-200 dark:border-blue-800 transition-colors duration-300">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-blue-100 text-blue-600">
+            <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 transition-colors duration-300">
               {Icons.money}
             </div>
             <div>
-              <p className="text-2xl font-bold text-blue-600">
+              <p className="text-2xl font-bold text-blue-600 dark:text-blue-400 transition-colors duration-300">
                 {stats?.average_commission_rate || 0}%
               </p>
-              <p className="text-xs text-historical-charcoal/50">{t.admin.vendors.averageCommission}</p>
+              <p className="text-xs text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{t.admin.vendors.averageCommission}</p>
             </div>
           </div>
         </div>
@@ -700,7 +821,7 @@ export default function VendorsPage() {
       {/* Search & Filters */}
       <motion.div variants={itemVariants} className="flex flex-wrap items-center gap-4">
         <div className="flex-1 min-w-[280px] relative">
-          <span className="absolute right-4 top-1/2 -translate-y-1/2 text-historical-charcoal/30">
+          <span className="absolute right-4 top-1/2 -translate-y-1/2 text-historical-charcoal/30 dark:text-gray-500 transition-colors duration-300">
             {Icons.search}
           </span>
           <input
@@ -708,14 +829,14 @@ export default function VendorsPage() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={t.admin.vendors.searchPlaceholder}
-            className="w-full pr-12 pl-4 py-3 rounded-xl border border-historical-gold/20 bg-white/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-historical-gold/30"
+            className="w-full pr-12 pl-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 text-historical-charcoal dark:text-gray-200 transition-colors duration-300"
           />
         </div>
 
         <select
           value={filterStatus}
           onChange={(e) => setFilterStatus(e.target.value as 'all' | 'active' | 'inactive')}
-          className="px-4 py-3 rounded-xl border border-historical-gold/20 bg-white/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-historical-gold/30 min-w-[150px]"
+          className="px-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 min-w-[150px] text-historical-charcoal dark:text-gray-100 transition-colors duration-300"
         >
           <option value="all">{t.admin.vendors.allStatuses}</option>
           <option value="active">{t.admin.vendors.status.active}</option>
@@ -727,63 +848,58 @@ export default function VendorsPage() {
       {isLoading && vendors.length === 0 ? (
         <motion.div variants={itemVariants} className="flex items-center justify-center py-12">
           {Icons.loader}
-          <span className="mr-2 text-historical-charcoal/50">{t.admin.vendors.loading}</span>
+          <span className="mr-2 text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{t.admin.vendors.loading}</span>
         </motion.div>
-      ) : vendors.length === 0 ? (
+      ) : vendors.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {vendors.map(vendor => (
+            <VendorCard
+              key={vendor.id}
+              vendor={vendor}
+              onEdit={handleEditVendor}
+              onToggleStatus={handleToggleStatus}
+              onDelete={handleDeleteVendor}
+              isUpdating={isSaving}
+            />
+          ))}
+        </div>
+      ) : (
         <motion.div variants={itemVariants} className="text-center py-12">
           <div className="text-4xl mb-4">🏪</div>
-          <p className="text-historical-charcoal/50">{t.admin.vendors.noVendors}</p>
+          <p className="text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{t.admin.vendors.noVendors}</p>
           <button
             onClick={handleAddVendor}
-            className="mt-4 px-6 py-2 rounded-xl bg-historical-gold/10 text-historical-gold hover:bg-historical-gold/20 transition-colors"
+            className="mt-4 px-6 py-2 rounded-xl bg-historical-gold/10 dark:bg-yellow-900/30 text-historical-gold dark:text-yellow-400 hover:bg-historical-gold/20 dark:hover:bg-yellow-900/40 transition-colors"
           >
             {t.admin.vendors.addFirstVendor}
           </button>
         </motion.div>
-      ) : (
-        <>
-          <motion.div
-            variants={containerVariants}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-          >
-            {vendors.map(vendor => (
-              <VendorCard
-                key={vendor.id}
-                vendor={vendor}
-                onEdit={handleEditVendor}
-                onToggleStatus={handleToggleStatus}
-                onDelete={handleDeleteVendor}
-                isUpdating={isSaving}
-              />
-            ))}
-          </motion.div>
+      )}
 
-          {/* Pagination */}
-          {(hasNextPage || hasPreviousPage) && (
-            <motion.div
-              variants={itemVariants}
-              className="flex items-center justify-center gap-4 pt-4"
-            >
-              <button
-                onClick={() => handlePageChange('prev')}
-                disabled={!hasPreviousPage || isLoading}
-                className="px-4 py-2 rounded-xl border border-historical-gold/20 text-historical-charcoal/70 hover:bg-historical-gold/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                الصفحة السابقة
-              </button>
-              <span className="text-historical-charcoal/50">
-                صفحة {currentPage}
-              </span>
-              <button
-                onClick={() => handlePageChange('next')}
-                disabled={!hasNextPage || isLoading}
-                className="px-4 py-2 rounded-xl border border-historical-gold/20 text-historical-charcoal/70 hover:bg-historical-gold/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                الصفحة التالية
-              </button>
-            </motion.div>
-          )}
-        </>
+      {/* Pagination */}
+      {vendors.length > 0 && (hasNextPage || hasPreviousPage) && (
+        <motion.div
+          variants={itemVariants}
+          className="flex items-center justify-center gap-4 pt-4"
+        >
+          <button
+            onClick={() => handlePageChange('prev')}
+            disabled={!hasPreviousPage || isLoading}
+            className="px-4 py-2 rounded-xl border border-historical-gold/20 dark:border-gray-600 text-historical-charcoal/70 dark:text-gray-300 hover:bg-historical-gold/10 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            {t.admin.vendors.previousPage}
+          </button>
+          <span className="text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">
+            {t.admin.vendors.page} {currentPage}
+          </span>
+          <button
+            onClick={() => handlePageChange('next')}
+            disabled={!hasNextPage || isLoading}
+            className="px-4 py-2 rounded-xl border border-historical-gold/20 dark:border-gray-600 text-historical-charcoal/70 dark:text-gray-300 hover:bg-historical-gold/10 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            {t.admin.vendors.nextPage}
+          </button>
+        </motion.div>
       )}
 
       {/* Vendor Modal */}
@@ -797,6 +913,22 @@ export default function VendorsPage() {
         }}
         onSave={handleSaveVendor}
       />
+
+      {/* Delete Confirmation Modal */}
+      <AnimatePresence>
+        {isDeleteModalOpen && deletingVendor && (
+          <DeleteModal
+            isOpen={isDeleteModalOpen}
+            onClose={() => {
+              setIsDeleteModalOpen(false)
+              setDeletingVendor(null)
+            }}
+            onConfirm={handleConfirmDelete}
+            vendorName={deletingVendor.name}
+            isDeleting={isDeleting}
+          />
+        )}
+      </AnimatePresence>
     </motion.div>
   )
 }

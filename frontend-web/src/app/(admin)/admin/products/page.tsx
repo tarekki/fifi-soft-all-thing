@@ -237,7 +237,7 @@ function ProductModal({ isOpen, onClose, onSave, product, categories, isSubmitti
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-historical-charcoal/70 mb-1">
+            <label className="block text-sm font-medium text-historical-charcoal/70 dark:text-gray-300 mb-1 transition-colors duration-300">
               {t.admin.products.name}
             </label>
             <input
@@ -250,20 +250,20 @@ function ProductModal({ isOpen, onClose, onSave, product, categories, isSubmitti
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-historical-charcoal/70 mb-1">
+            <label className="block text-sm font-medium text-historical-charcoal/70 dark:text-gray-300 mb-1 transition-colors duration-300">
               {t.admin.categories.description}
             </label>
             <textarea
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               rows={3}
-              className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 resize-none"
+              className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 text-historical-charcoal dark:text-gray-200 resize-none transition-colors duration-300"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-historical-charcoal/70 mb-1">
+              <label className="block text-sm font-medium text-historical-charcoal/70 dark:text-gray-300 mb-1 transition-colors duration-300">
                 {t.admin.products.basePrice}
               </label>
               <input
@@ -277,7 +277,7 @@ function ProductModal({ isOpen, onClose, onSave, product, categories, isSubmitti
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-historical-charcoal/70 mb-1">
+              <label className="block text-sm font-medium text-historical-charcoal/70 dark:text-gray-300 mb-1 transition-colors duration-300">
                 {t.admin.products.category}
               </label>
               <select
@@ -301,10 +301,10 @@ function ProductModal({ isOpen, onClose, onSave, product, categories, isSubmitti
               id="is_active"
               checked={formData.is_active}
               onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
-              className="w-4 h-4 rounded border-historical-gold/30 text-historical-gold focus:ring-historical-gold"
+              className="w-5 h-5 rounded border-2 border-historical-gold/40 dark:border-gray-500 bg-white dark:bg-gray-700 text-historical-gold dark:text-yellow-400 focus:ring-2 focus:ring-historical-gold/50 dark:focus:ring-yellow-500/50 cursor-pointer transition-all duration-300 flex-shrink-0"
             />
-            <label htmlFor="is_active" className="text-sm text-historical-charcoal">
-              {t.admin.products.status.active}
+            <label htmlFor="is_active" className="text-base font-semibold text-historical-charcoal dark:text-gray-100 transition-colors duration-300 cursor-pointer select-none">
+              تفعيل المنتج - {formData.is_active ? t.admin.products.status.active : t.admin.products.status.inactive || 'غير نشط'}
             </label>
           </div>
 
@@ -759,8 +759,8 @@ export default function ProductsPage() {
       {/* Page Header */}
       <motion.div variants={itemVariants} className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-historical-charcoal">{t.admin.products.title}</h1>
-          <p className="text-historical-charcoal/50 mt-1">
+          <h1 className="text-2xl font-bold text-historical-charcoal dark:text-gray-100 transition-colors duration-300">{t.admin.products.title}</h1>
+          <p className="text-historical-charcoal/50 dark:text-gray-400 mt-1 transition-colors duration-300">
             {totalCount} {t.admin.products.name}
           </p>
         </div>
@@ -819,13 +819,13 @@ export default function ProductsPage() {
         <div className="flex items-center bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl border border-historical-gold/20 dark:border-gray-700 p-1 transition-colors duration-300">
           <button
             onClick={() => setViewMode('table')}
-            className={`p-2 rounded-lg transition-colors ${viewMode === 'table' ? 'bg-historical-gold/20 text-historical-gold' : 'text-historical-charcoal/50'}`}
+            className={`p-2 rounded-lg transition-colors ${viewMode === 'table' ? 'bg-historical-gold/20 text-historical-gold dark:text-yellow-400' : 'text-historical-charcoal/50 dark:text-gray-400'}`}
           >
             {Icons.list}
           </button>
           <button
             onClick={() => setViewMode('grid')}
-            className={`p-2 rounded-lg transition-colors ${viewMode === 'grid' ? 'bg-historical-gold/20 text-historical-gold' : 'text-historical-charcoal/50'}`}
+            className={`p-2 rounded-lg transition-colors ${viewMode === 'grid' ? 'bg-historical-gold/20 text-historical-gold dark:text-yellow-400' : 'text-historical-charcoal/50 dark:text-gray-400'}`}
           >
             {Icons.grid}
           </button>
@@ -841,7 +841,7 @@ export default function ProductsPage() {
             exit={{ opacity: 0, y: -10 }}
             className="flex items-center gap-4 p-4 rounded-xl bg-historical-gold/10 dark:bg-yellow-900/20 border border-historical-gold/20 dark:border-yellow-800 transition-colors duration-300"
           >
-            <span className="text-sm font-medium text-historical-charcoal">
+            <span className="text-sm font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300">
               {t.admin.products.selectedCount.replace('{count}', selectedProducts.length.toString())}
             </span>
             <div className="flex items-center gap-2">
@@ -878,10 +878,10 @@ export default function ProductsPage() {
       >
         {products.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16">
-            <p className="text-historical-charcoal/50 text-lg">{t.admin.products.noProducts}</p>
+            <p className="text-historical-charcoal/50 dark:text-gray-400 text-lg transition-colors duration-300">{t.admin.products.noProducts}</p>
             <button
               onClick={handleAddClick}
-              className="mt-4 flex items-center gap-2 px-5 py-2.5 rounded-xl bg-historical-gold/10 text-historical-gold font-medium hover:bg-historical-gold/20 transition-colors"
+              className="mt-4 flex items-center gap-2 px-5 py-2.5 rounded-xl bg-historical-gold/10 dark:bg-yellow-900/30 text-historical-gold dark:text-yellow-400 font-medium hover:bg-historical-gold/20 dark:hover:bg-yellow-900/40 transition-colors"
             >
               {Icons.add}
               <span>{t.admin.products.addFirstProduct}</span>

@@ -640,17 +640,6 @@ export default function VendorApplicationsPage() {
                       </button>
                     </td>
                   </tr>
-                    <td className="px-6 py-4">
-                      <button
-                        onClick={() => handleViewDetails(app.id)}
-                        disabled={isLoadingDetails}
-                        className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-historical-gold bg-historical-gold/10 hover:bg-historical-gold/20 transition-colors"
-                      >
-                        {Icons.eye}
-                        <span className="text-sm">{t.admin.vendorApplications.view}</span>
-                      </button>
-                    </td>
-                  </tr>
                 ))}
               </tbody>
             </table>
