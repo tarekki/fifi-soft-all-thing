@@ -92,13 +92,18 @@ const Icons = {
  * Format number as currency
  * تنسيق الرقم كعملة
  */
-function formatCurrency(value: number): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(value)
+function formatCurrency(value: number, locale: string = 'ar-SY', currencySymbol: string = 'ل.س'): string {
+  if (locale === 'ar-SY') {
+    return new Intl.NumberFormat('ar-SY', {
+      style: 'decimal',
+      minimumFractionDigits: 0,
+    }).format(value) + ' ' + currencySymbol
+  } else {
+    return new Intl.NumberFormat('en-US', {
+      style: 'decimal',
+      minimumFractionDigits: 0,
+    }).format(value) + ' ' + (currencySymbol === 'ل.س' ? 'SYP' : currencySymbol)
+  }
 }
 
 /**
@@ -339,7 +344,7 @@ function SalesChart({
   })) || []
   
   const maxValue = Math.max(...chartData.map(d => d.value), 1)
-  const { t } = useLanguage()
+  const { t, language } = useLanguage()
 
   const periodLabels = {
     week: t.admin.reports.dateRange['7days'] || 'Week',
@@ -400,7 +405,7 @@ function SalesChart({
                 {/* Tooltip */}
                 <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
                   <div className="bg-historical-charcoal dark:bg-gray-700 text-white dark:text-gray-200 text-xs px-2 py-1 rounded-lg whitespace-nowrap transition-colors duration-300">
-                    {formatCurrency(item.value)}
+                    {formatCurrency(item.value, language === 'ar' ? 'ar-SY' : 'en-US', t.common.currency)}
                   </div>
                 </div>
               </motion.div>
@@ -482,8 +487,8 @@ function RecentOrdersTable({
                     <span className="font-medium text-historical-charcoal">{order.order_number}</span>
                   </td>
                   <td className="px-6 py-4 text-sm text-historical-charcoal/70">{order.customer_name}</td>
-                  <td className="px-6 py-4 text-sm font-medium text-historical-charcoal">
-                    {formatCurrency(order.total)}
+                  <td className="px-6 py-4 text-sm font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300">
+                    {formatCurrency(order.total, language === 'ar' ? 'ar-SY' : 'en-US', t.common.currency)}
                   </td>
                   <td className="px-6 py-4">
                     <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${getStatusStyle(order.status)}`}>
@@ -603,7 +608,7 @@ export default function AdminDashboardPage() {
     {
       id: 'revenue',
       title: t.admin.dashboard.totalRevenue,
-      value: overview ? formatCurrency(overview.total_revenue) : '$0',
+      value: overview ? formatCurrency(overview.total_revenue, language === 'ar' ? 'ar-SY' : 'en-US', t.common.currency) : formatCurrency(0, language === 'ar' ? 'ar-SY' : 'en-US', t.common.currency),
       change: overview?.total_revenue_change || 0,
       changeLabel: t.admin.dashboard.fromLastMonth,
       icon: Icons.revenue,
