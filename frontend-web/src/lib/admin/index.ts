@@ -87,6 +87,9 @@ export {
   hasPermission,
   hasAnyPermission,
   hasAllPermissions,
+  
+  // Base API Client
+  adminFetch,
 } from './api'
 
 // Hooks

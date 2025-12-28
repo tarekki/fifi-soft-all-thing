@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useRouter } from 'next/navigation'
-import { useAdminAuth } from '@/lib/admin'
+import { useAdminAuth, adminFetch } from '@/lib/admin'
 import { useLanguage } from '@/lib/i18n/context'
 import { useNotifications } from '@/lib/admin/hooks/useNotifications'
 import { useUIStore } from '@/store/uiStore'
@@ -26,59 +26,61 @@ interface AdminHeaderProps {
 // Icons
 // =============================================================================
 
+// Icon Components (functions that return JSX)
+// مكونات الأيقونات (دوال ترجع JSX)
 const Icons = {
-  search: (
-    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+  search: (props?: { className?: string }) => (
+    <svg className={props?.className || "w-5 h-5"} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
     </svg>
   ),
-  notification: (
-    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+  notification: (props?: { className?: string }) => (
+    <svg className={props?.className || "w-5 h-5"} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
     </svg>
   ),
-  sun: (
-    <svg className="w-5 h-5 dark:text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+  sun: (props?: { className?: string }) => (
+    <svg className={props?.className || "w-5 h-5 dark:text-yellow-400"} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
     </svg>
   ),
-  moon: (
-    <svg className="w-5 h-5 dark:text-blue-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+  moon: (props?: { className?: string }) => (
+    <svg className={props?.className || "w-5 h-5 dark:text-blue-300"} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" />
     </svg>
   ),
-  globe: (
-    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+  globe: (props?: { className?: string }) => (
+    <svg className={props?.className || "w-5 h-5"} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418" />
     </svg>
   ),
-  logout: (
-    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+  logout: (props?: { className?: string }) => (
+    <svg className={props?.className || "w-5 h-5"} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
     </svg>
   ),
-  user: (
-    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+  user: (props?: { className?: string }) => (
+    <svg className={props?.className || "w-5 h-5"} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
     </svg>
   ),
-  order: (
-    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+  order: (props?: { className?: string }) => (
+    <svg className={props?.className || "w-4 h-4"} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
     </svg>
   ),
-  chevronDown: (
-    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+  chevronDown: (props?: { className?: string }) => (
+    <svg className={props?.className || "w-4 h-4"} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
     </svg>
   ),
-  check: (
-    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+  check: (props?: { className?: string }) => (
+    <svg className={props?.className || "w-4 h-4"} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
     </svg>
   ),
-  close: (
-    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+  close: (props?: { className?: string }) => (
+    <svg className={props?.className || "w-4 h-4"} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
     </svg>
   ),
@@ -123,40 +125,292 @@ function formatRelativeTime(timestamp: string, language: string): string {
 // =============================================================================
 
 function SearchBar() {
-  const { t } = useLanguage()
+  const { t, language } = useLanguage()
+  const router = useRouter()
   const [isExpanded, setIsExpanded] = useState(false)
   const [query, setQuery] = useState('')
+  const [results, setResults] = useState<{
+    products: Array<{ id: number; name: string; name_ar?: string }>
+    users: Array<{ id: number; full_name: string; email: string }>
+    orders: Array<{ id: number; order_number: string; customer_name: string }>
+    vendors: Array<{ id: number; name: string; name_ar?: string }>
+  }>({
+    products: [],
+    users: [],
+    orders: [],
+    vendors: [],
+  })
+  const [isSearching, setIsSearching] = useState(false)
+  const [showResults, setShowResults] = useState(false)
+
+  // Debounced search function
+  useEffect(() => {
+    if (!query.trim() || query.length < 2) {
+      setResults({ products: [], users: [], orders: [], vendors: [] })
+      setShowResults(false)
+      return
+    }
+
+    const searchTimeout = setTimeout(async () => {
+      setIsSearching(true)
+      try {
+        // Search in parallel across all endpoints using adminFetch
+        const [productsRes, usersRes, ordersRes, vendorsRes] = await Promise.allSettled([
+          adminFetch(`/products/?search=${encodeURIComponent(query)}&page_size=3`),
+          adminFetch(`/users/?search=${encodeURIComponent(query)}&page_size=3`),
+          adminFetch(`/orders/?search=${encodeURIComponent(query)}&page_size=3`),
+          adminFetch(`/vendors/?search=${encodeURIComponent(query)}&page_size=3`),
+        ])
+
+        const newResults = {
+          products: [],
+          users: [],
+          orders: [],
+          vendors: [],
+        }
+
+        if (productsRes.status === 'fulfilled' && productsRes.value.success && productsRes.value.data?.results) {
+          newResults.products = productsRes.value.data.results
+        }
+
+        if (usersRes.status === 'fulfilled' && usersRes.value.success && usersRes.value.data?.results) {
+          newResults.users = usersRes.value.data.results
+        }
+
+        if (ordersRes.status === 'fulfilled' && ordersRes.value.success && ordersRes.value.data?.results) {
+          newResults.orders = ordersRes.value.data.results
+        }
+
+        if (vendorsRes.status === 'fulfilled' && vendorsRes.value.success && vendorsRes.value.data?.results) {
+          newResults.vendors = vendorsRes.value.data.results
+        }
+
+        setResults(newResults)
+        setShowResults(true)
+      } catch (error) {
+        console.error('Search error:', error)
+      } finally {
+        setIsSearching(false)
+      }
+    }, 300) // 300ms debounce
+
+    return () => clearTimeout(searchTimeout)
+  }, [query])
+
+  const handleResultClick = (type: 'products' | 'users' | 'orders' | 'vendors', id: number) => {
+    setQuery('')
+    setShowResults(false)
+    setIsExpanded(false)
+    
+    switch (type) {
+      case 'products':
+        router.push(`/admin/products?id=${id}`)
+        break
+      case 'users':
+        router.push(`/admin/users?id=${id}`)
+        break
+      case 'orders':
+        router.push(`/admin/orders?id=${id}`)
+        break
+      case 'vendors':
+        router.push(`/admin/vendors?id=${id}`)
+        break
+    }
+  }
+
+  const totalResults = results.products.length + results.users.length + results.orders.length + results.vendors.length
 
   return (
     <div className="relative">
       <motion.div
         initial={false}
-        animate={{ width: isExpanded ? 320 : 44 }}
+        animate={{ width: isExpanded ? 400 : 44 }}
         transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
         className="flex items-center bg-historical-stone/50 dark:bg-gray-800/50 rounded-xl border border-historical-gold/10 dark:border-gray-700 overflow-hidden transition-colors duration-300"
       >
         <button
-          onClick={() => setIsExpanded(!isExpanded)}
+          onClick={() => {
+            setIsExpanded(!isExpanded)
+            if (isExpanded) {
+              setQuery('')
+              setShowResults(false)
+            }
+          }}
           className="p-2.5 text-historical-charcoal/50 dark:text-gray-400 hover:text-historical-charcoal dark:hover:text-gray-200 transition-colors"
         >
-          {Icons.search}
+          {Icons.search()}
         </button>
         <AnimatePresence>
           {isExpanded && (
-            <motion.input
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              type="text"
-              placeholder={t.admin.header.search}
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              className="flex-1 bg-transparent py-2.5 pl-4 text-sm text-historical-charcoal dark:text-gray-200 placeholder:text-historical-charcoal/40 dark:placeholder:text-gray-500 outline-none transition-colors duration-300"
-              autoFocus
-            />
+            <motion.div
+              initial={{ opacity: 0, width: 0 }}
+              animate={{ opacity: 1, width: 'auto' }}
+              exit={{ opacity: 0, width: 0 }}
+              className="flex-1 flex items-center"
+            >
+              <input
+                type="text"
+                placeholder={t.admin.header.search || (language === 'ar' ? 'ابحث عن منتجات، مستخدمين، طلبات...' : 'Search products, users, orders...')}
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onFocus={() => query.length >= 2 && setShowResults(true)}
+                className="flex-1 bg-transparent py-2.5 pl-4 pr-2 text-sm text-historical-charcoal dark:text-gray-200 placeholder:text-historical-charcoal/40 dark:placeholder:text-gray-500 outline-none transition-colors duration-300"
+                autoFocus
+              />
+              {isSearching && (
+                <div className="w-4 h-4 border-2 border-historical-gold/30 border-t-historical-gold rounded-full animate-spin mr-2" />
+              )}
+            </motion.div>
           )}
         </AnimatePresence>
       </motion.div>
+
+      {/* Search Results Dropdown */}
+      <AnimatePresence>
+        {isExpanded && showResults && query.length >= 2 && (
+          <motion.div
+            initial={{ opacity: 0, y: 10, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 10, scale: 0.95 }}
+            transition={{ duration: 0.2 }}
+            className="absolute left-0 mt-2 w-[500px] bg-white dark:bg-gray-800 rounded-2xl shadow-soft-xl border border-historical-gold/10 dark:border-gray-700 overflow-hidden z-50 transition-colors duration-300 max-h-[500px] overflow-y-auto custom-scrollbar"
+          >
+            {totalResults === 0 && !isSearching ? (
+              <div className="p-8 text-center">
+                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-historical-gold/10 dark:bg-gray-700/50 flex items-center justify-center">
+                  <svg className="w-8 h-8 text-historical-gold/50 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                  </svg>
+                </div>
+                <p className="text-sm font-medium text-historical-charcoal dark:text-gray-200 mb-1 transition-colors duration-300">
+                  {language === 'ar' ? 'لا توجد نتائج' : 'No results found'}
+                </p>
+                <p className="text-xs text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">
+                  {language === 'ar' 
+                    ? `لم يتم العثور على "${query}" في المنتجات، المستخدمين، الطلبات أو البائعين`
+                    : `No results found for "${query}" in products, users, orders or vendors`}
+                </p>
+              </div>
+            ) : (
+              <div className="p-2">
+                {/* Products */}
+                {results.products.length > 0 && (
+                  <div className="mb-2">
+                    <h4 className="px-3 py-2 text-xs font-semibold text-historical-charcoal/60 dark:text-gray-400 uppercase">
+                      {language === 'ar' ? 'المنتجات' : 'Products'}
+                    </h4>
+                    {results.products.map((product) => (
+                      <button
+                        key={product.id}
+                        onClick={() => handleResultClick('products', product.id)}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-historical-gold/10 dark:hover:bg-gray-700/50 transition-colors text-right"
+                      >
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-historical-charcoal dark:text-gray-200 truncate">
+                            {language === 'ar' && product.name_ar ? product.name_ar : product.name}
+                          </p>
+                        </div>
+                        {Icons.search({ className: "w-4 h-4 text-historical-charcoal/30 dark:text-gray-500" })}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {/* Users */}
+                {results.users.length > 0 && (
+                  <div className="mb-2">
+                    <h4 className="px-3 py-2 text-xs font-semibold text-historical-charcoal/60 dark:text-gray-400 uppercase">
+                      {language === 'ar' ? 'المستخدمين' : 'Users'}
+                    </h4>
+                    {results.users.map((user) => (
+                      <button
+                        key={user.id}
+                        onClick={() => handleResultClick('users', user.id)}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-historical-gold/10 dark:hover:bg-gray-700/50 transition-colors text-right"
+                      >
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-historical-charcoal dark:text-gray-200 truncate">
+                            {user.full_name}
+                          </p>
+                          <p className="text-xs text-historical-charcoal/50 dark:text-gray-400 truncate">
+                            {user.email}
+                          </p>
+                        </div>
+                        {Icons.user({ className: "w-4 h-4 text-historical-charcoal/30 dark:text-gray-500" })}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {/* Orders */}
+                {results.orders.length > 0 && (
+                  <div className="mb-2">
+                    <h4 className="px-3 py-2 text-xs font-semibold text-historical-charcoal/60 dark:text-gray-400 uppercase">
+                      {language === 'ar' ? 'الطلبات' : 'Orders'}
+                    </h4>
+                    {results.orders.map((order) => (
+                      <button
+                        key={order.id}
+                        onClick={() => handleResultClick('orders', order.id)}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-historical-gold/10 dark:hover:bg-gray-700/50 transition-colors text-right"
+                      >
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-historical-charcoal dark:text-gray-200 truncate">
+                            {order.order_number}
+                          </p>
+                          <p className="text-xs text-historical-charcoal/50 dark:text-gray-400 truncate">
+                            {order.customer_name}
+                          </p>
+                        </div>
+                        {Icons.order({ className: "w-4 h-4 text-historical-charcoal/30 dark:text-gray-500" })}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {/* Vendors */}
+                {results.vendors.length > 0 && (
+                  <div className="mb-2">
+                    <h4 className="px-3 py-2 text-xs font-semibold text-historical-charcoal/60 dark:text-gray-400 uppercase">
+                      {language === 'ar' ? 'البائعين' : 'Vendors'}
+                    </h4>
+                    {results.vendors.map((vendor) => (
+                      <button
+                        key={vendor.id}
+                        onClick={() => handleResultClick('vendors', vendor.id)}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-historical-gold/10 dark:hover:bg-gray-700/50 transition-colors text-right"
+                      >
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-historical-charcoal dark:text-gray-200 truncate">
+                            {language === 'ar' && vendor.name_ar ? vendor.name_ar : vendor.name}
+                          </p>
+                        </div>
+                        {Icons.user({ className: "w-4 h-4 text-historical-charcoal/30 dark:text-gray-500" })}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Backdrop */}
+      <AnimatePresence>
+        {isExpanded && showResults && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-40"
+            onClick={() => {
+              setShowResults(false)
+              setIsExpanded(false)
+            }}
+          />
+        )}
+      </AnimatePresence>
     </div>
   )
 }
@@ -193,9 +447,9 @@ function NotificationDropdown() {
 
   const getNotificationIcon = (type: NotificationType['type']) => {
     switch (type) {
-      case 'order': return Icons.order
-      case 'user': return Icons.user
-      case 'vendor': return Icons.user
+      case 'order': return Icons.order({ className: "w-4 h-4" })
+      case 'user': return Icons.user({ className: "w-4 h-4" })
+      case 'vendor': return Icons.user({ className: "w-4 h-4" })
       case 'product': 
         return (
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -208,7 +462,7 @@ function NotificationDropdown() {
             <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z" />
           </svg>
         )
-      default: return Icons.notification
+      default: return Icons.notification({ className: "w-4 h-4" })
     }
   }
 
@@ -229,7 +483,7 @@ function NotificationDropdown() {
         onClick={() => setIsOpen(!isOpen)}
         className="relative p-2.5 rounded-xl text-historical-charcoal/60 dark:text-yellow-400 hover:text-historical-charcoal dark:hover:text-yellow-300 hover:bg-historical-gold/10 dark:hover:bg-gray-700 transition-all duration-200"
       >
-        {Icons.notification}
+        {Icons.notification()}
         {unreadCount > 0 && (
           <motion.span
             initial={{ scale: 0 }}
@@ -404,7 +658,7 @@ function ThemeToggle() {
           exit={{ scale: 0, rotate: 90, opacity: 0 }}
           transition={{ duration: 0.2 }}
         >
-          {isDark ? Icons.moon : Icons.sun}
+          {isDark ? Icons.moon() : Icons.sun()}
         </motion.div>
       </AnimatePresence>
     </button>
@@ -584,7 +838,7 @@ function UserMenu() {
           transition={{ duration: 0.2 }}
           className="text-historical-charcoal/40 dark:text-gray-500 transition-colors duration-300"
         >
-          {Icons.chevronDown}
+          {Icons.chevronDown()}
         </motion.div>
       </button>
 
@@ -621,14 +875,14 @@ function UserMenu() {
                   onClick={handleProfileClick}
                   className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm text-historical-charcoal dark:text-gray-200 hover:bg-historical-gold/10 dark:hover:bg-gray-700 transition-colors"
                 >
-                  {Icons.user}
+                  {Icons.user()}
                   <span>{t.admin.header.profile || (language === 'ar' ? 'الملف الشخصي' : 'Profile')}</span>
                 </button>
                 <button 
                   onClick={handleSettingsClick}
                   className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm text-historical-charcoal dark:text-gray-200 hover:bg-historical-gold/10 dark:hover:bg-gray-700 transition-colors"
                 >
-                  {Icons.search}
+                  {Icons.search()}
                   <span>{t.admin.header.settings || (language === 'ar' ? 'الإعدادات' : 'Settings')}</span>
                 </button>
               </div>
@@ -644,7 +898,7 @@ function UserMenu() {
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                     </svg>
                   ) : (
-                    Icons.logout
+                    Icons.logout()
                   )}
                   <span>{isLoggingOut ? 'جاري الخروج...' : 'تسجيل الخروج'}</span>
                 </button>
