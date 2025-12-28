@@ -119,6 +119,11 @@ class Category(models.Model):
         ordering = ['display_order', 'name']
         verbose_name = _('Category')
         verbose_name_plural = _('Categories')
+        indexes = [
+            models.Index(fields=['parent', 'is_active']),
+            models.Index(fields=['slug']),
+            models.Index(fields=['is_featured', 'is_active']),
+        ]
     
     def save(self, *args, **kwargs):
         """Auto-generate slug from name if not provided"""
@@ -227,6 +232,11 @@ class Product(models.Model):
         verbose_name = 'Product'
         verbose_name_plural = 'Products'
         unique_together = ['vendor', 'slug']
+        indexes = [
+            models.Index(fields=['vendor', 'is_active']),
+            models.Index(fields=['category', 'is_active']),
+            models.Index(fields=['is_active', 'created_at']),
+        ]
     
     def __str__(self):
         return f"{self.vendor.name} - {self.name}"
@@ -245,7 +255,7 @@ class ProductVariant(models.Model):
     model = models.CharField(max_length=100, blank=True, help_text='Model/Style name')
     
     # SKU (Stock Keeping Unit)
-    sku = models.CharField(max_length=100, unique=True, blank=True)
+    sku = models.CharField(max_length=100, unique=True, null=True, blank=True, help_text='Stock Keeping Unit (auto-generated if not provided)')
     
     # Inventory
     stock_quantity = models.PositiveIntegerField(default=0)
@@ -267,6 +277,10 @@ class ProductVariant(models.Model):
         ordering = ['color', 'size']
         verbose_name = 'Product Variant'
         verbose_name_plural = 'Product Variants'
+        indexes = [
+            models.Index(fields=['product', 'is_available']),
+            models.Index(fields=['sku']),
+        ]
     
     @property
     def final_price(self):

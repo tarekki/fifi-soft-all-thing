@@ -16,7 +16,7 @@ class Order(models.Model):
     """
     # Order info
     # معلومات الطلب
-    order_number = models.CharField(max_length=50, unique=True, blank=True)
+    order_number = models.CharField(max_length=50, unique=True, null=True, blank=True, help_text='Order number (auto-generated if not provided)')
     
     # User relationship (for authenticated users)
     # علاقة المستخدم (للمستخدمين المسجلين)
@@ -84,6 +84,12 @@ class Order(models.Model):
         ordering = ['-created_at']
         verbose_name = 'Order'
         verbose_name_plural = 'Orders'
+        indexes = [
+            models.Index(fields=['user', 'status']),
+            models.Index(fields=['status', 'created_at']),
+            models.Index(fields=['order_number']),
+            models.Index(fields=['is_guest_order', 'created_at']),
+        ]
     
     def save(self, *args, **kwargs):
         """
@@ -139,6 +145,10 @@ class OrderItem(models.Model):
     class Meta:
         verbose_name = 'Order Item'
         verbose_name_plural = 'Order Items'
+        indexes = [
+            models.Index(fields=['order']),
+            models.Index(fields=['product_variant']),
+        ]
     
     @property
     def subtotal(self):

@@ -13,6 +13,7 @@ Author: Yalla Buy Team
 """
 
 from django.db import models
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 from django.conf import settings
@@ -76,6 +77,7 @@ class Vendor(models.Model):
         max_digits=5,
         decimal_places=2,
         default=10.00,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
         verbose_name=_('نسبة العمولة / Commission Rate'),
         help_text=_('Commission percentage (0-100)')
     )
@@ -102,6 +104,10 @@ class Vendor(models.Model):
         ordering = ['name']
         verbose_name = _('البائع / Vendor')
         verbose_name_plural = _('البائعون / Vendors')
+        indexes = [
+            models.Index(fields=['is_active']),
+            models.Index(fields=['slug']),
+        ]
     
     def save(self, *args, **kwargs):
         """Generate slug from name if not provided"""

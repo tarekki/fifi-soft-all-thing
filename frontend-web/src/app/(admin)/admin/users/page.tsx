@@ -563,14 +563,14 @@ export default function UsersPage() {
                       </span>
                     </td>
                     <td className="px-4 py-3">
-                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 dark:opacity-100 transition-opacity">
                         <button
                           onClick={async () => {
                             setSelectedUserId(user.id)
                             await fetchUserDetails(user.id)
                             setIsViewModalOpen(true)
                           }}
-                          className="p-2 rounded-lg text-historical-charcoal/50 dark:text-gray-500 hover:text-historical-charcoal dark:hover:text-gray-200 hover:bg-historical-gold/10 dark:hover:bg-gray-700 transition-colors"
+                          className="p-2 rounded-lg text-historical-charcoal/50 dark:text-gray-300 hover:text-historical-charcoal dark:hover:text-blue-400 hover:bg-historical-gold/10 dark:hover:bg-blue-900/20 transition-colors"
                           title={t.admin.users.view}
                         >
                           {Icons.eye}
@@ -581,7 +581,7 @@ export default function UsersPage() {
                             await fetchUserDetails(user.id)
                             setIsEditModalOpen(true)
                           }}
-                          className="p-2 rounded-lg text-historical-charcoal/50 dark:text-gray-500 hover:text-historical-charcoal dark:hover:text-gray-200 hover:bg-historical-gold/10 dark:hover:bg-gray-700 transition-colors"
+                          className="p-2 rounded-lg text-historical-charcoal/50 dark:text-gray-300 hover:text-historical-charcoal dark:hover:text-yellow-400 hover:bg-historical-gold/10 dark:hover:bg-yellow-900/20 transition-colors"
                           title={t.admin.users.edit}
                         >
                           {Icons.edit}
@@ -1022,11 +1022,11 @@ function ViewUserModal({
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-historical-gold/10 bg-historical-stone/30">
-            <h2 className="text-lg font-bold text-historical-charcoal">تفاصيل المستخدم</h2>
+          <div className="flex items-center justify-between px-6 py-4 border-b border-historical-gold/10 dark:border-gray-700 bg-historical-stone/30 dark:bg-gray-700/30 transition-colors duration-300">
+            <h2 className="text-lg font-bold text-historical-charcoal dark:text-gray-100 transition-colors duration-300">تفاصيل المستخدم</h2>
             <button
               onClick={onClose}
-              className="p-2 rounded-lg text-historical-charcoal/50 hover:text-historical-charcoal hover:bg-historical-gold/10 transition-colors"
+              className="p-2 rounded-lg text-historical-charcoal/50 dark:text-gray-400 hover:text-historical-charcoal dark:hover:text-gray-200 hover:bg-historical-gold/10 dark:hover:bg-gray-600 transition-colors"
             >
               {Icons.close}
             </button>
@@ -1036,17 +1036,17 @@ function ViewUserModal({
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
               {Icons.loader}
-              <span className="mr-2 text-historical-charcoal/50">جاري تحميل التفاصيل...</span>
+              <span className="mr-2 text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">جاري تحميل التفاصيل...</span>
             </div>
           ) : !user ? (
             <div className="text-center py-12">
-              <p className="text-historical-charcoal/50">المستخدم غير موجود</p>
+              <p className="text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">المستخدم غير موجود</p>
             </div>
           ) : (
             <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
               {/* User Info */}
               <div className="space-y-4">
-                <h3 className="font-bold text-historical-charcoal flex items-center gap-2">
+                <h3 className="font-bold text-historical-charcoal dark:text-gray-100 flex items-center gap-2 transition-colors duration-300">
                   {Icons.user}
                   معلومات المستخدم
                 </h3>
@@ -1064,14 +1064,14 @@ function ViewUserModal({
                     <p className="font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300" dir="ltr">{user.phone}</p>
                   </div>
                   <div>
-                    <label className="text-sm text-historical-charcoal/50">{t.admin.users.form.role}</label>
+                    <label className="text-sm text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{t.admin.users.form.role}</label>
                     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${getRoleStyle(user.role)}`}>
                       {getRoleIcon(user.role)}
                       {getRoleLabel(user.role, t)}
                     </span>
                   </div>
                   <div>
-                    <label className="text-sm text-historical-charcoal/50">{t.admin.users.status}</label>
+                    <label className="text-sm text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{t.admin.users.status}</label>
                     <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${
                       user.is_active ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
                     }`}>
@@ -1079,7 +1079,7 @@ function ViewUserModal({
                     </span>
                   </div>
                   <div>
-                    <label className="text-sm text-historical-charcoal/50">{t.admin.users.staff}</label>
+                    <label className="text-sm text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{t.admin.users.staff}</label>
                     <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${
                       user.is_staff ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
                     }`}>
@@ -1091,48 +1091,48 @@ function ViewUserModal({
 
               {/* Profile Info */}
               {user.profile && (
-                <div className="space-y-4 border-t border-historical-gold/10 pt-4">
+                <div className="space-y-4 border-t border-historical-gold/10 dark:border-gray-700 pt-4 transition-colors duration-300">
                   <h3 className="font-bold text-historical-charcoal dark:text-gray-100 transition-colors duration-300">{t.admin.users.profileInfo}</h3>
                   <div className="grid grid-cols-2 gap-4">
                     {user.profile.address && (
                       <div className="col-span-2">
-                        <label className="text-sm text-historical-charcoal/50">{t.admin.users.form.address}</label>
-                        <p className="text-historical-charcoal">{user.profile.address}</p>
+                        <label className="text-sm text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{t.admin.users.form.address}</label>
+                        <p className="text-historical-charcoal dark:text-gray-200 transition-colors duration-300">{user.profile.address}</p>
                       </div>
                     )}
                     <div>
-                      <label className="text-sm text-historical-charcoal/50">{t.admin.users.form.preferredLanguage}</label>
-                      <p className="text-historical-charcoal">{user.profile.preferred_language_display}</p>
+                      <label className="text-sm text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{t.admin.users.form.preferredLanguage}</label>
+                      <p className="text-historical-charcoal dark:text-gray-200 transition-colors duration-300">{user.profile.preferred_language_display}</p>
                     </div>
                   </div>
                 </div>
               )}
 
               {/* Statistics */}
-              <div className="space-y-4 border-t border-historical-gold/10 pt-4">
-                <h3 className="font-bold text-historical-charcoal">{t.admin.users.statistics}</h3>
+              <div className="space-y-4 border-t border-historical-gold/10 dark:border-gray-700 pt-4 transition-colors duration-300">
+                <h3 className="font-bold text-historical-charcoal dark:text-gray-100 transition-colors duration-300">{t.admin.users.statistics}</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-sm text-historical-charcoal/50">{t.admin.users.ordersCount}</label>
-                    <p className="text-2xl font-bold text-historical-charcoal">{user.orders_count}</p>
+                    <label className="text-sm text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{t.admin.users.ordersCount}</label>
+                    <p className="text-2xl font-bold text-historical-charcoal dark:text-gray-100 transition-colors duration-300">{user.orders_count}</p>
                   </div>
                   <div>
-                    <label className="text-sm text-historical-charcoal/50">{t.admin.users.totalSpending}</label>
-                    <p className="text-2xl font-bold text-historical-gold">{user.total_spent.toFixed(2)} SYP</p>
+                    <label className="text-sm text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{t.admin.users.totalSpending}</label>
+                    <p className="text-2xl font-bold text-historical-gold dark:text-yellow-400 transition-colors duration-300">{user.total_spent.toFixed(2)} SYP</p>
                   </div>
                 </div>
               </div>
 
               {/* Vendor Associations */}
               {user.vendor_associations && user.vendor_associations.length > 0 && (
-                <div className="space-y-4 border-t border-historical-gold/10 pt-4">
-                  <h3 className="font-bold text-historical-charcoal">{t.admin.users.vendorAssociations}</h3>
+                <div className="space-y-4 border-t border-historical-gold/10 dark:border-gray-700 pt-4 transition-colors duration-300">
+                  <h3 className="font-bold text-historical-charcoal dark:text-gray-100 transition-colors duration-300">{t.admin.users.vendorAssociations}</h3>
                   <div className="space-y-2">
                     {user.vendor_associations.map((assoc) => (
-                      <div key={assoc.id} className="flex items-center justify-between p-3 rounded-lg bg-historical-stone/30">
-                        <span className="font-medium text-historical-charcoal">{assoc.vendor_name}</span>
+                      <div key={assoc.id} className="flex items-center justify-between p-3 rounded-lg bg-historical-stone/30 dark:bg-gray-700/30 transition-colors duration-300">
+                        <span className="font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300">{assoc.vendor_name}</span>
                         {assoc.is_owner && (
-                          <span className="text-xs px-2 py-1 rounded-full bg-historical-gold/20 text-historical-gold">
+                          <span className="text-xs px-2 py-1 rounded-full bg-historical-gold/20 dark:bg-yellow-900/30 text-historical-gold dark:text-yellow-400 transition-colors duration-300">
                             {t.admin.users.owner}
                           </span>
                         )}
@@ -1143,17 +1143,17 @@ function ViewUserModal({
               )}
 
               {/* Timestamps */}
-              <div className="space-y-4 border-t border-historical-gold/10 pt-4">
-                <h3 className="font-bold text-historical-charcoal">{t.admin.users.dates}</h3>
+              <div className="space-y-4 border-t border-historical-gold/10 dark:border-gray-700 pt-4 transition-colors duration-300">
+                <h3 className="font-bold text-historical-charcoal dark:text-gray-100 transition-colors duration-300">{t.admin.users.dates}</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-sm text-historical-charcoal/50">{t.admin.users.createdAt}</label>
-                    <p className="text-historical-charcoal">{formatDate(user.created_at)}</p>
+                    <label className="text-sm text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{t.admin.users.createdAt}</label>
+                    <p className="text-historical-charcoal dark:text-gray-200 transition-colors duration-300">{formatDate(user.created_at)}</p>
                   </div>
                   {user.last_login && (
                     <div>
-                      <label className="text-sm text-historical-charcoal/50">{t.admin.users.lastLogin}</label>
-                      <p className="text-historical-charcoal">{formatDate(user.last_login)}</p>
+                      <label className="text-sm text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{t.admin.users.lastLogin}</label>
+                      <p className="text-historical-charcoal dark:text-gray-200 transition-colors duration-300">{formatDate(user.last_login)}</p>
                     </div>
                   )}
                 </div>
@@ -1162,10 +1162,10 @@ function ViewUserModal({
           )}
 
           {/* Footer */}
-          <div className="px-6 py-4 border-t border-historical-gold/10 bg-historical-stone/20 flex items-center justify-end">
+          <div className="px-6 py-4 border-t border-historical-gold/10 dark:border-gray-700 bg-historical-stone/20 dark:bg-gray-700/30 flex items-center justify-end transition-colors duration-300">
             <button
               onClick={onClose}
-              className="px-5 py-2.5 rounded-xl bg-historical-gold/10 text-historical-gold hover:bg-historical-gold/20 transition-colors"
+              className="px-5 py-2.5 rounded-xl bg-historical-gold/10 dark:bg-yellow-900/20 text-historical-gold dark:text-yellow-400 hover:bg-historical-gold/20 dark:hover:bg-yellow-900/30 transition-colors"
             >
               {t.admin.users.close}
             </button>
@@ -1198,6 +1198,7 @@ function EditUserModal({
   onClose,
   onUpdate,
 }: EditUserModalProps) {
+  const { t } = useLanguage()
   const [formData, setFormData] = useState<import('@/lib/admin/types/users').UserUpdatePayload>({
     email: '',
     full_name: '',
@@ -1270,11 +1271,11 @@ function EditUserModal({
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-historical-gold/10 bg-historical-stone/30">
-            <h2 className="text-lg font-bold text-historical-charcoal">{t.admin.users.editUser}</h2>
+          <div className="flex items-center justify-between px-6 py-4 border-b border-historical-gold/10 dark:border-gray-700 bg-historical-stone/30 dark:bg-gray-700/30 transition-colors duration-300">
+            <h2 className="text-lg font-bold text-historical-charcoal dark:text-gray-100 transition-colors duration-300">{t.admin.users.editUser}</h2>
             <button
               onClick={onClose}
-              className="p-2 rounded-lg text-historical-charcoal/50 hover:text-historical-charcoal hover:bg-historical-gold/10 transition-colors"
+              className="p-2 rounded-lg text-historical-charcoal/50 dark:text-gray-400 hover:text-historical-charcoal dark:hover:text-gray-200 hover:bg-historical-gold/10 dark:hover:bg-gray-600 transition-colors"
             >
               {Icons.close}
             </button>
@@ -1284,17 +1285,17 @@ function EditUserModal({
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
               {Icons.loader}
-              <span className="mr-2 text-historical-charcoal/50">{t.admin.users.loadingData}</span>
+              <span className="mr-2 text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{t.admin.users.loadingData}</span>
             </div>
           ) : !user ? (
             <div className="text-center py-12">
-              <p className="text-historical-charcoal/50">المستخدم غير موجود</p>
+              <p className="text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">المستخدم غير موجود</p>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
               {/* Email */}
               <div>
-                <label className="block text-sm font-medium text-historical-charcoal mb-1">
+                <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 mb-1 transition-colors duration-300">
                   {t.admin.users.form.email} *
                 </label>
                 <input
@@ -1312,7 +1313,7 @@ function EditUserModal({
 
               {/* Full Name */}
               <div>
-                <label className="block text-sm font-medium text-historical-charcoal mb-1">
+                <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 mb-1 transition-colors duration-300">
                   {t.admin.users.form.name} *
                 </label>
                 <input
@@ -1329,7 +1330,7 @@ function EditUserModal({
 
               {/* Phone */}
               <div>
-                <label className="block text-sm font-medium text-historical-charcoal mb-1">
+                <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 mb-1 transition-colors duration-300">
                   {t.admin.users.form.phone} *
                 </label>
                 <input
@@ -1347,7 +1348,7 @@ function EditUserModal({
 
               {/* Role */}
               <div>
-                <label className="block text-sm font-medium text-historical-charcoal mb-1">
+                <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 mb-1 transition-colors duration-300">
                   {t.admin.users.form.role}
                 </label>
                 <select
@@ -1363,20 +1364,20 @@ function EditUserModal({
 
               {/* Address */}
               <div>
-                <label className="block text-sm font-medium text-historical-charcoal mb-1">
+                <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 mb-1 transition-colors duration-300">
                   {t.admin.users.form.address}
                 </label>
                 <textarea
                   value={formData.address}
                   onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                   rows={3}
-                  className="w-full px-4 py-2.5 rounded-xl border border-historical-gold/20 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 resize-none"
+                  className="w-full px-4 py-2.5 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 text-historical-charcoal dark:text-gray-200 transition-colors duration-300 resize-none"
                 />
               </div>
 
               {/* Preferred Language */}
               <div>
-                <label className="block text-sm font-medium text-historical-charcoal mb-1">
+                <label className="block text-sm font-medium text-historical-charcoal dark:text-gray-200 mb-1 transition-colors duration-300">
                   {t.admin.users.form.preferredLanguage}
                 </label>
                 <select
@@ -1396,18 +1397,18 @@ function EditUserModal({
                     type="checkbox"
                     checked={formData.is_active}
                     onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
-                    className="w-4 h-4 rounded border-historical-gold/30 text-historical-gold focus:ring-historical-gold"
+                    className="w-4 h-4 rounded border-historical-gold/30 dark:border-gray-600 bg-white dark:bg-gray-700 text-historical-gold dark:text-yellow-400 focus:ring-historical-gold dark:focus:ring-yellow-600 transition-colors duration-300"
                   />
-                  <span className="text-sm text-historical-charcoal">{t.admin.users.form.isActive}</span>
+                  <span className="text-sm text-historical-charcoal dark:text-gray-200 transition-colors duration-300">{t.admin.users.form.isActive}</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={formData.is_staff}
                     onChange={(e) => setFormData({ ...formData, is_staff: e.target.checked })}
-                    className="w-4 h-4 rounded border-historical-gold/30 text-historical-gold focus:ring-historical-gold"
+                    className="w-4 h-4 rounded border-historical-gold/30 dark:border-gray-600 bg-white dark:bg-gray-700 text-historical-gold dark:text-yellow-400 focus:ring-historical-gold dark:focus:ring-yellow-600 transition-colors duration-300"
                   />
-                  <span className="text-sm text-historical-charcoal">{t.admin.users.form.isStaff}</span>
+                  <span className="text-sm text-historical-charcoal dark:text-gray-200 transition-colors duration-300">{t.admin.users.form.isStaff}</span>
                 </label>
                 {formData.is_superuser !== undefined && (
                   <label className="flex items-center gap-2 cursor-pointer opacity-50">
@@ -1415,9 +1416,9 @@ function EditUserModal({
                       type="checkbox"
                       checked={formData.is_superuser}
                       disabled
-                      className="w-4 h-4 rounded border-historical-gold/30 text-historical-gold focus:ring-historical-gold"
+                      className="w-4 h-4 rounded border-historical-gold/30 dark:border-gray-600 bg-white dark:bg-gray-700 text-historical-gold dark:text-yellow-400 focus:ring-historical-gold dark:focus:ring-yellow-600 transition-colors duration-300"
                     />
-                    <span className="text-sm text-historical-charcoal">{t.admin.users.superuser}</span>
+                    <span className="text-sm text-historical-charcoal dark:text-gray-200 transition-colors duration-300">{t.admin.users.superuser}</span>
                   </label>
                 )}
               </div>
@@ -1425,11 +1426,11 @@ function EditUserModal({
           )}
 
           {/* Footer */}
-          <div className="px-6 py-4 border-t border-historical-gold/10 bg-historical-stone/20 flex items-center justify-end gap-3">
+          <div className="px-6 py-4 border-t border-historical-gold/10 dark:border-gray-700 bg-historical-stone/20 dark:bg-gray-700/30 flex items-center justify-end gap-3 transition-colors duration-300">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2.5 rounded-xl border border-historical-gold/20 text-historical-charcoal hover:bg-historical-stone/50 transition-colors"
+              className="px-4 py-2.5 rounded-xl border border-historical-gold/20 dark:border-gray-600 text-historical-charcoal dark:text-gray-200 hover:bg-historical-stone/50 dark:hover:bg-gray-600 transition-colors"
             >
               إلغاء
             </button>
