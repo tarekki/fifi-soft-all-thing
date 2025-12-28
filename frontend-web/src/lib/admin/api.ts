@@ -114,7 +114,7 @@ export function isTokenExpired(token: string): boolean {
  * @param options - Fetch options
  * @returns Promise with API response
  */
-async function adminFetch<T>(
+export async function adminFetch<T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<ApiResponse<T>> {

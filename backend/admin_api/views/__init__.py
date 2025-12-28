@@ -87,6 +87,23 @@ from .notifications import (
     MarkAllAsReadView,
     NotificationStatsView,
 )
+from .settings import (
+    AdminSiteSettingsView,
+    AdminSocialLinkListCreateView,
+    AdminSocialLinkDetailView,
+    AdminLanguageListCreateView,
+    AdminLanguageDetailView,
+    AdminNavigationListCreateView,
+    AdminNavigationDetailView,
+    AdminNavigationBulkUpdateView,
+    AdminTrustSignalListCreateView,
+    AdminTrustSignalDetailView,
+    AdminPaymentMethodListCreateView,
+    AdminPaymentMethodDetailView,
+    AdminShippingMethodListCreateView,
+    AdminShippingMethodDetailView,
+    AdminAllSettingsView,
+)
 
 __all__ = [
     # Auth
@@ -159,5 +176,21 @@ __all__ = [
     'MarkMultipleAsReadView',
     'MarkAllAsReadView',
     'NotificationStatsView',
+    # Settings
+    'AdminSiteSettingsView',
+    'AdminSocialLinkListCreateView',
+    'AdminSocialLinkDetailView',
+    'AdminLanguageListCreateView',
+    'AdminLanguageDetailView',
+    'AdminNavigationListCreateView',
+    'AdminNavigationDetailView',
+    'AdminNavigationBulkUpdateView',
+    'AdminTrustSignalListCreateView',
+    'AdminTrustSignalDetailView',
+    'AdminPaymentMethodListCreateView',
+    'AdminPaymentMethodDetailView',
+    'AdminShippingMethodListCreateView',
+    'AdminShippingMethodDetailView',
+    'AdminAllSettingsView',
 ]
 

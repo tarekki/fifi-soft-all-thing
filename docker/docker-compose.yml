@@ -54,9 +54,10 @@ services:
     container_name: yallabuy_backend
     restart: unless-stopped
     # تشغيل migrations ثم السيرفر
+    # تم إيقاف StatReloader لتوفير الذاكرة
     command: >
       sh -c "python manage.py migrate --noinput &&
-             python manage.py runserver 0.0.0.0:8000"
+             python manage.py runserver 0.0.0.0:8000 --noreload"
     volumes:
       - ../backend:/app
       - backend_static:/app/staticfiles
@@ -70,12 +71,14 @@ services:
       - SECRET_KEY=django-insecure-dev-key-change-in-production
       - CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:3001,http://127.0.0.1:3000,http://127.0.0.1:3001,http://frontend:3000
       - PYTHONUNBUFFERED=1
+      # تقليل استخدام الذاكرة
+      - PYTHONOPTIMIZE=1
     deploy:
       resources:
         limits:
-          memory: 2G
-        reservations:
           memory: 1G
+        reservations:
+          memory: 512M
     depends_on:
       db:
         condition: service_healthy
@@ -86,7 +89,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 40s
+      start_period: 60s
 
   # ===========================================================================
   # Next.js Frontend
@@ -114,9 +117,10 @@ services:
       - NEXT_PUBLIC_FRONTEND_URL=http://localhost:3000
       - WATCHPACK_POLLING=true
       - NEXT_PRIVATE_SKIP_TURBO=1
-      - NODE_OPTIONS=--max-old-space-size=3072 --max-semi-space-size=512
+      # تقليل استخدام الذاكرة
+      - NODE_OPTIONS=--max-old-space-size=2048
       - CHOKIDAR_USEPOLLING=true
-      - CHOKIDAR_INTERVAL=2000
+      - CHOKIDAR_INTERVAL=3000
       - NODE_ENV=development
       # Internal API URL for server-side requests (SSR)
       # عنوان API الداخلي للطلبات من جانب الخادم (SSR)
@@ -124,9 +128,9 @@ services:
     deploy:
       resources:
         limits:
-          memory: 4G
-        reservations:
           memory: 2G
+        reservations:
+          memory: 1G
     depends_on:
       - backend
     networks:

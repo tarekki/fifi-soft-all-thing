@@ -20,6 +20,28 @@ export type {
   RecentOrder,
   RecentActivity,
   ApiResponse,
+  // Settings Types
+  SiteSettings,
+  SiteSettingsUpdate,
+  SocialPlatform,
+  SocialLink,
+  SocialLinkPayload,
+  Language,
+  LanguagePayload,
+  NavigationLocation,
+  NavigationVisibility,
+  NavigationItem,
+  NavigationItemPayload,
+  NavigationMenus,
+  TrustSignal,
+  TrustSignalPayload,
+  PaymentFeeType,
+  PaymentMethod,
+  PaymentMethodPayload,
+  ShippingRateType,
+  ShippingMethod,
+  ShippingMethodPayload,
+  AllSettings,
 } from './types'
 
 // Notification Types
@@ -78,6 +100,16 @@ export { useVendorApplications } from './hooks/useVendorApplications'
 export { useUsers } from './hooks/useUsers'
 export { useBanners, useStories, useCoupons, usePromotionStats } from './hooks/usePromotions'
 export { useNotifications } from './hooks/useNotifications'
+export {
+  useSiteSettings,
+  useSocialLinks,
+  useLanguages,
+  useNavigation,
+  useTrustSignals,
+  usePaymentMethods,
+  useShippingMethods,
+  useAllSettings,
+} from './hooks/useSettings'
 
 // Category Types
 // أنواع الفئات
@@ -303,4 +335,40 @@ export {
   markAllAsRead,
   getNotificationStats,
 } from './api/notifications'
+
+// Settings API Functions
+// دوال API الإعدادات
+export {
+  getSiteSettings,
+  updateSiteSettings,
+  getSocialLinks,
+  getSocialLink,
+  createSocialLink,
+  updateSocialLink,
+  deleteSocialLink,
+  getLanguages,
+  createLanguage,
+  updateLanguage,
+  deleteLanguage,
+  getNavigationMenus,
+  getNavigationByLocation,
+  getNavigationItem,
+  createNavigationItem,
+  updateNavigationItem,
+  deleteNavigationItem,
+  bulkUpdateNavigation,
+  getTrustSignals,
+  createTrustSignal,
+  updateTrustSignal,
+  deleteTrustSignal,
+  getPaymentMethods,
+  createPaymentMethod,
+  updatePaymentMethod,
+  deletePaymentMethod,
+  getShippingMethods,
+  createShippingMethod,
+  updateShippingMethod,
+  deleteShippingMethod,
+  getAllSettings,
+} from './api/settings'
 

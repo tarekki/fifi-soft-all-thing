@@ -90,6 +90,22 @@ from admin_api.views import (
     MarkMultipleAsReadView,
     MarkAllAsReadView,
     NotificationStatsView,
+    # Settings
+    AdminSiteSettingsView,
+    AdminSocialLinkListCreateView,
+    AdminSocialLinkDetailView,
+    AdminLanguageListCreateView,
+    AdminLanguageDetailView,
+    AdminNavigationListCreateView,
+    AdminNavigationDetailView,
+    AdminNavigationBulkUpdateView,
+    AdminTrustSignalListCreateView,
+    AdminTrustSignalDetailView,
+    AdminPaymentMethodListCreateView,
+    AdminPaymentMethodDetailView,
+    AdminShippingMethodListCreateView,
+    AdminShippingMethodDetailView,
+    AdminAllSettingsView,
 )
 
 
@@ -612,6 +628,131 @@ notifications_urlpatterns = [
 
 
 # =============================================================================
+# Settings URL Patterns
+# أنماط URLs للإعدادات
+# =============================================================================
+settings_urlpatterns = [
+    # GET /api/v1/admin/settings/all/
+    # جميع الإعدادات مجمعة
+    path(
+        'all/',
+        AdminAllSettingsView.as_view(),
+        name='all'
+    ),
+    
+    # GET, PUT /api/v1/admin/settings/site/
+    # إعدادات الموقع
+    path(
+        'site/',
+        AdminSiteSettingsView.as_view(),
+        name='site'
+    ),
+    
+    # =========================================================================
+    # Social Links URLs
+    # =========================================================================
+    # GET, POST /api/v1/admin/settings/social/
+    path(
+        'social/',
+        AdminSocialLinkListCreateView.as_view(),
+        name='social-list-create'
+    ),
+    # GET, PUT, DELETE /api/v1/admin/settings/social/{id}/
+    path(
+        'social/<int:pk>/',
+        AdminSocialLinkDetailView.as_view(),
+        name='social-detail'
+    ),
+    
+    # =========================================================================
+    # Languages URLs
+    # =========================================================================
+    # GET, POST /api/v1/admin/settings/languages/
+    path(
+        'languages/',
+        AdminLanguageListCreateView.as_view(),
+        name='languages-list-create'
+    ),
+    # GET, PUT, DELETE /api/v1/admin/settings/languages/{id}/
+    path(
+        'languages/<int:pk>/',
+        AdminLanguageDetailView.as_view(),
+        name='languages-detail'
+    ),
+    
+    # =========================================================================
+    # Navigation URLs
+    # =========================================================================
+    # GET, POST /api/v1/admin/settings/navigation/
+    path(
+        'navigation/',
+        AdminNavigationListCreateView.as_view(),
+        name='navigation-list-create'
+    ),
+    # POST /api/v1/admin/settings/navigation/bulk/
+    path(
+        'navigation/bulk/',
+        AdminNavigationBulkUpdateView.as_view(),
+        name='navigation-bulk-update'
+    ),
+    # GET, PUT, DELETE /api/v1/admin/settings/navigation/{id}/
+    path(
+        'navigation/<int:pk>/',
+        AdminNavigationDetailView.as_view(),
+        name='navigation-detail'
+    ),
+    
+    # =========================================================================
+    # Trust Signals URLs
+    # =========================================================================
+    # GET, POST /api/v1/admin/settings/trust-signals/
+    path(
+        'trust-signals/',
+        AdminTrustSignalListCreateView.as_view(),
+        name='trust-signals-list-create'
+    ),
+    # GET, PUT, DELETE /api/v1/admin/settings/trust-signals/{id}/
+    path(
+        'trust-signals/<int:pk>/',
+        AdminTrustSignalDetailView.as_view(),
+        name='trust-signals-detail'
+    ),
+    
+    # =========================================================================
+    # Payment Methods URLs
+    # =========================================================================
+    # GET, POST /api/v1/admin/settings/payments/
+    path(
+        'payments/',
+        AdminPaymentMethodListCreateView.as_view(),
+        name='payments-list-create'
+    ),
+    # GET, PUT, DELETE /api/v1/admin/settings/payments/{id}/
+    path(
+        'payments/<int:pk>/',
+        AdminPaymentMethodDetailView.as_view(),
+        name='payments-detail'
+    ),
+    
+    # =========================================================================
+    # Shipping Methods URLs
+    # =========================================================================
+    # GET, POST /api/v1/admin/settings/shipping/
+    path(
+        'shipping/',
+        AdminShippingMethodListCreateView.as_view(),
+        name='shipping-list-create'
+    ),
+    # GET, PUT, DELETE /api/v1/admin/settings/shipping/{id}/
+    path(
+        'shipping/<int:pk>/',
+        AdminShippingMethodDetailView.as_view(),
+        name='shipping-detail'
+    ),
+]
+
+
+# =============================================================================
 # Reports URL Patterns
 # أنماط URLs للتقارير
 # =============================================================================
@@ -699,11 +840,9 @@ urlpatterns = [
     # نقاط نهاية العروض والحملات
     path('promotions/', include((promotions_urlpatterns, 'promotions'))),
     
-    # TODO: Add more endpoints as they are implemented
-    # سيتم إضافة المزيد من النقاط عند تنفيذها
-    
-    # Settings Management
-    # path('settings/', include('admin_api.urls.settings')),
+    # Settings endpoints
+    # نقاط نهاية الإعدادات
+    path('settings/', include((settings_urlpatterns, 'settings'))),
     
     # Notifications endpoints
     # نقاط نهاية الإشعارات

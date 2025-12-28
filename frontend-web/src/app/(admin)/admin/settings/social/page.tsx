@@ -3,23 +3,21 @@
 /**
  * Admin Settings - Social Links Page
  * صفحة إعدادات روابط التواصل الاجتماعي
+ * 
+ * This page is connected to the backend API for real data
+ * هذه الصفحة متصلة بالباك إند للبيانات الحقيقية
+ * 
+ * @author Yalla Buy Team
  */
 
 import { useState, useCallback } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-
-// =============================================================================
-// Types
-// =============================================================================
-
-interface SocialLink {
-  id: string
-  platform: string
-  name: string
-  url: string
-  icon: string
-  isActive: boolean
-}
+import { motion, AnimatePresence, Reorder } from 'framer-motion'
+import { 
+  useSocialLinks, 
+  type SocialLink, 
+  type SocialLinkPayload,
+  type SocialPlatform 
+} from '@/lib/admin'
 
 // =============================================================================
 // Icons
@@ -46,9 +44,25 @@ const Icons = {
       <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
     </svg>
   ),
+  refresh: (
+    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+    </svg>
+  ),
+  loading: (
+    <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+    </svg>
+  ),
+  error: (
+    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+    </svg>
+  ),
 }
 
-// Platform Icons (Simple SVG representations)
+// Platform Icons
 const PlatformIcons: Record<string, React.ReactNode> = {
   facebook: (
     <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -90,6 +104,21 @@ const PlatformIcons: Record<string, React.ReactNode> = {
       <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
     </svg>
   ),
+  snapchat: (
+    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+      <path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.162-.105-.949-.199-2.403.041-3.439.219-.937 1.406-5.957 1.406-5.957s-.359-.72-.359-1.781c0-1.663.967-2.911 2.168-2.911 1.024 0 1.518.769 1.518 1.688 0 1.029-.653 2.567-.992 3.992-.285 1.193.6 2.165 1.775 2.165 2.128 0 3.768-2.245 3.768-5.487 0-2.861-2.063-4.869-5.008-4.869-3.41 0-5.409 2.562-5.409 5.199 0 1.033.394 2.143.889 2.741.097.122.112.228.083.351l-.334 1.36c-.053.22-.174.267-.402.161-1.499-.698-2.436-2.889-2.436-4.649 0-3.785 2.75-7.262 7.929-7.262 4.163 0 7.398 2.967 7.398 6.931 0 4.136-2.607 7.464-6.227 7.464-1.216 0-2.359-.631-2.75-1.378l-.748 2.853c-.271 1.043-1.002 2.35-1.492 3.146C9.57 23.812 10.763 24 12.017 24c6.624 0 11.99-5.367 11.99-11.987C24.007 5.367 18.641 0 12.017 0z"/>
+    </svg>
+  ),
+  pinterest: (
+    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+      <path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.162-.105-.949-.199-2.403.041-3.439.219-.937 1.406-5.957 1.406-5.957s-.359-.72-.359-1.781c0-1.663.967-2.911 2.168-2.911 1.024 0 1.518.769 1.518 1.688 0 1.029-.653 2.567-.992 3.992-.285 1.193.6 2.165 1.775 2.165 2.128 0 3.768-2.245 3.768-5.487 0-2.861-2.063-4.869-5.008-4.869-3.41 0-5.409 2.562-5.409 5.199 0 1.033.394 2.143.889 2.741.097.122.112.228.083.351l-.334 1.36c-.053.22-.174.267-.402.161-1.499-.698-2.436-2.889-2.436-4.649 0-3.785 2.75-7.262 7.929-7.262 4.163 0 7.398 2.967 7.398 6.931 0 4.136-2.607 7.464-6.227 7.464-1.216 0-2.359-.631-2.75-1.378l-.748 2.853c-.271 1.043-1.002 2.35-1.492 3.146C9.57 23.812 10.763 24 12.017 24c6.624 0 11.99-5.367 11.99-11.987C24.007 5.367 18.641 0 12.017 0z"/>
+    </svg>
+  ),
+  other: (
+    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
+    </svg>
+  ),
 }
 
 const platformColors: Record<string, string> = {
@@ -101,21 +130,15 @@ const platformColors: Record<string, string> = {
   linkedin: 'bg-blue-700 text-white',
   whatsapp: 'bg-green-500 text-white',
   telegram: 'bg-blue-500 text-white',
+  snapchat: 'bg-yellow-400 text-black',
+  pinterest: 'bg-red-700 text-white',
+  other: 'bg-gray-500 text-white',
 }
 
-// =============================================================================
-// Mock Data
-// =============================================================================
-
-const initialLinks: SocialLink[] = [
-  { id: '1', platform: 'facebook', name: 'Facebook', url: 'https://facebook.com/yallabuy', icon: 'facebook', isActive: true },
-  { id: '2', platform: 'instagram', name: 'Instagram', url: 'https://instagram.com/yallabuy', icon: 'instagram', isActive: true },
-  { id: '3', platform: 'twitter', name: 'X (Twitter)', url: 'https://twitter.com/yallabuy', icon: 'twitter', isActive: true },
-  { id: '4', platform: 'whatsapp', name: 'WhatsApp', url: 'https://wa.me/963912345678', icon: 'whatsapp', isActive: true },
-  { id: '5', platform: 'telegram', name: 'Telegram', url: 'https://t.me/yallabuy', icon: 'telegram', isActive: false },
+const availablePlatforms: SocialPlatform[] = [
+  'facebook', 'instagram', 'twitter', 'youtube', 'tiktok', 
+  'linkedin', 'whatsapp', 'telegram', 'snapchat', 'pinterest', 'other'
 ]
-
-const availablePlatforms = ['facebook', 'instagram', 'twitter', 'youtube', 'tiktok', 'linkedin', 'whatsapp', 'telegram']
 
 // =============================================================================
 // Animation Variants
@@ -143,47 +166,72 @@ const itemVariants = {
 // =============================================================================
 
 export default function SocialSettingsPage() {
-  const [links, setLinks] = useState<SocialLink[]>(initialLinks)
-  const [isSaving, setIsSaving] = useState(false)
-  const [hasChanges, setHasChanges] = useState(false)
+  const { 
+    links, 
+    isLoading, 
+    isProcessing, 
+    error, 
+    refresh, 
+    create, 
+    update, 
+    remove 
+  } = useSocialLinks()
+  
+  const [editingUrl, setEditingUrl] = useState<Record<number, string>>({})
 
-  const handleToggle = useCallback((id: string) => {
-    setLinks(prev => prev.map(l => l.id === id ? { ...l, isActive: !l.isActive } : l))
-    setHasChanges(true)
+  const handleToggle = useCallback(async (id: number, isActive: boolean) => {
+    await update(id, { is_active: isActive })
+  }, [update])
+
+  const handleUpdateUrl = useCallback((id: number, url: string) => {
+    setEditingUrl(prev => ({ ...prev, [id]: url }))
   }, [])
 
-  const handleUpdateUrl = useCallback((id: string, url: string) => {
-    setLinks(prev => prev.map(l => l.id === id ? { ...l, url } : l))
-    setHasChanges(true)
-  }, [])
+  const handleSaveUrl = useCallback(async (id: number) => {
+    const url = editingUrl[id]
+    if (url !== undefined) {
+      await update(id, { url })
+      setEditingUrl(prev => {
+        const newState = { ...prev }
+        delete newState[id]
+        return newState
+      })
+    }
+  }, [editingUrl, update])
 
-  const handleDelete = useCallback((id: string) => {
-    setLinks(prev => prev.filter(l => l.id !== id))
-    setHasChanges(true)
-  }, [])
+  const handleDelete = useCallback(async (id: number) => {
+    if (window.confirm('هل أنت متأكد من حذف هذا الرابط؟')) {
+      await remove(id)
+    }
+  }, [remove])
 
-  const handleAdd = useCallback((platform: string) => {
-    const newLink: SocialLink = {
-      id: Date.now().toString(),
+  const handleAdd = useCallback(async (platform: SocialPlatform) => {
+    const newLink: SocialLinkPayload = {
       platform,
       name: platform.charAt(0).toUpperCase() + platform.slice(1),
       url: '',
       icon: platform,
-      isActive: false,
+      order: links.length,
+      is_active: false,
+      open_in_new_tab: true,
     }
-    setLinks(prev => [...prev, newLink])
-    setHasChanges(true)
-  }, [])
-
-  const handleSave = async () => {
-    setIsSaving(true)
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    setIsSaving(false)
-    setHasChanges(false)
-  }
+    await create(newLink)
+  }, [create, links.length])
 
   const usedPlatforms = links.map(l => l.platform)
   const unusedPlatforms = availablePlatforms.filter(p => !usedPlatforms.includes(p))
+
+  // Loading state
+  if (isLoading && links.length === 0) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="flex flex-col items-center gap-4">
+          {Icons.loading}
+          <p className="text-historical-charcoal/50 dark:text-gray-400">جاري تحميل الروابط...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <motion.div
@@ -196,25 +244,28 @@ export default function SocialSettingsPage() {
       <motion.div variants={itemVariants} className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-historical-charcoal dark:text-gray-100 transition-colors duration-300">روابط التواصل الاجتماعي</h1>
-          <p className="text-historical-charcoal/50 dark:text-gray-400 mt-1 transition-colors duration-300">إدارة حسابات التواصل الاجتماعي</p>
+          <p className="text-historical-charcoal/50 dark:text-gray-400 mt-1 transition-colors duration-300">إدارة حسابات التواصل الاجتماعي - متصل بالباك إند</p>
         </div>
         <button
-          onClick={handleSave}
-          disabled={!hasChanges || isSaving}
-          className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all duration-200 ${
-            hasChanges && !isSaving
-              ? 'bg-gradient-to-l from-historical-gold to-historical-red text-white shadow-lg hover:shadow-xl'
-              : 'bg-historical-charcoal/10 dark:bg-gray-700/50 text-historical-charcoal/40 dark:text-gray-500 cursor-not-allowed'
-          }`}
+          onClick={refresh}
+          disabled={isLoading}
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-historical-gold/20 dark:border-gray-600 text-historical-charcoal dark:text-gray-200 hover:bg-historical-gold/10 dark:hover:bg-gray-700/50 transition-colors duration-300 disabled:opacity-50"
         >
-          {isSaving ? (
-            <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-          ) : (
-            Icons.save
-          )}
-          <span>{isSaving ? 'جاري الحفظ...' : 'حفظ التغييرات'}</span>
+          <span className={isLoading ? 'animate-spin' : ''}>{Icons.refresh}</span>
+          <span>تحديث</span>
         </button>
       </motion.div>
+
+      {/* Error Message */}
+      {error && (
+        <motion.div variants={itemVariants} className="flex items-center gap-3 p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400">
+          {Icons.error}
+          <div>
+            <p className="font-medium">حدث خطأ</p>
+            <p className="text-sm opacity-80">{error}</p>
+          </div>
+        </motion.div>
+      )}
 
       {/* Social Links List */}
       <motion.div variants={itemVariants} className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 dark:border-gray-700 shadow-soft overflow-hidden transition-colors duration-300">
@@ -230,23 +281,29 @@ export default function SocialSettingsPage() {
                 className="flex items-center gap-4 p-4 rounded-xl border border-historical-gold/10 dark:border-gray-700 bg-historical-stone/30 dark:bg-gray-700/30 group transition-colors duration-300"
               >
                 {/* Drag Handle */}
-                <button className="p-1 rounded cursor-grab text-historical-charcoal/30 dark:text-gray-500 hover:text-historical-charcoal/60 dark:hover:text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button 
+                  className="p-1 rounded cursor-grab text-historical-charcoal/30 dark:text-gray-500 hover:text-historical-charcoal/60 dark:hover:text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity"
+                  disabled={isProcessing}
+                >
                   {Icons.drag}
                 </button>
 
                 {/* Platform Icon */}
                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${platformColors[link.platform] || 'bg-gray-500 text-white'}`}>
-                  {PlatformIcons[link.platform]}
+                  {PlatformIcons[link.platform] || PlatformIcons.other}
                 </div>
 
                 {/* Platform Name & URL */}
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300">{link.name}</p>
+                  <p className="font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300">{link.platform_display || link.name}</p>
                   <input
                     type="url"
-                    value={link.url}
+                    value={editingUrl[link.id] ?? link.url}
                     onChange={(e) => handleUpdateUrl(link.id, e.target.value)}
-                    className="w-full text-sm text-historical-charcoal/50 dark:text-gray-400 bg-transparent focus:outline-none placeholder:text-historical-charcoal/30 dark:placeholder:text-gray-500 transition-colors duration-300"
+                    onBlur={() => handleSaveUrl(link.id)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSaveUrl(link.id)}
+                    disabled={isProcessing}
+                    className="w-full text-sm text-historical-charcoal/50 dark:text-gray-400 bg-transparent focus:outline-none placeholder:text-historical-charcoal/30 dark:placeholder:text-gray-500 transition-colors duration-300 disabled:opacity-50"
                     placeholder={`https://${link.platform}.com/...`}
                     dir="ltr"
                   />
@@ -254,14 +311,15 @@ export default function SocialSettingsPage() {
 
                 {/* Toggle */}
                 <button
-                  onClick={() => handleToggle(link.id)}
-                  className={`relative w-12 h-7 rounded-full transition-colors duration-200 ${
-                    link.isActive ? 'bg-green-500 dark:bg-green-600' : 'bg-historical-charcoal/20 dark:bg-gray-600'
+                  onClick={() => handleToggle(link.id, !link.is_active)}
+                  disabled={isProcessing}
+                  className={`relative w-12 h-7 rounded-full transition-colors duration-200 disabled:opacity-50 ${
+                    link.is_active ? 'bg-green-500 dark:bg-green-600' : 'bg-historical-charcoal/20 dark:bg-gray-600'
                   }`}
                 >
                   <motion.div
                     initial={false}
-                    animate={{ x: link.isActive ? 22 : 4 }}
+                    animate={{ x: link.is_active ? 22 : 4 }}
                     transition={{ duration: 0.2 }}
                     className="absolute top-1 w-5 h-5 rounded-full bg-white dark:bg-gray-200 shadow-lg transition-colors duration-300"
                   />
@@ -270,13 +328,26 @@ export default function SocialSettingsPage() {
                 {/* Delete */}
                 <button
                   onClick={() => handleDelete(link.id)}
-                  className="p-2 rounded-lg text-historical-charcoal/30 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 opacity-0 group-hover:opacity-100 transition-all"
+                  disabled={isProcessing}
+                  className="p-2 rounded-lg text-historical-charcoal/30 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 opacity-0 group-hover:opacity-100 transition-all disabled:opacity-30"
                 >
                   {Icons.delete}
                 </button>
               </motion.div>
             ))}
           </AnimatePresence>
+
+          {links.length === 0 && (
+            <div className="text-center py-12">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-historical-gold/10 dark:bg-gray-700/50 flex items-center justify-center">
+                <svg className="w-8 h-8 text-historical-gold/50 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
+                </svg>
+              </div>
+              <p className="text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">لا توجد روابط سوشيال ميديا</p>
+              <p className="text-sm text-historical-charcoal/30 dark:text-gray-500 mt-2">أضف أول رابط من القائمة أدناه</p>
+            </div>
+          )}
         </div>
 
         {/* Add New */}
@@ -288,10 +359,11 @@ export default function SocialSettingsPage() {
                 <button
                   key={platform}
                   onClick={() => handleAdd(platform)}
-                  className="flex items-center gap-2 px-3 py-2 rounded-lg border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700 hover:bg-historical-gold/10 dark:hover:bg-gray-600 transition-colors"
+                  disabled={isProcessing}
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700 hover:bg-historical-gold/10 dark:hover:bg-gray-600 transition-colors disabled:opacity-50"
                 >
                   <span className={`w-6 h-6 rounded flex items-center justify-center ${platformColors[platform] || 'bg-gray-500 text-white'}`}>
-                    {PlatformIcons[platform]}
+                    {PlatformIcons[platform] || PlatformIcons.other}
                   </span>
                   <span className="text-sm font-medium text-historical-charcoal dark:text-gray-200 capitalize transition-colors duration-300">{platform}</span>
                 </button>
@@ -300,7 +372,14 @@ export default function SocialSettingsPage() {
           </div>
         )}
       </motion.div>
+
+      {/* API Status Badge */}
+      <motion.div variants={itemVariants} className="flex justify-center">
+        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 text-sm">
+          <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+          متصل بالـ API
+        </div>
+      </motion.div>
     </motion.div>
   )
 }
-
