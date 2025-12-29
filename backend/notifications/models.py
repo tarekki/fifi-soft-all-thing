@@ -10,6 +10,8 @@ from django.db import models
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
 
 
 # =============================================================================
@@ -85,19 +87,21 @@ class Notification(models.Model):
     
     # Target Information (what this notification is about)
     # معلومات الهدف (ما الذي يتعلق به هذا الإشعار)
-    target_type = models.CharField(
-        max_length=20,
-        choices=TargetType.choices,
+    # Using GenericForeignKey for flexible relationship with any model
+    # استخدام GenericForeignKey لعلاقة مرنة مع أي نموذج
+    target_content_type = models.ForeignKey(
+        ContentType,
+        on_delete=models.SET_NULL,
         null=True,
         blank=True,
         help_text=_('Type of object this notification is about')
     )
-    
-    target_id = models.PositiveIntegerField(
+    target_object_id = models.PositiveIntegerField(
         null=True,
         blank=True,
         help_text=_('ID of the object this notification is about')
     )
+    target = GenericForeignKey('target_content_type', 'target_object_id')
     
     # Action (what happened)
     # الإجراء (ما الذي حدث)
@@ -141,6 +145,7 @@ class Notification(models.Model):
         indexes = [
             models.Index(fields=['recipient', 'is_read', 'created_at']),
             models.Index(fields=['type', 'is_read']),
+            models.Index(fields=['target_content_type', 'target_object_id']),
         ]
     
     def __str__(self):
@@ -152,6 +157,51 @@ class Notification(models.Model):
             self.is_read = True
             self.read_at = timezone.now()
             self.save(update_fields=['is_read', 'read_at'])
+    
+    def set_target(self, obj):
+        """
+        Helper method to set target object
+        طريقة مساعدة لتعيين الكائن المستهدف
+        
+        Args:
+            obj: The target object instance (Order, Product, User, etc.)
+                 كائن الهدف (Order, Product, User, إلخ)
+        """
+        if obj is None:
+            self.target_content_type = None
+            self.target_object_id = None
+        else:
+            self.target_content_type = ContentType.objects.get_for_model(obj)
+            self.target_object_id = obj.pk
+        self.save(update_fields=['target_content_type', 'target_object_id'])
+    
+    @property
+    def target_object(self):
+        """
+        Get the target object instance
+        الحصول على كائن الهدف
+        
+        This is an alias for the GenericForeignKey 'target' field
+        for backward compatibility and clearer naming.
+        
+        هذا اسم بديل لحقل GenericForeignKey 'target'
+        للتوافق مع الكود القديم والتسمية الأوضح.
+        
+        Returns:
+            The target object instance or None if not set
+            كائن الهدف أو None إذا لم يكن معيناً
+        """
+        return self.target
+    
+    def has_target(self):
+        """
+        Check if notification has a valid target
+        التحقق من وجود هدف صالح للإشعار
+        
+        Returns:
+            bool: True if target exists, False otherwise
+        """
+        return self.target_object is not None
 
 
 # =============================================================================

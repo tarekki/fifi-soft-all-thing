@@ -104,11 +104,13 @@ class NotificationListView(APIView):
             limit = 20
             offset = 0
         
-        # Build query
-        # بناء الاستعلام
+        # Build query with select_related for performance
+        # بناء الاستعلام مع select_related للأداء
+        # Note: select_related is essential here because target_type depends on target_content_type
+        # ملاحظة: select_related ضروري هنا لأن target_type يعتمد على target_content_type
         queryset = Notification.objects.filter(
             Q(recipient=request.user) | Q(recipient__isnull=True)
-        )
+        ).select_related('target_content_type', 'recipient')
         
         # Apply filters
         # تطبيق الفلاتر

@@ -12,16 +12,14 @@ Endpoints:
 - GET /api/v1/admin/dashboard/recent-activity/ - Recent activity log
 """
 
-from rest_framework import status
 from rest_framework.views import APIView
-from rest_framework.response import Response
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-from django.db.models import Sum, Count, Avg, Q
-from django.db.models.functions import TruncDate, TruncWeek, TruncMonth
+from django.db.models import Sum, Count
+from django.db.models.functions import TruncDate, TruncMonth
 from datetime import timedelta
 from decimal import Decimal
-from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiResponse
+from drf_spectacular.utils import extend_schema, OpenApiParameter
 
 from admin_api.permissions import IsAdminUser
 from admin_api.throttling import AdminUserRateThrottle
@@ -31,7 +29,7 @@ from admin_api.serializers.dashboard import (
     RecentOrderSerializer,
     RecentActivitySerializer,
 )
-from core.utils import success_response, error_response
+from core.utils import success_response
 
 
 # =============================================================================
@@ -316,7 +314,7 @@ class DashboardSalesChartView(APIView):
         
         for item in orders_data:
             labels.append(item['date'].strftime(date_format))
-            revenue.append(item['revenue'] or Decimal('0.00'))
+            revenue.append(str(item['revenue'] or Decimal('0.00')))
             orders.append(item['count'])
         
         data = {
@@ -378,7 +376,11 @@ class DashboardRecentOrdersView(APIView):
         limit = int(request.query_params.get('limit', 10))
         limit = min(limit, 50)  # Max 50 orders
         
-        orders = Order.objects.select_related('user').order_by('-created_at')[:limit]
+        orders = (
+            Order.objects.select_related('user')
+            .annotate(items_count=Count('items', distinct=True))
+            .order_by('-created_at')[:limit]
+        )
         
         # Build response data
         # بناء بيانات الاستجابة
@@ -396,16 +398,18 @@ class DashboardRecentOrdersView(APIView):
         }
         
         for order in orders:
-            # Get customer name
-            # الحصول على اسم العميل
+            # Get customer name and email
+            # الحصول على اسم العميل والبريد الإلكتروني
             if order.user:
                 customer_name = f"{order.user.first_name} {order.user.last_name}".strip()
                 if not customer_name:
                     customer_name = order.user.email.split('@')[0]
                 customer_email = order.user.email
             else:
+                # Guest orders don't have email in Order model
+                # الطلبات بدون تسجيل لا يوجد لها email في Order model
                 customer_name = order.customer_name or _('ضيف / Guest')
-                customer_email = order.customer_email or ''
+                customer_email = None  # Guest orders have no email
             
             data.append({
                 'id': order.id,
@@ -415,7 +419,7 @@ class DashboardRecentOrdersView(APIView):
                 'total': order.total,
                 'status': order.status,
                 'status_display': status_display_map.get(order.status, order.status),
-                'items_count': order.items.count() if hasattr(order, 'items') else 0,
+                'items_count': getattr(order, 'items_count', 0),
                 'created_at': order.created_at,
             })
         
@@ -474,54 +478,73 @@ class DashboardRecentActivityView(APIView):
         
         from orders.models import Order
         from products.models import Product
-        from django.contrib.auth import get_user_model
-        
-        User = get_user_model()
         
         limit = int(request.query_params.get('limit', 10))
         limit = min(limit, 50)
         
         activities = []
+        SYSTEM_EMAIL = 'system@yallabuy.com'
+        
+        # Helper function to build activity dict
+        # دالة مساعدة لبناء قاموس النشاط
+        def build_activity(*, activity_id, user_name, user_email, action, action_display, target_ref, target_name, timestamp, ip_address=None):
+            """Build activity payload; derive target_type/target_id from target_ref."""
+            return {
+                'id': activity_id,
+                'user_name': user_name,
+                'user_email': user_email,
+                'action': action,
+                'action_display': action_display,
+                'target_ref': target_ref,
+                'target_type': (target_ref or {}).get('type'),
+                'target_id': (target_ref or {}).get('id'),
+                'target_name': target_name,
+                'timestamp': timestamp,
+                'ip_address': ip_address,
+            }
         
         # Recent orders as activities
         # الطلبات الأخيرة كنشاطات
-        recent_orders = Order.objects.order_by('-created_at')[:5]
+        recent_orders = Order.objects.select_related('user').order_by('-created_at')[:5]
         for order in recent_orders:
-            customer_name = _('ضيف / Guest')
-            customer_email = order.customer_email or ''
+            # Get customer name and email
+            # الحصول على اسم العميل والبريد الإلكتروني
             if order.user:
-                customer_name = f"{order.user.first_name} {order.user.last_name}".strip() or order.user.email
+                customer_name = f"{order.user.first_name} {order.user.last_name}".strip()
+                if not customer_name:
+                    customer_name = order.user.email.split('@')[0]
                 customer_email = order.user.email
+            else:
+                # Guest orders don't have email in Order model
+                # الطلبات بدون تسجيل لا يوجد لها email في Order model
+                customer_name = order.customer_name or _('ضيف / Guest')
+                customer_email = None  # Guest orders have no email
             
-            activities.append({
-                'id': order.id,
-                'user_name': customer_name,
-                'user_email': customer_email,
-                'action': 'order_created',
-                'action_display': _('قام بإنشاء طلب جديد / Created a new order'),
-                'target_type': 'order',
-                'target_id': order.id,
-                'target_name': f"ORD-{order.id:06d}",
-                'timestamp': order.created_at,
-                'ip_address': None,
-            })
+            activities.append(build_activity(
+                activity_id=order.id,
+                user_name=customer_name,
+                user_email=customer_email,
+                action='order_created',
+                action_display=_('قام بإنشاء طلب جديد / Created a new order'),
+                target_ref={'type': 'order', 'id': order.id, 'action': 'order_created'},
+                target_name=f"ORD-{order.id:06d}",
+                timestamp=order.created_at,
+            ))
         
         # Recent products as activities
         # المنتجات الأخيرة كنشاطات
         recent_products = Product.objects.order_by('-created_at')[:5]
         for product in recent_products:
-            activities.append({
-                'id': product.id + 10000,  # Offset to avoid ID conflicts
-                'user_name': _('النظام / System'),
-                'user_email': 'system@yallabuy.com',
-                'action': 'product_created',
-                'action_display': _('تمت إضافة منتج جديد / New product added'),
-                'target_type': 'product',
-                'target_id': product.id,
-                'target_name': product.name,
-                'timestamp': product.created_at,
-                'ip_address': None,
-            })
+            activities.append(build_activity(
+                activity_id=product.id + 10000,  # Offset to avoid ID conflicts
+                user_name=_('النظام / System'),
+                user_email=SYSTEM_EMAIL,
+                action='product_created',
+                action_display=_('تمت إضافة منتج جديد / New product added'),
+                target_ref={'type': 'product', 'id': product.id, 'action': 'product_created'},
+                target_name=product.name,
+                timestamp=product.created_at,
+            ))
         
         # Sort by timestamp and limit
         # ترتيب حسب الوقت وتحديد العدد

@@ -109,8 +109,8 @@ class SalesChartSerializer(serializers.Serializer):
         help_text=_('تواريخ/أسماء الفترات / Date/period labels')
     )
     revenue = serializers.ListField(
-        child=serializers.DecimalField(max_digits=12, decimal_places=2),
-        help_text=_('بيانات الإيرادات / Revenue data points')
+        child=serializers.CharField(),
+        help_text=_('بيانات الإيرادات / Revenue data points (as strings for consistent formatting)')
     )
     orders = serializers.ListField(
         child=serializers.IntegerField(),
@@ -145,7 +145,10 @@ class RecentOrderSerializer(serializers.Serializer):
         help_text=_('اسم العميل / Customer name')
     )
     customer_email = serializers.EmailField(
-        help_text=_('بريد العميل / Customer email')
+        required=False,
+        allow_null=True,
+        allow_blank=True,
+        help_text=_('بريد العميل / Customer email (null for guest orders)')
     )
     total = serializers.DecimalField(
         max_digits=12, 
@@ -167,6 +170,34 @@ class RecentOrderSerializer(serializers.Serializer):
 
 
 # =============================================================================
+# Target Reference Serializer
+# متسلسل مرجع الهدف
+# =============================================================================
+
+class TargetRefSerializer(serializers.Serializer):
+    """
+    Serializer for target reference in activities and notifications.
+    متسلسل لمرجع الهدف في النشاطات والإشعارات.
+    
+    Provides structured reference for frontend navigation.
+    يوفر مرجعًا منظمًا للتنقل في الواجهة الأمامية.
+    """
+    
+    type = serializers.CharField(
+        help_text=_('نوع الهدف / Target type (e.g., "order", "product", "user")')
+    )
+    id = serializers.IntegerField(
+        help_text=_('معرف الهدف / Target ID')
+    )
+    action = serializers.CharField(
+        required=False,
+        allow_blank=True,
+        allow_null=True,
+        help_text=_('نوع العملية / Action type (e.g., "order_created", "product_updated")')
+    )
+
+
+# =============================================================================
 # Recent Activity Serializer
 # متسلسل النشاطات الأخيرة
 # =============================================================================
@@ -184,7 +215,10 @@ class RecentActivitySerializer(serializers.Serializer):
         help_text=_('اسم المستخدم / User name')
     )
     user_email = serializers.EmailField(
-        help_text=_('بريد المستخدم / User email')
+        required=False,
+        allow_null=True,
+        allow_blank=True,
+        help_text=_('بريد المستخدم / User email (null for guest/system activities)')
     )
     action = serializers.CharField(
         help_text=_('نوع العملية / Action type')
@@ -193,6 +227,9 @@ class RecentActivitySerializer(serializers.Serializer):
         help_text=_('وصف العملية / Action description')
     )
     target_type = serializers.CharField(
+        required=False,
+        allow_blank=True,
+        allow_null=True,
         help_text=_('نوع الهدف / Target type (order, product, user, etc.)')
     )
     target_id = serializers.IntegerField(
@@ -203,6 +240,7 @@ class RecentActivitySerializer(serializers.Serializer):
     target_name = serializers.CharField(
         required=False,
         allow_null=True,
+        allow_blank=True,
         help_text=_('اسم الهدف / Target name')
     )
     timestamp = serializers.DateTimeField(
@@ -211,6 +249,12 @@ class RecentActivitySerializer(serializers.Serializer):
     ip_address = serializers.CharField(
         required=False,
         allow_null=True,
+        allow_blank=True,
         help_text=_('عنوان IP / IP address')
+    )
+    target_ref = TargetRefSerializer(
+        required=False,
+        allow_null=True,
+        help_text=_('Reference for frontend navigation / مرجع للتنقل في الواجهة الأمامية')
     )
 

@@ -28,6 +28,15 @@ import type {
   RecentActivity,
 } from '../types'
 
+// Internal type for processed chart data (revenue converted to numbers)
+// نوع داخلي لبيانات الرسم البياني المعالجة (revenue محول إلى أرقام)
+interface ProcessedSalesChartData {
+  labels: string[]
+  revenue: number[]  // Converted from string[] for display
+  orders: number[]
+  period: 'week' | 'month' | 'year'
+}
+
 // =============================================================================
 // Types
 // الأنواع
@@ -39,7 +48,7 @@ interface UseDashboardState {
   // Data
   // البيانات
   overview: DashboardOverview | null
-  salesChart: SalesChartData | null
+  salesChart: ProcessedSalesChartData | null  // Processed: revenue as number[]
   recentOrders: RecentOrder[]
   recentActivity: RecentActivity[]
   
@@ -117,7 +126,15 @@ export function useDashboard(
       }
       
       if (chartRes?.success && chartRes?.data) {
-        setSalesChart(chartRes.data)
+        // Convert revenue strings to numbers for display
+        // تحويل revenue من strings إلى numbers للعرض
+        const processedChart: ProcessedSalesChartData = {
+          labels: chartRes.data.labels,
+          revenue: chartRes.data.revenue.map((v) => Number.parseFloat(v || '0') || 0),
+          orders: chartRes.data.orders,
+          period: chartRes.data.period,
+        }
+        setSalesChart(processedChart)
       } else if (chartRes && !chartRes.success) {
         const errorMsg = chartRes.message || 'فشل في جلب بيانات الرسم البياني'
         console.error('Failed to fetch chart:', errorMsg)

@@ -6,6 +6,8 @@
  * This file contains all Dashboard-related types.
  */
 
+import type { TargetRef } from './shared'
+
 // =============================================================================
 // Dashboard Overview (KPIs)
 // نظرة عامة على لوحة التحكم (مؤشرات الأداء)
@@ -53,7 +55,7 @@ export interface DashboardOverview {
 
 export interface SalesChartData {
   labels: string[]
-  revenue: number[]
+  revenue: string[]  // Changed from number[] to string[] for consistent formatting from backend
   orders: number[]
   period: 'week' | 'month' | 'year'
 }
@@ -101,14 +103,15 @@ export type ActivityType =
 export interface RecentActivity {
   id: number
   user_name: string
-  user_email: string
+  user_email?: string | null  // Optional: null for guest/system activities
   action: ActivityType
   action_display: string
-  target_type: 'order' | 'product' | 'user' | 'vendor'
-  target_id: number
-  target_name: string
+  target_type?: 'order' | 'product' | 'user' | 'vendor' | (string & {})  // Optional: derived from target_ref, flexible for future types
+  target_id?: number  // Optional: derived from target_ref
+  target_name?: string | null  // Optional: may be null
+  target_ref?: TargetRef  // New: structured reference for frontend navigation
   timestamp: string
-  ip_address: string | null
+  ip_address?: string | null  // Optional: may be null or empty string
 }
 
 // =============================================================================

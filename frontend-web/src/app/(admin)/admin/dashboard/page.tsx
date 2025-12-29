@@ -201,8 +201,8 @@ function getKPIColorClasses(color: KPICard['color']) {
  * Get activity icon based on type
  * الحصول على أيقونة النشاط حسب النوع
  */
-function getActivityIcon(type: string) {
-  const icons: Record<string, React.ReactNode> = {
+function getActivityIcon(type?: string) {
+  const icons = {
     order: (
       <div className="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-600 flex items-center justify-center">
         {Icons.orders}
@@ -225,8 +225,13 @@ function getActivityIcon(type: string) {
         </svg>
       </div>
     ),
-  }
-  return icons[type] || icons.order
+  } as const
+  
+  // Type-safe lookup with fallback using hasOwnProperty
+  // بحث آمن مع fallback باستخدام hasOwnProperty
+  return type && Object.prototype.hasOwnProperty.call(icons, type)
+    ? icons[type as keyof typeof icons]
+    : icons.order
 }
 
 // =============================================================================
@@ -332,12 +337,13 @@ function SalesChart({
   onPeriodChange,
   isLoading,
 }: {
-  data: { labels: string[]; revenue: number[] } | null
+  data: { labels: string[]; revenue: number[] } | null  // revenue is already converted to number[] in useDashboard hook
   period: 'week' | 'month' | 'year'
   onPeriodChange: (period: 'week' | 'month' | 'year') => void
   isLoading?: boolean
 }) {
   // Use real data or empty arrays
+  // revenue is already converted to numbers in useDashboard hook
   const chartData = data?.labels.map((label, index) => ({
     label,
     value: data.revenue[index] || 0,
@@ -554,22 +560,27 @@ function RecentActivityList({
             {t.admin.dashboard.noActivity}
           </div>
         ) : (
-          activities.map((activity) => (
-            <div key={activity.id} className="flex items-start gap-3">
-              {getActivityIcon(activity.target_type)}
-              <div className="flex-1 min-w-0">
-                <p className="text-sm text-historical-charcoal dark:text-gray-200 transition-colors duration-300">
-                  {activity.action_display}
-                  {activity.target_name && (
-                    <span className="font-medium"> - {activity.target_name}</span>
-                  )}
-                </p>
-                <p className="text-xs text-historical-charcoal/40 dark:text-gray-400 mt-0.5 transition-colors duration-300">
-                  {formatRelativeDate(activity.timestamp, t)}
-                </p>
+          activities.map((activity) => {
+            // Use target_ref.type if available, fallback to target_type
+            const targetType = activity.target_ref?.type || activity.target_type || 'order'
+            
+            return (
+              <div key={activity.id} className="flex items-start gap-3">
+                {getActivityIcon(targetType)}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm text-historical-charcoal dark:text-gray-200 transition-colors duration-300">
+                    {activity.action_display}
+                    {activity.target_name && (
+                      <span className="font-medium"> - {activity.target_name}</span>
+                    )}
+                  </p>
+                  <p className="text-xs text-historical-charcoal/40 dark:text-gray-400 mt-0.5 transition-colors duration-300">
+                    {formatRelativeDate(activity.timestamp, t)}
+                  </p>
+                </div>
               </div>
-            </div>
-          ))
+            )
+          })
         )}
       </div>
 

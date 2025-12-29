@@ -6,6 +6,8 @@
  * هذا الملف يحتوي على أنواع TypeScript للإشعارات.
  */
 
+import type { TargetRef } from './shared'
+
 // =============================================================================
 // Notification Types
 // أنواع الإشعارات
@@ -21,8 +23,11 @@ export interface Notification {
   time: string
   timestamp: string
   is_read: boolean
-  target_id?: string | number
-  target_type?: string
+  target_id?: string | number  // Backward compatibility: derived from target_ref
+  target_type?: string  // Backward compatibility: derived from target_ref
+  target_ref?: TargetRef  // New: structured reference for frontend navigation
+  target_label?: string  // New: human-readable label (e.g., order number, product name)
+  target_model_label?: string  // New: human-readable model name (e.g., "Order", "Product")
   action?: string
   metadata?: Record<string, any>
 }
