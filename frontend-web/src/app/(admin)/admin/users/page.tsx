@@ -763,10 +763,6 @@ function CreateUserModal({
       setFormErrors({ phone: t.admin.users.phoneRequired })
       return
     }
-    if (!formData.full_name) {
-      setFormErrors({ full_name: t.admin.users.nameRequired })
-      return
-    }
 
     const success = await onCreate(formData)
     if (success) {
@@ -1239,10 +1235,6 @@ function EditUserModal({
     }
     if (!formData.phone) {
       setFormErrors({ phone: 'رقم الهاتف مطلوب' })
-      return
-    }
-    if (!formData.full_name) {
-      setFormErrors({ full_name: 'الاسم الكامل مطلوب' })
       return
     }
 

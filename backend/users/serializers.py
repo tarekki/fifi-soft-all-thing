@@ -63,7 +63,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'email': {'required': True},
             'phone': {'required': True},
-            'full_name': {'required': True},
+            'full_name': {'required': False, 'allow_blank': True},
             'role': {'required': False, 'default': User.Role.CUSTOMER},
         }
     

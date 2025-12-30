@@ -13,6 +13,7 @@ Models:
 
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
+from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 
 
@@ -130,6 +131,8 @@ class User(AbstractUser):
     
     # Email is the primary identifier (replaces username)
     # البريد الإلكتروني هو المعرف الأساسي (يحل محل اسم المستخدم)
+    # Override AbstractUser's email field to make it unique and required
+    # إعادة تعريف حقل email من AbstractUser ليكون فريداً ومطلوباً
     email = models.EmailField(
         _('email address'),
         unique=True,
@@ -184,9 +187,13 @@ class User(AbstractUser):
     # استخدام البريد الإلكتروني كحقل اسم المستخدم
     USERNAME_FIELD = 'email'
     
+    # Email field identifier
+    # معرف حقل البريد الإلكتروني
+    EMAIL_FIELD = "email"
+    
     # Required fields for user creation
     # الحقول المطلوبة لإنشاء مستخدم
-    REQUIRED_FIELDS = ['phone', 'full_name']
+    REQUIRED_FIELDS = ['phone']
     
     # Use custom user manager
     # استخدام مدير المستخدمين المخصص
@@ -330,7 +337,7 @@ class VendorUser(models.Model):
     # البائع المرتبط بالمستخدم
     vendor = models.ForeignKey(
         'vendors.Vendor',
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
         related_name='vendor_users',
         help_text=_('Vendor associated with this user.')
     )
@@ -363,7 +370,10 @@ class VendorUser(models.Model):
         verbose_name_plural = _('vendor users')
         # Ensure one user can only be associated with a vendor once
         # التأكد من أن المستخدم يمكن أن يكون مرتبطاً ببائع واحد فقط
-        unique_together = [['user', 'vendor']]
+        constraints = [
+            models.UniqueConstraint(fields=["user", "vendor"], name="uq_vendoruser_user_vendor"),
+            models.UniqueConstraint(fields=["vendor"], condition=Q(is_owner=True), name="uq_vendor_one_owner"),
+        ]
         indexes = [
             models.Index(fields=['user', 'vendor']),
             models.Index(fields=['is_owner']),
@@ -433,6 +443,7 @@ class EmailVerification(models.Model):
         indexes = [
             models.Index(fields=['token']),
             models.Index(fields=['user', 'is_verified']),
+            models.Index(fields=['expires_at']),
         ]
     
     def __str__(self):

@@ -88,9 +88,9 @@ export class AuthRepository implements AuthPort {
         throw new Error('Phone is required')
       }
 
-      if (!data.full_name || data.full_name.trim().length === 0) {
-        throw new Error('Full name is required')
-      }
+      // Clean full_name (optional field)
+      // تنظيف full_name (حقل اختياري)
+      data.full_name = data.full_name?.trim() || ''
 
       if (!data.password || data.password.length === 0) {
         throw new Error('Password is required')
@@ -105,7 +105,7 @@ export class AuthRepository implements AuthPort {
       const response: ApiResponse<{ user: User; tokens: AuthTokens }> = await authApi.register({
         email: data.email.trim(),
         phone: data.phone.trim(),
-        full_name: data.full_name.trim(),
+        full_name: data.full_name,
         password: data.password,
         password_confirm: data.password, // API requires password_confirm
         role: (data.role as 'customer' | 'vendor' | 'admin') || 'customer',
