@@ -59,11 +59,11 @@ class CategoryAdmin(admin.ModelAdmin):
         'description_ar',
     ]
     
-    # Prepopulated Fields
-    prepopulated_fields = {'slug': ('name',)}
-    
     # Readonly Fields
+    # slug is auto-generated in Category.save() method, so make it read-only
+    # slug يتم توليده تلقائياً في Category.save() method، لذا جعله للقراءة فقط
     readonly_fields = [
+        'slug',
         'created_at',
         'updated_at',
         'image_preview',
@@ -290,17 +290,16 @@ class ProductAdmin(admin.ModelAdmin):
         'variants__model',
     ]
     
-    # Prepopulated Fields - Auto-generate slug from name
-    # الحقول المملوءة مسبقاً - إنشاء slug تلقائياً من الاسم
-    prepopulated_fields = {'slug': ('name',)}
-    
     # Inlines - Show variants when editing product
     # Inlines - عرض المتغيرات عند تعديل المنتج
     inlines = [ProductVariantInline]
     
     # Readonly Fields - Fields that cannot be edited
     # الحقول للقراءة فقط - الحقول التي لا يمكن تعديلها
+    # slug is auto-generated in Product.save() method, so make it read-only
+    # slug يتم توليده تلقائياً في Product.save() method، لذا جعله للقراءة فقط
     readonly_fields = [
+        'slug',
         'created_at',
         'updated_at',
         'variants_count',

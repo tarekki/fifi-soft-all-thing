@@ -1,7 +1,23 @@
 from django.db import models
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
+from django.core.validators import RegexValidator
 from vendors.models import Vendor
+
+
+# =============================================================================
+# Validators
+# المدققات
+# =============================================================================
+
+def validate_color_hex(value):
+    """
+    Validate hex color format, but allow empty values
+    التحقق من صيغة hex color، لكن السماح بالقيم الفارغة
+    """
+    if value in (None, ''):
+        return
+    RegexValidator(r'^#[0-9A-Fa-f]{6}$', _('Invalid hex color'))(value)
 
 
 # =============================================================================
@@ -84,7 +100,7 @@ class Category(models.Model):
     # التسلسل الهرمي
     parent = models.ForeignKey(
         'self',
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name='children',
@@ -231,12 +247,26 @@ class Product(models.Model):
         ordering = ['-created_at']
         verbose_name = 'Product'
         verbose_name_plural = 'Products'
-        unique_together = ['vendor', 'slug']
+        constraints = [
+            models.UniqueConstraint(fields=["vendor", "slug"], name="uq_product_vendor_slug"),
+        ]
         indexes = [
             models.Index(fields=['vendor', 'is_active']),
             models.Index(fields=['category', 'is_active']),
             models.Index(fields=['is_active', 'created_at']),
         ]
+    
+    def save(self, *args, **kwargs):
+        """Generate unique slug from name if not provided"""
+        if not self.slug:
+            base = slugify(self.name)
+            slug = base
+            i = 2
+            while Product.objects.filter(vendor=self.vendor, slug=slug).exclude(pk=self.pk).exists():
+                slug = f"{base}-{i}"
+                i += 1
+            self.slug = slug
+        super().save(*args, **kwargs)
     
     def __str__(self):
         return f"{self.vendor.name} - {self.name}"
@@ -250,7 +280,12 @@ class ProductVariant(models.Model):
     
     # Variant attributes
     color = models.CharField(max_length=50)
-    color_hex = models.CharField(max_length=7, blank=True, help_text='Hex color code')
+    color_hex = models.CharField(
+        max_length=7,
+        blank=True,
+        validators=[validate_color_hex],
+        help_text='Hex color code'
+    )
     size = models.CharField(max_length=20, blank=True, help_text='For shoes (e.g., 25, 30, 38)')
     model = models.CharField(max_length=100, blank=True, help_text='Model/Style name')
     
@@ -279,13 +314,33 @@ class ProductVariant(models.Model):
         verbose_name_plural = 'Product Variants'
         indexes = [
             models.Index(fields=['product', 'is_available']),
-            models.Index(fields=['sku']),
         ]
+    
+    def save(self, *args, **kwargs):
+        """Generate unique SKU if not provided"""
+        if not self.sku:
+            # Generate SKU from vendor, product, color, size, model
+            # توليد SKU من البائع، المنتج، اللون، الحجم، الموديل
+            sku_parts = [
+                str(self.product.vendor_id),
+                str(self.product_id),
+                self.color or 'none',
+                self.size or 'none',
+                self.model or 'none'
+            ]
+            base = slugify('-'.join(sku_parts))[:70]
+            sku = base or "sku"
+            i = 2
+            while ProductVariant.objects.filter(sku=sku).exclude(pk=self.pk).exists():
+                sku = f"{base}-{i}"[:100]
+                i += 1
+            self.sku = sku.upper()
+        super().save(*args, **kwargs)
     
     @property
     def final_price(self):
         """Returns the variant price or falls back to product base price"""
-        return self.price_override if self.price_override else self.product.base_price
+        return self.price_override if self.price_override is not None else self.product.base_price
     
     def __str__(self):
         parts = [self.product.name, self.color]
