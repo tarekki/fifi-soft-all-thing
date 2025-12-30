@@ -76,15 +76,11 @@ export function ProductCard({
       return;
     }
 
-    addToCart({
-      id: id.toString(),
-      slug: slug,
-      name: { ar: name, en: name }, // Fallback to current name for both if not structured
-      price: parseFloat(finalPrice.replace(/[^\d.]/g, '')),
-      image: image,
-      quantity: 1,
-      vendor: { ar: vendorName || '', en: vendorName || '' },
-    });
+    // Note: ProductCard needs variant_id, but we only have product info here
+    // For now, we'll need to get the first variant or pass variant_id as prop
+    // ملاحظة: ProductCard يحتاج variant_id، لكن لدينا فقط معلومات المنتج هنا
+    // في الوقت الحالي، سنحتاج للحصول على أول متغير أو تمرير variant_id كـ prop
+    console.warn('ProductCard: addToCart needs variant_id. Please update to pass variant_id as prop.');
   };
 
   const formatPrice = (price: string) => {

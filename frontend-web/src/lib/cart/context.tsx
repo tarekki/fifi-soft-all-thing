@@ -1,121 +1,248 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import { CartRepository } from '@/core/repositories/cart.repository';
+import { CartService } from '@/core/services/cart.service';
+import type { Cart, CartItem, AddCartItemDTO } from '@/types/cart';
 
-export interface CartItem {
-    id: string; // Product ID
-    slug: string;
-    name: { ar: string; en: string };
-    price: number;
-    image: string;
-    quantity: number;
-    selectedColor?: string;
-    selectedSize?: string;
-    vendor: { ar: string; en: string };
-}
-
+/**
+ * Cart Context Interface
+ * واجهة سياق السلة
+ */
 interface CartContextType {
+    // State
     items: CartItem[];
-    addToCart: (item: CartItem) => void;
-    removeFromCart: (itemId: string, selectedColor?: string, selectedSize?: string) => void;
-    updateQuantity: (itemId: string, quantity: number, selectedColor?: string, selectedSize?: string) => void;
-    clearCart: () => void;
+    isLoading: boolean;
+    error: string | null;
+    isCartOpen: boolean;
     cartCount: number;
     cartTotal: number;
-    isCartOpen: boolean;
+    
+    // Actions
+    addToCart: (variantId: number, quantity?: number) => Promise<void>;
+    removeFromCart: (itemId: number) => Promise<void>;
+    updateQuantity: (itemId: number, quantity: number) => Promise<void>;
+    clearCart: () => Promise<void>;
+    refreshCart: () => Promise<void>;
     setIsCartOpen: (isOpen: boolean) => void;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
+/**
+ * Cart Provider Component
+ * مكون مزود السلة
+ * 
+ * Manages cart state and operations via API
+ * يدير حالة السلة والعمليات عبر API
+ * 
+ * Features:
+ * - Syncs with Backend API
+ * - Supports authenticated and guest users
+ * - Error handling and loading states
+ * - Automatic cart refresh
+ * 
+ * المميزات:
+ * - يتزامن مع Backend API
+ * - يدعم المستخدمين المسجلين والضيوف
+ * - معالجة الأخطاء وحالات التحميل
+ * - تحديث تلقائي للسلة
+ */
 export function CartProvider({ children }: { children: React.ReactNode }) {
-    const [items, setItems] = useState<CartItem[]>([]);
+    const [cart, setCart] = useState<Cart | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
     const [isCartOpen, setIsCartOpen] = useState(false);
     const [isInitialized, setIsInitialized] = useState(false);
 
-    // Load from LocalStorage
-    useEffect(() => {
-        const savedCart = localStorage.getItem('yalla-buy-cart');
-        if (savedCart) {
-            try {
-                setItems(JSON.parse(savedCart));
-            } catch (e) {
-                console.error('Failed to parse cart from local storage', e);
+    // Initialize repository and service
+    // تهيئة المستودع والخدمة
+    const cartRepository = new CartRepository();
+    const cartService = new CartService(cartRepository);
+
+    /**
+     * Load cart from API
+     * تحميل السلة من API
+     */
+    const loadCart = useCallback(async () => {
+        try {
+            setIsLoading(true);
+            setError(null);
+            
+            const cartData = await cartService.getCart();
+            setCart(cartData);
+        } catch (err) {
+            console.error('Failed to load cart:', err);
+            
+            // Don't show error for 404 (cart doesn't exist yet)
+            // لا تعرض خطأ لـ 404 (السلة غير موجودة بعد)
+            const errorMessage = err instanceof Error ? err.message : 'Failed to load cart';
+            const isNotFound = errorMessage.includes('404') || errorMessage.includes('not found');
+            
+            if (!isNotFound) {
+                setError(errorMessage);
             }
+            
+            // Always set empty cart state on error (cart will be created on first add)
+            // دائماً اضبط حالة سلة فارغة عند الخطأ (سيتم إنشاء السلة عند أول إضافة)
+            setCart({
+                id: 0,
+                user: null,
+                items: [],
+                item_count: 0,
+                subtotal: '0.00',
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+            });
+        } finally {
+            setIsLoading(false);
         }
-        setIsInitialized(true);
-    }, []);
+    }, [cartService]);
 
-    // Save to LocalStorage
+    /**
+     * Initialize cart on mount
+     * تهيئة السلة عند التحميل
+     */
     useEffect(() => {
-        if (isInitialized) {
-            localStorage.setItem('yalla-buy-cart', JSON.stringify(items));
+        if (!isInitialized) {
+            loadCart();
+            setIsInitialized(true);
         }
-    }, [items, isInitialized]);
+    }, [isInitialized, loadCart]);
 
-    const addToCart = (newItem: CartItem) => {
-        setItems((currentItems) => {
-            const existingItemIndex = currentItems.findIndex(
-                (item) =>
-                    item.id === newItem.id &&
-                    item.selectedColor === newItem.selectedColor &&
-                    item.selectedSize === newItem.selectedSize
-            );
+    /**
+     * Add item to cart
+     * إضافة عنصر للسلة
+     */
+    const addToCart = useCallback(async (variantId: number, quantity: number = 1) => {
+        try {
+            setIsLoading(true);
+            setError(null);
 
-            if (existingItemIndex > -1) {
-                const updatedItems = [...currentItems];
-                updatedItems[existingItemIndex].quantity += newItem.quantity;
-                return updatedItems;
-            }
+            const data: AddCartItemDTO = {
+                variant_id: variantId,
+                quantity,
+            };
 
-            return [...currentItems, newItem];
-        });
-        setIsCartOpen(true); // Auto-open cart on add
-    };
+            const updatedCart = await cartService.addItem(data);
+            setCart(updatedCart);
+            setIsCartOpen(true); // Auto-open cart on add
+        } catch (err) {
+            console.error('Failed to add item to cart:', err);
+            setError(err instanceof Error ? err.message : 'Failed to add item to cart');
+            throw err; // Re-throw to allow component to handle
+        } finally {
+            setIsLoading(false);
+        }
+    }, [cartService]);
 
-    const removeFromCart = (itemId: string, selectedColor?: string, selectedSize?: string) => {
-        setItems((currentItems) =>
-            currentItems.filter((item) =>
-                !(item.id === itemId &&
-                    item.selectedColor === selectedColor &&
-                    item.selectedSize === selectedSize)
-            )
-        );
-    };
+    /**
+     * Remove item from cart
+     * إزالة عنصر من السلة
+     */
+    const removeFromCart = useCallback(async (itemId: number) => {
+        try {
+            setIsLoading(true);
+            setError(null);
 
-    const updateQuantity = (itemId: string, quantity: number, selectedColor?: string, selectedSize?: string) => {
-        if (quantity < 1) return;
-        setItems((currentItems) =>
-            currentItems.map((item) =>
-                (item.id === itemId && item.selectedColor === selectedColor && item.selectedSize === selectedSize)
-                    ? { ...item, quantity }
-                    : item
-            )
-        );
-    };
+            const updatedCart = await cartService.removeItem(itemId);
+            setCart(updatedCart);
+        } catch (err) {
+            console.error('Failed to remove item from cart:', err);
+            setError(err instanceof Error ? err.message : 'Failed to remove item from cart');
+            throw err;
+        } finally {
+            setIsLoading(false);
+        }
+    }, [cartService]);
 
-    const clearCart = () => setItems([]);
+    /**
+     * Update item quantity
+     * تحديث كمية عنصر
+     */
+    const updateQuantity = useCallback(async (itemId: number, quantity: number) => {
+        if (quantity < 1) {
+            // If quantity is 0 or less, remove item
+            // إذا كانت الكمية 0 أو أقل، أزل العنصر
+            await removeFromCart(itemId);
+            return;
+        }
 
-    const cartCount = items.reduce((total, item) => total + item.quantity, 0);
-    const cartTotal = items.reduce((total, item) => total + (item.price * item.quantity), 0);
+        try {
+            setIsLoading(true);
+            setError(null);
+
+            const updatedCart = await cartService.updateItem(itemId, { quantity });
+            setCart(updatedCart);
+        } catch (err) {
+            console.error('Failed to update cart item:', err);
+            setError(err instanceof Error ? err.message : 'Failed to update cart item');
+            throw err;
+        } finally {
+            setIsLoading(false);
+        }
+    }, [cartService, removeFromCart]);
+
+    /**
+     * Clear cart
+     * مسح السلة
+     */
+    const clearCart = useCallback(async () => {
+        try {
+            setIsLoading(true);
+            setError(null);
+
+            const updatedCart = await cartService.clear();
+            setCart(updatedCart);
+        } catch (err) {
+            console.error('Failed to clear cart:', err);
+            setError(err instanceof Error ? err.message : 'Failed to clear cart');
+            throw err;
+        } finally {
+            setIsLoading(false);
+        }
+    }, [cartService]);
+
+    /**
+     * Refresh cart from API
+     * تحديث السلة من API
+     */
+    const refreshCart = useCallback(async () => {
+        await loadCart();
+    }, [loadCart]);
+
+    // Calculate derived values
+    // حساب القيم المشتقة
+    const items = cart?.items || [];
+    const cartCount = cart?.item_count || 0;
+    const cartTotal = parseFloat(cart?.subtotal || '0');
 
     return (
         <CartContext.Provider value={{
             items,
+            isLoading,
+            error,
+            isCartOpen,
+            cartCount,
+            cartTotal,
             addToCart,
             removeFromCart,
             updateQuantity,
             clearCart,
-            cartCount,
-            cartTotal,
-            isCartOpen,
-            setIsCartOpen
+            refreshCart,
+            setIsCartOpen,
         }}>
             {children}
         </CartContext.Provider>
     );
 }
 
+/**
+ * useCart Hook
+ * Hook استخدام السلة
+ * 
+ * @returns Cart context
+ */
 export function useCart() {
     const context = useContext(CartContext);
     if (context === undefined) {

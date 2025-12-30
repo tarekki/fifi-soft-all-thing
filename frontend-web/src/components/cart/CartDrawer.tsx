@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils';
 import Link from 'next/link';
 
 export function CartDrawer() {
-    const { items, isCartOpen, setIsCartOpen, removeFromCart, updateQuantity, cartTotal } = useCart();
+    const { items, isCartOpen, setIsCartOpen, removeFromCart, updateQuantity, cartTotal, isLoading, error } = useCart();
     const { t, language, direction } = useTranslation();
 
     const formatPrice = (price: number) => {
@@ -69,7 +69,25 @@ export function CartDrawer() {
 
                         {/* Items List */}
                         <div className="flex-1 overflow-y-auto p-6 space-y-6">
-                            {items.length === 0 ? (
+                            {isLoading && items.length === 0 ? (
+                                <div className="h-full flex flex-col items-center justify-center text-center">
+                                    <div className="w-20 h-20 bg-stone-50 rounded-full flex items-center justify-center mb-4 text-stone-200 animate-pulse">
+                                        <ShoppingBag className="w-10 h-10" />
+                                    </div>
+                                    <p className="text-stone-400 font-medium">
+                                        {language === 'ar' ? 'جاري التحميل...' : 'Loading...'}
+                                    </p>
+                                </div>
+                            ) : error && items.length === 0 ? (
+                                <div className="h-full flex flex-col items-center justify-center text-center">
+                                    <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mb-4 text-red-200">
+                                        <ShoppingBag className="w-10 h-10" />
+                                    </div>
+                                    <p className="text-red-400 font-medium text-sm">
+                                        {error}
+                                    </p>
+                                </div>
+                            ) : items.length === 0 ? (
                                 <div className="h-full flex flex-col items-center justify-center text-center">
                                     <div className="w-20 h-20 bg-stone-50 rounded-full flex items-center justify-center mb-4 text-stone-200">
                                         <ShoppingBag className="w-10 h-10" />
@@ -86,13 +104,13 @@ export function CartDrawer() {
                                 </div>
                             ) : (
                                 items.map((item) => (
-                                    <div key={`${item.id}-${item.selectedColor}-${item.selectedSize}`} className="flex gap-4 group">
+                                    <div key={item.id} className="flex gap-4 group">
                                         {/* Image wrapper with heritage style */}
                                         <div className="relative w-20 h-24 bg-white rounded-2xl overflow-hidden border border-stone-100 flex-shrink-0 group-hover:border-historical-gold/30 transition-colors">
-                                            {item.image ? (
+                                            {item.variant.image_url ? (
                                                 <Image
-                                                    src={item.image}
-                                                    alt={language === 'ar' ? item.name.ar : item.name.en}
+                                                    src={item.variant.image_url}
+                                                    alt={item.product?.name || 'Product'}
                                                     fill
                                                     className="object-cover"
                                                 />
@@ -108,29 +126,30 @@ export function CartDrawer() {
                                             <div>
                                                 <div className="flex justify-between items-start gap-2">
                                                     <h3 className="font-bold text-stone-800 text-sm leading-tight line-clamp-1">
-                                                        {language === 'ar' ? item.name.ar : item.name.en}
+                                                        {item.product?.name || 'Product'}
                                                     </h3>
                                                     <button
-                                                        onClick={() => removeFromCart(item.id, item.selectedColor, item.selectedSize)}
-                                                        className="text-stone-300 hover:text-historical-red transition-colors"
+                                                        onClick={() => removeFromCart(item.id)}
+                                                        disabled={isLoading}
+                                                        className="text-stone-300 hover:text-historical-red transition-colors disabled:opacity-50"
                                                     >
                                                         <Trash2 className="w-4 h-4" />
                                                     </button>
                                                 </div>
                                                 <p className="text-[10px] text-stone-400 font-bold uppercase tracking-wider mt-1">
-                                                    {language === 'ar' ? item.vendor.ar : item.vendor.en}
+                                                    {item.product?.vendor?.name || 'Vendor'}
                                                 </p>
-                                                {(item.selectedColor || item.selectedSize) && (
+                                                {(item.variant.color || item.variant.size) && (
                                                     <div className="flex gap-2 mt-2">
-                                                        {item.selectedColor && (
+                                                        {item.variant.color_hex && (
                                                             <div
                                                                 className="w-3 h-3 rounded-full border border-stone-200"
-                                                                style={{ backgroundColor: item.selectedColor }}
+                                                                style={{ backgroundColor: item.variant.color_hex }}
                                                             />
                                                         )}
-                                                        {item.selectedSize && (
+                                                        {item.variant.size && (
                                                             <span className="text-[10px] bg-stone-100 px-1.5 py-0.5 rounded font-bold text-stone-500">
-                                                                {item.selectedSize}
+                                                                {item.variant.size}
                                                             </span>
                                                         )}
                                                     </div>
@@ -140,8 +159,9 @@ export function CartDrawer() {
                                             <div className="flex items-center justify-between">
                                                 <div className="flex items-center bg-white rounded-lg border border-stone-100 shadow-sm overflow-hidden scale-90 -ms-2">
                                                     <button
-                                                        onClick={() => updateQuantity(item.id, item.quantity - 1, item.selectedColor, item.selectedSize)}
-                                                        className="p-1 px-2 hover:bg-stone-50 text-stone-400"
+                                                        onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                                                        disabled={isLoading}
+                                                        className="p-1 px-2 hover:bg-stone-50 text-stone-400 disabled:opacity-50"
                                                     >
                                                         <Minus className="w-3 h-3" />
                                                     </button>
@@ -149,14 +169,15 @@ export function CartDrawer() {
                                                         {item.quantity}
                                                     </span>
                                                     <button
-                                                        onClick={() => updateQuantity(item.id, item.quantity + 1, item.selectedColor, item.selectedSize)}
-                                                        className="p-1 px-2 hover:bg-stone-50 text-stone-400"
+                                                        onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                                                        disabled={isLoading}
+                                                        className="p-1 px-2 hover:bg-stone-50 text-stone-400 disabled:opacity-50"
                                                     >
                                                         <Plus className="w-3 h-3" />
                                                     </button>
                                                 </div>
                                                 <span className="font-display font-bold text-historical-blue text-sm">
-                                                    {formatPrice(item.price)} <span className="text-[10px] font-sans font-normal text-stone-400">{t.common.currency}</span>
+                                                    {formatPrice(parseFloat(item.price))} <span className="text-[10px] font-sans font-normal text-stone-400">{t.common.currency}</span>
                                                 </span>
                                             </div>
                                         </div>

@@ -66,6 +66,7 @@ INSTALLED_APPS = [
     "users",          # User management app - must be before other apps that reference User
     "vendors",        # Vendor management
     "products",       # Product catalog
+    "cart",           # Shopping cart management
     "orders",         # Order management
     "promotions",     # Promotions (Banners, Stories, Coupons)
     "settings_app",   # Site settings and configuration

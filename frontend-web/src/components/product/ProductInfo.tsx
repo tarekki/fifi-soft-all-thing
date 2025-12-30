@@ -48,18 +48,25 @@ export function ProductInfo({ product }: ProductInfoProps) {
         ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
         : 0;
 
-    const handleAddToCart = () => {
-        addToCart({
-            id: product.id,
-            slug: product.slug,
-            name: product.name,
-            price: product.price,
-            image: product.images[0],
-            quantity: quantity,
-            selectedColor: selectedColor,
-            selectedSize: selectedSize,
-            vendor: product.vendor,
-        });
+    const handleAddToCart = async () => {
+        // Find the variant based on selected color and size
+        // البحث عن المتغير بناءً على اللون والمقاس المحدد
+        const variant = product.variants?.find(
+            (v) => v.color === selectedColor && v.size === selectedSize
+        );
+
+        if (!variant) {
+            // If no variant found, use first available variant
+            // إذا لم يتم العثور على متغير، استخدم أول متغير متاح
+            const firstVariant = product.variants?.[0];
+            if (!firstVariant) {
+                console.error('No variant available');
+                return;
+            }
+            await addToCart(firstVariant.id, quantity);
+        } else {
+            await addToCart(variant.id, quantity);
+        }
     };
 
     return (
