@@ -8,6 +8,21 @@
 
 import type { OrderEntity, CreateOrderEntityDTO, OrderValidationResult, OrderCalculationResult } from './order.types'
 import type { User } from '@/types/user'
+import type { OrderStatus } from '@/types/order'
+
+/**
+ * Final order statuses that cannot be changed
+ * حالات الطلب النهائية التي لا يمكن تغييرها
+ * 
+ * These statuses indicate the order is finalized:
+ * - 'delivered': Order has been delivered to customer
+ * - 'cancelled': Order has been cancelled
+ * 
+ * هذه الحالات تشير إلى أن الطلب نهائي:
+ * - 'delivered': تم تسليم الطلب للعميل
+ * - 'cancelled': تم إلغاء الطلب
+ */
+export const FINAL_STATUSES: readonly OrderStatus[] = ['delivered', 'cancelled'] as const
 
 export class OrderPolicy {
   /**
@@ -69,7 +84,8 @@ export class OrderPolicy {
     }
 
     // Cannot cancel already cancelled or delivered orders
-    if (order.status === 'cancelled' || order.status === 'delivered') {
+    // لا يمكن إلغاء الطلبات الملغاة أو المسلمة
+    if (FINAL_STATUSES.includes(order.status as OrderStatus)) {
       return false
     }
 
@@ -108,7 +124,8 @@ export class OrderPolicy {
     // Vendor can update status of orders containing their products
     if (user.role === 'vendor') {
       // Cannot change cancelled or delivered orders
-      if (order.status === 'cancelled' || order.status === 'delivered') {
+      // لا يمكن تغيير الطلبات الملغاة أو المسلمة
+      if (FINAL_STATUSES.includes(order.status as OrderStatus)) {
         return false
       }
       return true // Service will check vendor association
@@ -203,12 +220,16 @@ export class OrderPolicy {
    * التحقق من صحة انتقال حالة الطلب
    */
   static isValidStatusTransition(currentStatus: string, newStatus: string): boolean {
+    // If current status is final, no transitions allowed
+    // إذا كانت الحالة الحالية نهائية، لا يُسمح بأي انتقال
+    if (FINAL_STATUSES.includes(currentStatus as OrderStatus)) {
+      return false
+    }
+
     const validTransitions: Record<string, string[]> = {
       pending: ['confirmed', 'cancelled'],
       confirmed: ['shipped', 'cancelled'],
       shipped: ['delivered', 'cancelled'],
-      delivered: [], // Cannot change from delivered
-      cancelled: [], // Cannot change from cancelled
     }
 
     const allowedStatuses = validTransitions[currentStatus] || []

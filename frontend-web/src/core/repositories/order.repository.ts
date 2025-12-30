@@ -37,6 +37,12 @@ import type { Order, CreateOrderDTO, OrderStatus } from '@/types/order'
 import type { ApiPaginatedResponse, ApiResponse } from '@/types/api'
 
 /**
+ * Valid order statuses
+ * حالات الطلب الصحيحة
+ */
+const VALID_ORDER_STATUSES: readonly OrderStatus[] = ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled'] as const
+
+/**
  * Order Repository
  * مستودع الطلبات
  * 
@@ -248,9 +254,8 @@ export class OrderRepository implements OrderPort {
 
       // Validate status value
       // التحقق من قيمة الحالة
-      const validStatuses: OrderStatus[] = ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled']
-      if (!validStatuses.includes(status as OrderStatus)) {
-        throw new Error(`Invalid status. Must be one of: ${validStatuses.join(', ')}`)
+      if (!VALID_ORDER_STATUSES.includes(status as OrderStatus)) {
+        throw new Error(`Invalid status. Must be one of: ${VALID_ORDER_STATUSES.join(', ')}`)
       }
 
       // Import Authenticated API Client dynamically

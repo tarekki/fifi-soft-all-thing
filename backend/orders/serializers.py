@@ -15,6 +15,14 @@ from products.models import ProductVariant
 from products.serializers import ProductVariantSerializer
 
 
+# =============================================================================
+# Constants
+# الثوابت
+# =============================================================================
+
+ZERO_DECIMAL = Decimal("0.00")
+
+
 # ============================================================================
 # Order Item Serializer
 # مسلسل عنصر الطلب
@@ -78,12 +86,16 @@ class OrderItemCreateSerializer(serializers.Serializer):
         try:
             variant = ProductVariant.objects.get(id=value)
         except ProductVariant.DoesNotExist:
-            raise serializers.ValidationError("Product variant not found.")
+            raise serializers.ValidationError(
+                "Product variant not found. / متغير المنتج غير موجود."
+            )
         
         # Check if variant is available
         # التحقق من إذا كان المتغير متاحاً
         if not variant.is_available:
-            raise serializers.ValidationError("This product variant is not available.")
+            raise serializers.ValidationError(
+                "This product variant is not available. / هذا المتغير غير متاح."
+            )
         
         # Note: Stock check will be added when Inventory Sync is implemented
         # ملاحظة: فحص المخزون سيُضاف عند تنفيذ Inventory Sync
@@ -130,7 +142,7 @@ class OrderCreateSerializer(serializers.ModelSerializer):
     delivery_fee = serializers.DecimalField(
         max_digits=10,
         decimal_places=2,
-        default=Decimal('0'),
+        default=ZERO_DECIMAL,
         help_text='Yalla Go delivery fee (calculated automatically if not provided)'
     )
     notes = serializers.CharField(
@@ -157,7 +169,9 @@ class OrderCreateSerializer(serializers.ModelSerializer):
         التحقق من أن قائمة العناصر ليست فارغة
         """
         if not value or len(value) == 0:
-            raise serializers.ValidationError("Order must have at least one item.")
+            raise serializers.ValidationError(
+                "Order must have at least one item. / يجب أن يحتوي الطلب على عنصر واحد على الأقل."
+            )
         return value
     
     def validate(self, data):
@@ -171,7 +185,9 @@ class OrderCreateSerializer(serializers.ModelSerializer):
         variants = ProductVariant.objects.filter(id__in=variant_ids)
         
         if variants.count() != len(variant_ids):
-            raise serializers.ValidationError("One or more product variants not found.")
+            raise serializers.ValidationError(
+                "One or more product variants not found. / واحد أو أكثر من متغيرات المنتج غير موجودة."
+            )
         
         # Check availability
         # التحقق من التوفر
@@ -179,7 +195,8 @@ class OrderCreateSerializer(serializers.ModelSerializer):
         if unavailable_variants.exists():
             variant_names = [str(v) for v in unavailable_variants]
             raise serializers.ValidationError(
-                f"The following variants are not available: {', '.join(variant_names)}"
+                f"The following variants are not available: {', '.join(variant_names)} / "
+                f"المتغيرات التالية غير متاحة: {', '.join(variant_names)}"
             )
         
         # Note: Stock quantity check will be added when Inventory Sync is implemented
@@ -211,14 +228,14 @@ class OrderCreateSerializer(serializers.ModelSerializer):
             customer_name=validated_data['customer_name'],
             customer_phone=validated_data['customer_phone'],
             customer_address=validated_data['customer_address'],
-            delivery_fee=validated_data.get('delivery_fee', Decimal('0')),
+            delivery_fee=validated_data.get('delivery_fee', ZERO_DECIMAL),
             notes=validated_data.get('notes', ''),
             order_type=validated_data.get('order_type', 'online'),
         )
         
         # Calculate subtotal and create order items
         # حساب المجموع الفرعي وإنشاء عناصر الطلب
-        subtotal = Decimal('0')
+        subtotal = ZERO_DECIMAL
         
         for item_data in items_data:
             variant = ProductVariant.objects.get(id=item_data['variant_id'])
@@ -234,9 +251,10 @@ class OrderCreateSerializer(serializers.ModelSerializer):
                 price=price,
             )
             
-            # Add to subtotal
-            # إضافة إلى المجموع الفرعي
-            subtotal += price * quantity
+            # Add to subtotal (using Decimal for precision)
+            # إضافة إلى المجموع الفرعي (باستخدام Decimal للدقة)
+            item_subtotal = (price * Decimal(str(quantity))).quantize(Order.MONEY_Q)
+            subtotal += item_subtotal
             
             # TODO: When Inventory Sync is implemented, reduce stock here:
             # TODO: عند تنفيذ Inventory Sync، قلل المخزون هنا:
@@ -326,6 +344,9 @@ class OrderStatusUpdateSerializer(serializers.ModelSerializer):
         Validate status transition
         التحقق من انتقال الحالة
         
+        Prevents invalid status transitions, especially for finalized orders.
+        يمنع انتقالات الحالة غير الصالحة، خاصة للطلبات الملفوظة.
+        
         Note: Status transition rules can be enhanced later
         ملاحظة: قواعد انتقال الحالة يمكن تحسينها لاحقاً
         """
@@ -334,13 +355,22 @@ class OrderStatusUpdateSerializer(serializers.ModelSerializer):
         if self.instance:
             current_status = self.instance.status
             
-            # Prevent invalid transitions (can be enhanced)
-            # منع الانتقالات غير الصالحة (يمكن تحسينها)
-            if current_status == 'cancelled' and value != 'cancelled':
-                raise serializers.ValidationError("Cannot change status of a cancelled order.")
-            
-            if current_status == 'delivered' and value not in ['delivered', 'cancelled']:
-                raise serializers.ValidationError("Cannot change status of a delivered order.")
+            # Prevent invalid transitions for finalized orders
+            # منع الانتقالات غير الصالحة للطلبات الملفوظة
+            if current_status in Order.FINAL_STATUSES:
+                # Cancelled orders cannot be changed
+                # الطلبات الملغاة لا يمكن تغييرها
+                if current_status == 'cancelled' and value != 'cancelled':
+                    raise serializers.ValidationError(
+                        "Cannot change status of a cancelled order. / لا يمكن تغيير حالة طلب ملغي."
+                    )
+                
+                # Delivered orders can only be changed to cancelled
+                # الطلبات المسلمة يمكن تغييرها فقط إلى ملغي
+                if current_status == 'delivered' and value not in Order.FINAL_STATUSES:
+                    raise serializers.ValidationError(
+                        "Delivered orders can only be changed to cancelled. / الطلبات المسلمة يمكن تغييرها فقط إلى ملغي."
+                    )
         
         return value
 
