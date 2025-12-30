@@ -354,6 +354,34 @@ function VendorModal({ isOpen, vendor, isSaving, onClose, onSave }: VendorModalP
   const [commissionRate, setCommissionRate] = useState(10)
   const [isActive, setIsActive] = useState(true)
   const [logo, setLogo] = useState<File | null>(null)
+  const [primaryColorError, setPrimaryColorError] = useState<string | null>(null)
+
+  // Validation function for hex color
+  // دالة التحقق من صيغة hex color
+  const validateHexColor = (color: string): string | null => {
+    if (!color) {
+      return null // Empty is allowed (will use default)
+    }
+    // Hex color regex: # followed by exactly 6 hexadecimal characters
+    // تعبير منتظم للون hex: # متبوع بـ 6 أحرف hex بالضبط
+    const hexColorRegex = /^#[0-9A-Fa-f]{6}$/
+    if (!hexColorRegex.test(color)) {
+      return t.admin.vendors.invalidHexColor || 'اللون يجب أن يكون بصيغة hex (مثال: #D4AF37)'
+    }
+    return null
+  }
+
+  // Handle primary color change with validation
+  // معالجة تغيير اللون الأساسي مع التحقق
+  const handlePrimaryColorChange = (value: string) => {
+    setPrimaryColor(value)
+    // Clear error if user is typing
+    // مسح الخطأ إذا كان المستخدم يكتب
+    if (primaryColorError) {
+      const error = validateHexColor(value)
+      setPrimaryColorError(error)
+    }
+  }
 
   // Reset form when modal opens/closes or vendor changes
   // إعادة تعيين النموذج عند فتح/إغلاق المودال أو تغيير البائع
@@ -365,6 +393,7 @@ function VendorModal({ isOpen, vendor, isSaving, onClose, onSave }: VendorModalP
       setCommissionRate(vendor.commission_rate)
       setIsActive(vendor.is_active)
       setLogo(null)
+      setPrimaryColorError(null)
     } else if (isOpen && !vendor) {
       setName('')
       setDescription('')
@@ -372,11 +401,24 @@ function VendorModal({ isOpen, vendor, isSaving, onClose, onSave }: VendorModalP
       setCommissionRate(10)
       setIsActive(true)
       setLogo(null)
+      setPrimaryColorError(null)
     }
   }, [isOpen, vendor])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    // Validate primary color before submission
+    // التحقق من اللون الأساسي قبل الإرسال
+    const colorError = validateHexColor(primaryColor)
+    if (colorError) {
+      setPrimaryColorError(colorError)
+      return
+    }
+    
+    // Clear any previous errors
+    // مسح أي أخطاء سابقة
+    setPrimaryColorError(null)
     
     await onSave({
       name,
@@ -460,16 +502,33 @@ function VendorModal({ isOpen, vendor, isSaving, onClose, onSave }: VendorModalP
                   <input
                     type="color"
                     value={primaryColor}
-                    onChange={(e) => setPrimaryColor(e.target.value)}
+                    onChange={(e) => handlePrimaryColorChange(e.target.value)}
                     className="w-12 h-10 rounded-lg border border-historical-gold/20 dark:border-gray-600 cursor-pointer transition-colors duration-300"
                   />
-                  <input
-                    type="text"
-                    value={primaryColor}
-                    onChange={(e) => setPrimaryColor(e.target.value)}
-                    className="flex-1 px-3 py-2 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 text-sm text-historical-charcoal dark:text-gray-200 transition-colors duration-300"
-                    placeholder="#D4AF37"
-                  />
+                  <div className="flex-1">
+                    <input
+                      type="text"
+                      value={primaryColor}
+                      onChange={(e) => handlePrimaryColorChange(e.target.value)}
+                      onBlur={() => {
+                        // Validate on blur (when user leaves the field)
+                        // التحقق عند فقدان التركيز (عند مغادرة المستخدم للحقل)
+                        const error = validateHexColor(primaryColor)
+                        setPrimaryColorError(error)
+                      }}
+                      className={`w-full px-3 py-2 rounded-xl border ${
+                        primaryColorError
+                          ? 'border-red-500 dark:border-red-600 focus:ring-red-500 dark:focus:ring-red-600'
+                          : 'border-historical-gold/20 dark:border-gray-600 focus:ring-historical-gold/30 dark:focus:ring-yellow-600'
+                      } bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 text-sm text-historical-charcoal dark:text-gray-200 transition-colors duration-300`}
+                      placeholder="#D4AF37"
+                    />
+                    {primaryColorError && (
+                      <p className="text-sm text-red-600 dark:text-red-400 mt-1 transition-colors duration-300">
+                        {primaryColorError}
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
               <div>

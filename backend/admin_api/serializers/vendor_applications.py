@@ -15,6 +15,7 @@ Serializers:
 Author: Yalla Buy Team
 """
 
+from decimal import Decimal
 from rest_framework import serializers
 from django.utils.translation import gettext_lazy as _
 
@@ -207,7 +208,7 @@ class AdminVendorApplicationApproveSerializer(serializers.Serializer):
         max_digits=5,
         decimal_places=2,
         required=False,
-        default=10.00,
+        default=Decimal("10.00"),
         min_value=0,
         max_value=100,
         help_text=_('نسبة العمولة للبائع الجديد (افتراضي: 10%)')

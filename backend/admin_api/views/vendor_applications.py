@@ -23,6 +23,7 @@ Security:
 Author: Yalla Buy Team
 """
 
+from decimal import Decimal
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -250,7 +251,7 @@ class AdminVendorApplicationApproveView(APIView):
             try:
                 # Approve and create vendor
                 # الموافقة وإنشاء البائع
-                commission_rate = serializer.validated_data.get('commission_rate', 10.00)
+                commission_rate = serializer.validated_data.get('commission_rate', Decimal("10.00"))
                 admin_notes = serializer.validated_data.get('admin_notes', '')
                 
                 vendor = application.approve(

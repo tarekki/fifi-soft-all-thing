@@ -12,8 +12,11 @@ Models:
 Author: Yalla Buy Team
 """
 
+from decimal import Decimal
 from django.db import models
-from django.core.validators import MinValueValidator, MaxValueValidator
+from django.db import transaction
+from django.db.models import Q
+from django.core.validators import MinValueValidator, MaxValueValidator, RegexValidator
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 from django.conf import settings
@@ -67,6 +70,7 @@ class Vendor(models.Model):
     primary_color = models.CharField(
         max_length=7,
         default='#000000',
+        validators=[RegexValidator(r'^#[0-9A-Fa-f]{6}$', _('Invalid hex color'))],
         verbose_name=_('اللون الأساسي / Primary Color'),
         help_text=_('Hex color code (e.g., #E91E63)')
     )
@@ -76,7 +80,7 @@ class Vendor(models.Model):
     commission_rate = models.DecimalField(
         max_digits=5,
         decimal_places=2,
-        default=10.00,
+        default=Decimal("10.00"),
         validators=[MinValueValidator(0), MaxValueValidator(100)],
         verbose_name=_('نسبة العمولة / Commission Rate'),
         help_text=_('Commission percentage (0-100)')
@@ -110,9 +114,15 @@ class Vendor(models.Model):
         ]
     
     def save(self, *args, **kwargs):
-        """Generate slug from name if not provided"""
+        """Generate unique slug from name if not provided"""
         if not self.slug:
-            self.slug = slugify(self.name)
+            base = slugify(self.name)
+            slug = base
+            i = 2
+            while Vendor.objects.filter(slug=slug).exclude(pk=self.pk).exists():
+                slug = f"{base}-{i}"
+                i += 1
+            self.slug = slug
         super().save(*args, **kwargs)
     
     def __str__(self):
@@ -329,6 +339,25 @@ class VendorApplication(models.Model):
             models.Index(fields=['status', 'created_at']),
             models.Index(fields=['applicant_email']),
         ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user"],
+                condition=Q(status="pending", user__isnull=False),
+                name="uq_vendorapp_one_pending_per_user",
+            ),
+            models.UniqueConstraint(
+                fields=["applicant_email"],
+                condition=Q(status="pending"),
+                name="uq_vendorapp_one_pending_per_email",
+            ),
+            models.CheckConstraint(
+                check=(
+                    Q(status="pending", reviewed_by__isnull=True, reviewed_at__isnull=True) |
+                    Q(status__in=["approved", "rejected"], reviewed_by__isnull=False, reviewed_at__isnull=False)
+                ),
+                name="ck_vendorapp_review_fields_consistent",
+            ),
+        ]
     
     def __str__(self):
         return f"{self.store_name} - {self.applicant_name} ({self.get_status_display()})"
@@ -348,7 +377,8 @@ class VendorApplication(models.Model):
         """Check if application is rejected"""
         return self.status == self.Status.REJECTED
     
-    def approve(self, admin_user, commission_rate=10.00):
+    @transaction.atomic
+    def approve(self, admin_user, commission_rate=Decimal("10.00")):
         """
         Approve the application and create a vendor
         الموافقة على الطلب وإنشاء بائع
@@ -365,12 +395,17 @@ class VendorApplication(models.Model):
         if self.status != self.Status.PENDING:
             raise ValueError("يمكن الموافقة فقط على الطلبات المعلقة / Can only approve pending applications")
         
+        # Check if vendor name already exists
+        # التحقق من وجود اسم المتجر مسبقاً
+        if Vendor.objects.filter(name=self.store_name).exists():
+            raise ValueError("اسم المتجر مستخدم مسبقًا")
+        
         # Create the vendor
         # إنشاء البائع
         vendor = Vendor.objects.create(
             name=self.store_name,
             description=self.store_description,
-            logo=self.store_logo.name if self.store_logo else None,
+            logo=self.store_logo if self.store_logo else None,
             commission_rate=commission_rate,
             is_active=True,
         )
@@ -385,6 +420,7 @@ class VendorApplication(models.Model):
         
         return vendor
     
+    @transaction.atomic
     def reject(self, admin_user, reason=''):
         """
         Reject the application
