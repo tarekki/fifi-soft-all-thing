@@ -98,6 +98,7 @@ export { useDashboard } from './hooks/useDashboard'
 export { useCategories } from './hooks/useCategories'
 export { useProducts } from './hooks/useProducts'
 export { useOrders } from './hooks/useOrders'
+export { useCarts } from './hooks/useCarts'
 export { useVendors } from './hooks/useVendors'
 export { useVendorApplications } from './hooks/useVendorApplications'
 export { useUsers } from './hooks/useUsers'
@@ -198,6 +199,31 @@ export {
   bulkOrderAction,
   getOrderStats,
 } from './api/orders'
+
+// Cart Types
+// أنواع السلل
+export type {
+  Cart,
+  CartDetail,
+  CartItem,
+  CartFilters,
+  CartStats,
+  CartItemAddPayload,
+  CartItemUpdatePayload,
+} from './types/carts'
+
+// Cart API Functions
+// دوال API السلل
+export {
+  getCarts,
+  getCart,
+  addCartItem,
+  updateCartItem,
+  removeCartItem,
+  clearCart,
+  deleteCart,
+  getCartStats,
+} from './api/carts'
 
 // Vendor Types
 // أنواع البائعين

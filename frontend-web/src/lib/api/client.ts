@@ -14,6 +14,12 @@ export async function apiClient<T>(
 ): Promise<T> {
   const url = `${API_URL}${endpoint}`
   
+  // Log request for debugging (only in development)
+  // تسجيل الطلب للتشخيص (فقط في التطوير)
+  if (process.env.NODE_ENV === 'development') {
+    console.log('[API Client] Request:', { method: options?.method || 'GET', url, apiUrl: API_URL })
+  }
+  
   try {
     const response = await fetch(url, {
       ...options,
@@ -21,20 +27,63 @@ export async function apiClient<T>(
         'Content-Type': 'application/json',
         ...options?.headers,
       },
+      // Add credentials for CORS
+      // إضافة credentials لـ CORS
+      credentials: 'include',
     })
 
     if (!response.ok) {
-      throw new Error(`API Error: ${response.status} ${response.statusText}`)
+      // Try to parse error response
+      // محاولة تحليل استجابة الخطأ
+      let errorMessage = `API Error: ${response.status} ${response.statusText}`
+      try {
+        const errorData = await response.json()
+        if (errorData.message) {
+          errorMessage = errorData.message
+        } else if (errorData.detail) {
+          errorMessage = errorData.detail
+        }
+      } catch {
+        // If JSON parsing fails, use status text
+        // إذا فشل تحليل JSON، استخدم نص الحالة
+      }
+      throw new Error(errorMessage)
     }
 
     return response.json()
   } catch (error) {
     // Handle network errors (Backend not running, CORS, etc.)
-    if (error instanceof TypeError && error.message.includes('fetch')) {
-      throw new Error(
-        `Failed to connect to API at ${url}. ` +
-        `Please make sure the backend server is running on ${API_URL}`
-      )
+    // معالجة أخطاء الشبكة (الباك إند لا يعمل، CORS، إلخ)
+    if (error instanceof TypeError) {
+      // Check if it's a network error
+      // التحقق إذا كان خطأ شبكة
+      const isNetworkError = 
+        error.message.includes('fetch') ||
+        error.message.includes('Failed to fetch') ||
+        error.message.includes('NetworkError') ||
+        error.message.includes('Network request failed') ||
+        error.message.includes('ERR_INTERNET_DISCONNECTED') ||
+        error.message.includes('ERR_NETWORK_CHANGED')
+      
+      if (isNetworkError) {
+        // Log diagnostic information
+        // تسجيل معلومات تشخيصية
+        console.error('[API Client] Network error details:', {
+          url,
+          apiUrl: API_URL,
+          endpoint,
+          errorMessage: error.message,
+          errorType: error.constructor.name,
+          isClientSide: typeof window !== 'undefined',
+        })
+        
+        throw new Error(
+          `Failed to connect to API at ${url}. ` +
+          `Please make sure the backend server is running on ${API_URL}. ` +
+          `If the server is running, this might be a CORS issue. ` +
+          `Check browser console for more details.`
+        )
+      }
     }
     throw error
   }

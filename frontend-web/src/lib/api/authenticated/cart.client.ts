@@ -43,6 +43,12 @@ async function clientApiFetch<T>(
 ): Promise<T> {
   const url = `${API_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`
 
+  // Log request for debugging (only in development)
+  // تسجيل الطلب للتشخيص (فقط في التطوير)
+  if (process.env.NODE_ENV === 'development') {
+    console.log('[Cart API] Request:', { method: options.method || 'GET', url })
+  }
+
   try {
     const response = await fetch(url, {
       ...options,
@@ -95,12 +101,40 @@ async function clientApiFetch<T>(
     
     // Handle network errors
     // التعامل مع أخطاء الشبكة
-    if (error instanceof TypeError && error.message.includes('fetch')) {
-      throw new ApiError(
-        'Network error. Please check your connection.',
-        0,
-        { originalError: error.message }
-      )
+    if (error instanceof TypeError) {
+      // Check if it's a network/fetch error
+      // التحقق إذا كان خطأ شبكة/fetch
+      const isNetworkError = 
+        error.message.includes('fetch') ||
+        error.message.includes('Failed to fetch') ||
+        error.message.includes('NetworkError') ||
+        error.message.includes('Network request failed') ||
+        error.message.includes('ERR_INTERNET_DISCONNECTED') ||
+        error.message.includes('ERR_NETWORK_CHANGED')
+      
+      if (isNetworkError) {
+        // Log diagnostic information
+        // تسجيل معلومات تشخيصية
+        console.error('[Cart API] Network error details:', {
+          url,
+          apiUrl: API_URL,
+          endpoint,
+          errorMessage: error.message,
+          errorType: error.constructor.name,
+        })
+        
+        throw new ApiError(
+          `Network error. Please check your connection to ${API_URL}. ` +
+          `If the backend is running, this might be a CORS issue.`,
+          0,
+          { 
+            originalError: error.message,
+            url,
+            apiUrl: API_URL,
+            endpoint,
+          }
+        )
+      }
     }
     
     // Handle other errors

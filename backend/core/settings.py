@@ -288,12 +288,22 @@ REST_FRAMEWORK = {
 # CORS_ALLOWED_ORIGINS: قائمة المصادر المسموح لها بالوصول للـ API
 # في التطوير: نسمح فقط لـ localhost:3000 (Next.js frontend)
 # في الإنتاج: يجب تحديث هذه القائمة لتشمل domain الإنتاج
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",      # Next.js development server
-    "http://127.0.0.1:3000",      # Alternative localhost
-    "http://localhost:3001",      # Next.js fallback port
-    "http://127.0.0.1:3001",      # Alternative fallback
-]
+# Read from environment variable (set in docker-compose.yml) or use defaults
+# قراءة من متغير البيئة (محدد في docker-compose.yml) أو استخدام القيم الافتراضية
+CORS_ALLOWED_ORIGINS_ENV = config('CORS_ALLOWED_ORIGINS', default='')
+if CORS_ALLOWED_ORIGINS_ENV:
+    # Parse comma-separated origins from environment variable
+    # تحليل المصادر المفصولة بفواصل من متغير البيئة
+    CORS_ALLOWED_ORIGINS = [origin.strip() for origin in CORS_ALLOWED_ORIGINS_ENV.split(',')]
+else:
+    # Default origins for development
+    # المصادر الافتراضية للتطوير
+    CORS_ALLOWED_ORIGINS = [
+        "http://localhost:3000",      # Next.js development server
+        "http://127.0.0.1:3000",      # Alternative localhost
+        "http://localhost:3001",      # Next.js fallback port
+        "http://127.0.0.1:3001",      # Alternative fallback
+    ]
 
 
 # CORS_ALLOW_CREDENTIALS: السماح بإرسال credentials (cookies, auth headers)

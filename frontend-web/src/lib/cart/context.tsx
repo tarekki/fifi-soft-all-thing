@@ -72,15 +72,37 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
             const cartData = await cartService.getCart();
             setCart(cartData);
         } catch (err) {
-            console.error('Failed to load cart:', err);
+            console.error('[CartContext] Failed to load cart:', err);
+            
+            // Extract error message
+            // استخراج رسالة الخطأ
+            let errorMessage = 'Failed to load cart';
+            if (err instanceof Error) {
+                errorMessage = err.message;
+            } else if (typeof err === 'object' && err !== null && 'message' in err) {
+                errorMessage = String(err.message);
+            }
             
             // Don't show error for 404 (cart doesn't exist yet)
             // لا تعرض خطأ لـ 404 (السلة غير موجودة بعد)
-            const errorMessage = err instanceof Error ? err.message : 'Failed to load cart';
-            const isNotFound = errorMessage.includes('404') || errorMessage.includes('not found');
+            const isNotFound = 
+                errorMessage.includes('404') || 
+                errorMessage.includes('not found') ||
+                errorMessage.includes('Not Found');
             
-            if (!isNotFound) {
+            // Don't show error for network issues (user might be offline)
+            // لا تعرض خطأ لمشاكل الشبكة (المستخدم قد يكون غير متصل)
+            const isNetworkError = 
+                errorMessage.includes('Network error') ||
+                errorMessage.includes('Failed to fetch') ||
+                errorMessage.includes('connection');
+            
+            if (!isNotFound && !isNetworkError) {
                 setError(errorMessage);
+            } else if (isNetworkError) {
+                // Log network error for debugging
+                // تسجيل خطأ الشبكة للتشخيص
+                console.warn('[CartContext] Network error detected. Cart will be available when connection is restored.');
             }
             
             // Always set empty cart state on error (cart will be created on first add)

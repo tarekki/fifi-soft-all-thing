@@ -224,8 +224,18 @@ export function SettingsProvider({
       }
     } catch (err) {
       setIsError(true)
-      setError(err instanceof Error ? err.message : 'Failed to load settings')
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load settings'
+      setError(errorMessage)
       console.error('[SettingsProvider] Error fetching settings:', err)
+      
+      // Log additional debugging info
+      // تسجيل معلومات إضافية للتشخيص
+      if (errorMessage.includes('Failed to connect')) {
+        console.warn('[SettingsProvider] Backend connection issue. Check:')
+        console.warn('1. Is backend running on http://localhost:8000?')
+        console.warn('2. Check CORS settings in backend')
+        console.warn('3. Check NEXT_PUBLIC_API_URL environment variable')
+      }
     } finally {
       setIsLoading(false)
     }

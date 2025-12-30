@@ -106,6 +106,14 @@ from admin_api.views import (
     AdminShippingMethodListCreateView,
     AdminShippingMethodDetailView,
     AdminAllSettingsView,
+    # Carts
+    AdminCartListView,
+    AdminCartDetailView,
+    AdminCartAddItemView,
+    AdminCartItemUpdateView,
+    AdminCartItemDeleteView,
+    AdminCartClearView,
+    AdminCartStatsView,
 )
 
 
@@ -800,6 +808,69 @@ reports_urlpatterns = [
 
 
 # =============================================================================
+# Carts URL Patterns
+# أنماط URLs للسلل
+# =============================================================================
+carts_urlpatterns = [
+    # GET /api/v1/admin/carts/
+    # عرض قائمة السلل
+    path(
+        '',
+        AdminCartListView.as_view(),
+        name='list'
+    ),
+    
+    # GET /api/v1/admin/carts/stats/
+    # إحصائيات السلل
+    path(
+        'stats/',
+        AdminCartStatsView.as_view(),
+        name='stats'
+    ),
+    
+    # GET, DELETE /api/v1/admin/carts/{id}/
+    # تفاصيل، حذف سلة
+    path(
+        '<int:pk>/',
+        AdminCartDetailView.as_view(),
+        name='detail'
+    ),
+    
+    # POST /api/v1/admin/carts/{id}/add_item/
+    # إضافة عنصر لسلة مستخدم
+    path(
+        '<int:pk>/add_item/',
+        AdminCartAddItemView.as_view(),
+        name='add-item'
+    ),
+    
+    # PATCH /api/v1/admin/carts/{id}/items/{item_id}/
+    # تحديث عنصر في سلة مستخدم
+    path(
+        '<int:pk>/items/<int:item_id>/',
+        AdminCartItemUpdateView.as_view(),
+        name='update-item'
+    ),
+    
+    # DELETE /api/v1/admin/carts/{id}/items/{item_id}/
+    # إزالة عنصر من سلة مستخدم
+    path(
+        '<int:pk>/items/<int:item_id>/',
+        AdminCartItemDeleteView.as_view(),
+        name='delete-item'
+    ),
+    
+    # DELETE /api/v1/admin/carts/{id}/clear/
+    # مسح سلة مستخدم
+    path(
+        '<int:pk>/clear/',
+        AdminCartClearView.as_view(),
+        name='clear'
+    ),
+]
+
+
+# =============================================================================
 # Main URL Patterns
 # أنماط URLs الرئيسية
 # =============================================================================
@@ -851,5 +922,9 @@ urlpatterns = [
     # Reports endpoints
     # نقاط نهاية التقارير
     path('reports/', include((reports_urlpatterns, 'reports'))),
+    
+    # Carts endpoints
+    # نقاط نهاية السلل
+    path('carts/', include((carts_urlpatterns, 'carts'))),
 ]
 

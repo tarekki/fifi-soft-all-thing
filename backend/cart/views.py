@@ -12,6 +12,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 from django.db import transaction
 from django.utils import timezone
+from django.http import Http404
 
 from core.utils import success_response, error_response
 from .models import Cart, CartItem
@@ -117,11 +118,56 @@ class CartViewSet(viewsets.ModelViewSet):
         """
         List cart (same as retrieve for cart - one cart per user)
         عرض السلة (نفس retrieve للسلة - سلة واحدة لكل مستخدم)
+        
+        Note: Only creates cart if it doesn't exist. Does NOT create empty carts.
+        ملاحظة: ينشئ السلة فقط إذا لم تكن موجودة. لا ينشئ سلل فارغة.
         """
-        cart = get_or_create_cart(request)
+        user = request.user if request.user.is_authenticated else None
+        session_key = request.session.session_key if not user else None
+        
+        # Try to get existing cart first (don't create if doesn't exist)
+        # محاولة الحصول على السلة الموجودة أولاً (لا تنشئ إذا لم تكن موجودة)
+        try:
+            if user:
+                cart = Cart.objects.get(user=user)
+            elif session_key:
+                cart = Cart.objects.get(session_key=session_key)
+            else:
+                # No user and no session - return empty cart
+                # لا يوجد مستخدم ولا جلسة - إرجاع سلة فارغة
+                return Response({
+                    "success": True,
+                    "data": {
+                        "id": 0,
+                        "user": None,
+                        "items": [],
+                        "item_count": 0,
+                        "subtotal": "0.00",
+                        "created_at": None,
+                        "updated_at": None,
+                    },
+                    "message": "No cart found. / لم يتم العثور على سلة.",
+                    "errors": None,
+                })
+        except Cart.DoesNotExist:
+            # Cart doesn't exist - return empty cart (don't create until user adds item)
+            # السلة غير موجودة - إرجاع سلة فارغة (لا تنشئ حتى يضيف المستخدم عنصر)
+            return Response({
+                "success": True,
+                "data": {
+                    "id": 0,
+                    "user": None,
+                    "items": [],
+                    "item_count": 0,
+                    "subtotal": "0.00",
+                    "created_at": None,
+                    "updated_at": None,
+                },
+                "message": "No cart found. / لم يتم العثور على سلة.",
+                "errors": None,
+            })
+        
         serializer = self.get_serializer(cart)
-        # Return data directly - DRF will wrap it in Response
-        # إرجاع البيانات مباشرة - DRF سيلفها في Response
         return Response({
             "success": True,
             "data": serializer.data,
