@@ -8,4 +8,6 @@
 
 export { AdminSidebar } from './AdminSidebar'
 export { AdminHeader } from './AdminHeader'
+export { AdminSearchModal } from './AdminSearchModal'
+
 

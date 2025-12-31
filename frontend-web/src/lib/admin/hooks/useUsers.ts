@@ -50,7 +50,7 @@ interface UseUsersReturn {
   isLoadingStats: boolean
   error: string | null
   filters: UserFilters
-  
+
   // Functions
   fetchUsers: (filters?: UserFilters) => Promise<void>
   fetchUserDetails: (id: number) => Promise<void>
@@ -76,7 +76,7 @@ export function useUsers(
   // =========================================================================
   // State
   // =========================================================================
-  
+
   const [users, setUsers] = useState<User[]>([])
   const [selectedUser, setSelectedUser] = useState<UserDetail | null>(null)
   const [stats, setStats] = useState<UserStats | null>(null)
@@ -85,33 +85,33 @@ export function useUsers(
   const [hasNextPage, setHasNextPage] = useState(false)
   const [hasPreviousPage, setHasPreviousPage] = useState(false)
   const [filters, setFiltersState] = useState<UserFilters>(initialFilters)
-  
+
   // Loading states
   const [isLoading, setIsLoading] = useState(false)
   const [isLoadingDetails, setIsLoadingDetails] = useState(false)
   const [isProcessing, setIsProcessing] = useState(false)
   const [isLoadingStats, setIsLoadingStats] = useState(false)
-  
+
   // Error state
   const [error, setError] = useState<string | null>(null)
-  
+
   // Ref to store refresh function (defined later)
   // مرجع لحفظ دالة refresh (معرّفة لاحقاً)
   const refreshRef = useRef<(() => void) | null>(null)
-  
-  
+
+
   // =========================================================================
   // Fetch Users
   // =========================================================================
-  
+
   const fetchUsers = useCallback(async (customFilters?: UserFilters) => {
     setIsLoading(true)
     setError(null)
-    
+
     try {
       const appliedFilters = customFilters || filters
       const response = await getUsers(appliedFilters)
-      
+
       if (response.success && response.data) {
         if ('results' in response.data) {
           setUsers(response.data.results)
@@ -124,7 +124,7 @@ export function useUsers(
           setHasNextPage(false)
           setHasPreviousPage(false)
         }
-        
+
         setCurrentPage(appliedFilters.page || 1)
       } else {
         console.error('Failed to fetch users:', response.message)
@@ -140,19 +140,19 @@ export function useUsers(
       setIsLoading(false)
     }
   }, [filters])
-  
-  
+
+
   // =========================================================================
   // Fetch User Details
   // =========================================================================
-  
+
   const fetchUserDetails = useCallback(async (id: number) => {
     setIsLoadingDetails(true)
     setError(null)
-    
+
     try {
       const response = await getUser(id)
-      
+
       if (response.success && response.data) {
         setSelectedUser(response.data)
       } else {
@@ -169,27 +169,41 @@ export function useUsers(
       setIsLoadingDetails(false)
     }
   }, [])
-  
-  
+
+
   // =========================================================================
   // Create User
   // =========================================================================
-  
+
   const create = useCallback(async (data: UserCreatePayload): Promise<boolean> => {
     setIsProcessing(true)
     setError(null)
-    
+
     try {
       const response = await createUser(data)
-      
+
       if (response.success) {
         // Refresh list and stats
         await fetchUsers()
         await fetchStats()
         return true
       } else {
-        console.error('Failed to create user:', response.message)
-        setError(response.message || 'فشل في إنشاء المستخدم')
+        console.error('Failed to create user:', response.message, response.errors)
+
+        // Extract detailed error message
+        let errorMsg = response.message || 'فشل في إنشاء المستخدم'
+        if (response.errors) {
+          if (typeof response.errors === 'object') {
+            const errorValues = Object.values(response.errors).flat()
+            if (errorValues.length > 0) {
+              errorMsg = String(errorValues[0])
+            }
+          } else {
+            errorMsg = String(response.errors)
+          }
+        }
+
+        setError(errorMsg)
         return false
       }
     } catch (err) {
@@ -201,36 +215,50 @@ export function useUsers(
       setIsProcessing(false)
     }
   }, [fetchUsers]) // eslint-disable-line react-hooks/exhaustive-deps
-  
-  
+
+
   // =========================================================================
   // Update User
   // =========================================================================
-  
+
   const update = useCallback(async (
     id: number,
     data: UserUpdatePayload
   ): Promise<boolean> => {
     setIsProcessing(true)
     setError(null)
-    
+
     try {
       const response = await updateUser(id, data)
-      
+
       if (response.success) {
         // Refresh list and stats
         await fetchUsers()
         await fetchStats()
-        
+
         // Update selected if same
         if (selectedUser && selectedUser.id === id) {
           setSelectedUser(response.data || null)
         }
-        
+
         return true
       } else {
-        console.error('Failed to update user:', response.message)
-        setError(response.message || 'فشل في تحديث المستخدم')
+        console.error('Failed to update user:', response.message, response.errors)
+
+        // Extract detailed error message
+        let errorMsg = response.message || 'فشل في تحديث المستخدم'
+        if (response.errors) {
+          if (typeof response.errors === 'object') {
+            const errorValues = Object.values(response.errors).flat()
+            if (errorValues.length > 0) {
+              errorMsg = String(errorValues[0])
+            }
+          } else {
+            errorMsg = String(response.errors)
+          }
+        }
+
+        setError(errorMsg)
         return false
       }
     } catch (err) {
@@ -242,29 +270,29 @@ export function useUsers(
       setIsProcessing(false)
     }
   }, [fetchUsers, selectedUser]) // eslint-disable-line react-hooks/exhaustive-deps
-  
-  
+
+
   // =========================================================================
   // Delete User
   // =========================================================================
-  
+
   const remove = useCallback(async (id: number): Promise<boolean> => {
     setIsProcessing(true)
     setError(null)
-    
+
     try {
       const response = await deleteUser(id)
-      
+
       if (response.success) {
         // Refresh list and stats
         await fetchUsers()
         await fetchStats()
-        
+
         // Clear selected if same
         if (selectedUser && selectedUser.id === id) {
           setSelectedUser(null)
         }
-        
+
         return true
       } else {
         console.error('Failed to delete user:', response.message)
@@ -280,31 +308,31 @@ export function useUsers(
       setIsProcessing(false)
     }
   }, [fetchUsers, selectedUser]) // eslint-disable-line react-hooks/exhaustive-deps
-  
-  
+
+
   // =========================================================================
   // Update User Status
   // =========================================================================
-  
+
   const updateStatus = useCallback(async (
     id: number,
     data: UserStatusUpdatePayload
   ): Promise<boolean> => {
     setIsProcessing(true)
     setError(null)
-    
+
     try {
       // Log the data being sent for debugging
       console.log('Updating user status:', { id, data })
-      
+
       const response = await updateUserStatus(id, data)
-      
+
       if (response.success) {
         // Update selected if same
         if (selectedUser && selectedUser.id === id) {
           setSelectedUser(response.data || null)
         }
-        
+
         // Refresh data using refresh function if available
         // تحديث البيانات باستخدام دالة refresh إن كانت متاحة
         if (refreshRef.current) {
@@ -314,11 +342,11 @@ export function useUsers(
           // بديل: استدعاء fetchUsers مباشرة
           await fetchUsers()
         }
-        
+
         return true
       } else {
         console.error('Failed to update user status:', response.message, response.errors)
-        const errorMsg = response.errors 
+        const errorMsg = response.errors
           ? JSON.stringify(response.errors)
           : (response.message || 'فشل في تحديث حالة المستخدم')
         setError(errorMsg)
@@ -333,24 +361,24 @@ export function useUsers(
       setIsProcessing(false)
     }
   }, [selectedUser]) // eslint-disable-line react-hooks/exhaustive-deps
-  
-  
+
+
   // =========================================================================
   // Bulk Action
   // =========================================================================
-  
+
   const bulkAction = useCallback(async (
     data: UserBulkActionPayload
   ): Promise<boolean> => {
     setIsProcessing(true)
     setError(null)
-    
+
     try {
       // Log the data being sent for debugging
       console.log('Performing bulk action:', data)
-      
+
       const response = await bulkUserAction(data)
-      
+
       if (response.success) {
         // Refresh data using refresh function if available
         // تحديث البيانات باستخدام دالة refresh إن كانت متاحة
@@ -364,31 +392,22 @@ export function useUsers(
         return true
       } else {
         console.error('Failed to perform bulk action:', response.message, response.errors)
-        
+
         // Extract error message from errors object
         // استخراج رسالة الخطأ من كائن errors
         let errorMsg = response.message || 'فشل في تنفيذ العملية المجمعة'
-        
+
         if (response.errors) {
-          // Try to extract user-friendly error message
-          // محاولة استخراج رسالة خطأ واضحة للمستخدم
           if (typeof response.errors === 'object') {
             const errorValues = Object.values(response.errors).flat()
             if (errorValues.length > 0) {
-              const firstError = errorValues[0]
-              if (typeof firstError === 'string') {
-                errorMsg = firstError
-              } else if (Array.isArray(firstError) && firstError.length > 0) {
-                errorMsg = String(firstError[0])
-              } else {
-                errorMsg = JSON.stringify(response.errors)
-              }
+              errorMsg = String(errorValues[0])
             }
           } else {
             errorMsg = String(response.errors)
           }
         }
-        
+
         setError(errorMsg)
         return false
       }
@@ -401,18 +420,18 @@ export function useUsers(
       setIsProcessing(false)
     }
   }, [fetchUsers]) // eslint-disable-line react-hooks/exhaustive-deps
-  
-  
+
+
   // =========================================================================
   // Fetch Statistics
   // =========================================================================
-  
+
   const fetchStats = useCallback(async () => {
     setIsLoadingStats(true)
-    
+
     try {
       const response = await getUserStats()
-      
+
       if (response.success && response.data) {
         setStats(response.data)
       } else {
@@ -424,54 +443,54 @@ export function useUsers(
       setIsLoadingStats(false)
     }
   }, [])
-  
-  
+
+
   // =========================================================================
   // Set Filters
   // =========================================================================
-  
+
   const setFilters = useCallback((newFilters: UserFilters) => {
     setFiltersState(newFilters)
   }, [])
-  
-  
+
+
   // =========================================================================
   // Clear Selected User
   // =========================================================================
-  
+
   const clearSelectedUser = useCallback(() => {
     setSelectedUser(null)
   }, [])
-  
-  
+
+
   // =========================================================================
   // Refresh
   // =========================================================================
-  
+
   const refresh = useCallback(() => {
     fetchUsers()
     fetchStats()
   }, [fetchUsers, fetchStats])
-  
+
   // Store refresh function in ref
   // حفظ دالة refresh في المرجع
   refreshRef.current = refresh
-  
-  
+
+
   // =========================================================================
   // Initial Fetch
   // =========================================================================
-  
+
   useEffect(() => {
     fetchUsers()
     fetchStats()
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
-  
-  
+
+
   // =========================================================================
   // Return
   // =========================================================================
-  
+
   return {
     users,
     selectedUser,

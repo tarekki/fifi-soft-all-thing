@@ -114,7 +114,10 @@ from admin_api.views import (
     AdminCartItemDeleteView,
     AdminCartClearView,
     AdminCartStatsView,
+    # Search
+    AdminGlobalSearchView,
 )
+
 
 
 # =============================================================================
@@ -926,5 +929,10 @@ urlpatterns = [
     # Carts endpoints
     # نقاط نهاية السلل
     path('carts/', include((carts_urlpatterns, 'carts'))),
+    
+    # Global Search
+    # البحث العالمي
+    path('search/', AdminGlobalSearchView.as_view(), name='global-search'),
 ]
+
 

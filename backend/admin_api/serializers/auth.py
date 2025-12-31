@@ -188,8 +188,9 @@ class AdminUserSerializer(serializers.ModelSerializer):
         role = get_admin_role(obj)
         role_names = {
             AdminRoles.SUPER_ADMIN: _('مسؤول فائق / Super Admin'),
-            AdminRoles.ADMIN: _('مسؤول / Admin'),
-            AdminRoles.MODERATOR: _('مشرف / Moderator'),
+            AdminRoles.CONTENT_MANAGER: _('مدير محتوى / Content Manager'),
+            AdminRoles.ORDER_MANAGER: _('مدير طلبات / Order Manager'),
+            AdminRoles.SUPPORT: _('فريق الدعم / Support Staff'),
         }
         return role_names.get(role, _('غير محدد / Unknown'))
     

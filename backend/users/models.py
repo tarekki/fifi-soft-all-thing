@@ -118,11 +118,17 @@ class User(AbstractUser):
         
         CUSTOMER: Regular customer who can browse and purchase
         VENDOR: Vendor who can manage their products and orders
-        ADMIN: Platform administrator with full access
+        ADMIN: Platform administrator with full access (Super Admin)
+        CONTENT_MANAGER: Person who manages products and categories
+        ORDER_MANAGER: Person who manages orders and reports
+        SUPPORT: Person who manages users and applications
         """
-        CUSTOMER = 'customer', _('Customer')  # زبون
-        VENDOR = 'vendor', _('Vendor')       # بائع
-        ADMIN = 'admin', _('Admin')          # مطور
+        CUSTOMER = 'customer', _('Customer')          # زبون
+        VENDOR = 'vendor', _('Vendor')                 # بائع
+        ADMIN = 'admin', _('Super Admin')              # مدير عام (مطور)
+        CONTENT_MANAGER = 'content_manager', _('Content Manager') # مدير محتوى
+        ORDER_MANAGER = 'order_manager', _('Order Manager')     # مدير طلبات
+        SUPPORT = 'support', _('Support Staff')        # فريق الدعم
     
     # ========================================================================
     # User Fields
@@ -231,8 +237,14 @@ class User(AbstractUser):
     
     @property
     def is_admin(self):
-        """Check if user is an admin"""
-        return self.role == self.Role.ADMIN or self.is_superuser
+        """Check if user has any administrative role"""
+        admin_roles = [
+            self.Role.ADMIN,
+            self.Role.CONTENT_MANAGER,
+            self.Role.ORDER_MANAGER,
+            self.Role.SUPPORT
+        ]
+        return self.role in admin_roles or self.is_superuser
 
 
 # ============================================================================

@@ -44,12 +44,12 @@ interface AdminAuthContextType extends AdminAuthState {
   login: (credentials: AdminLoginCredentials) => Promise<boolean>
   logout: () => Promise<void>
   refreshUser: () => Promise<void>
-  
+
   // Permission helpers
   // مساعدات الصلاحيات
   can: (permission: string) => boolean
   canAny: (permissions: string[]) => boolean
-  
+
   // Computed
   // محسوبة
   isSuperAdmin: boolean
@@ -78,54 +78,57 @@ export function AdminAuthProvider({ children }: AdminAuthProviderProps) {
   const [user, setUser] = useState<AdminUser | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  
+
   const router = useRouter()
-  
+
   // =================================================================
   // Computed Values
   // القيم المحسوبة
   // =================================================================
-  
+
   const isAuthenticated = useMemo(() => !!user, [user])
-  const isSuperAdmin = useMemo(() => user?.role === 'super_admin', [user])
-  const isAdmin = useMemo(() => user?.role === 'admin' || isSuperAdmin, [user, isSuperAdmin])
-  
+  const isSuperAdmin = useMemo(() => user?.role === 'admin', [user])
+  const isAdmin = useMemo(() => {
+    const adminRoles: string[] = ['admin', 'content_manager', 'order_manager', 'support']
+    return user?.role ? adminRoles.includes(user.role) : false
+  }, [user])
+
   // =================================================================
   // Permission Helpers
   // مساعدات الصلاحيات
   // =================================================================
-  
+
   const can = useCallback(
     (permission: string) => hasPermission(user, permission),
     [user]
   )
-  
+
   const canAny = useCallback(
     (permissions: string[]) => hasAnyPermission(user, permissions),
     [user]
   )
-  
+
   // =================================================================
   // Restore Session on Mount
   // استعادة الجلسة عند التحميل
   // =================================================================
-  
+
   useEffect(() => {
     const restoreSession = async () => {
       // Check if we have a token
       // التحقق من وجود توكن
       const token = getAccessToken()
-      
+
       if (!token) {
         setIsLoading(false)
         return
       }
-      
+
       try {
         // Try to get current user info
         // محاولة الحصول على معلومات المستخدم الحالي
         const response = await getAdminMe()
-        
+
         if (response.success && response.data) {
           setUser(response.data)
         } else {
@@ -141,23 +144,23 @@ export function AdminAuthProvider({ children }: AdminAuthProviderProps) {
         setIsLoading(false)
       }
     }
-    
+
     restoreSession()
   }, [])
-  
+
   // =================================================================
   // Login
   // تسجيل الدخول
   // =================================================================
-  
+
   const login = useCallback(
     async (credentials: AdminLoginCredentials): Promise<boolean> => {
       setIsLoading(true)
       setError(null)
-      
+
       try {
         const response = await adminLogin(credentials)
-        
+
         if (response.success && response.data?.user) {
           setUser(response.data.user)
           return true
@@ -175,15 +178,15 @@ export function AdminAuthProvider({ children }: AdminAuthProviderProps) {
     },
     []
   )
-  
+
   // =================================================================
   // Logout
   // تسجيل الخروج
   // =================================================================
-  
+
   const logout = useCallback(async () => {
     setIsLoading(true)
-    
+
     try {
       await adminLogout()
     } catch {
@@ -193,22 +196,22 @@ export function AdminAuthProvider({ children }: AdminAuthProviderProps) {
       setUser(null)
       setError(null)
       setIsLoading(false)
-      
+
       // Redirect to login page
       // إعادة التوجيه لصفحة الدخول
       router.push('/admin/login')
     }
   }, [router])
-  
+
   // =================================================================
   // Refresh User
   // تحديث بيانات المستخدم
   // =================================================================
-  
+
   const refreshUser = useCallback(async () => {
     try {
       const response = await getAdminMe()
-      
+
       if (response.success && response.data) {
         setUser(response.data)
       }
@@ -216,12 +219,12 @@ export function AdminAuthProvider({ children }: AdminAuthProviderProps) {
       // Ignore errors
     }
   }, [])
-  
+
   // =================================================================
   // Context Value
   // قيمة السياق
   // =================================================================
-  
+
   const value = useMemo<AdminAuthContextType>(
     () => ({
       // State
@@ -229,16 +232,16 @@ export function AdminAuthProvider({ children }: AdminAuthProviderProps) {
       isAuthenticated,
       isLoading,
       error,
-      
+
       // Actions
       login,
       logout,
       refreshUser,
-      
+
       // Permission helpers
       can,
       canAny,
-      
+
       // Computed
       isSuperAdmin,
       isAdmin,
@@ -257,7 +260,7 @@ export function AdminAuthProvider({ children }: AdminAuthProviderProps) {
       isAdmin,
     ]
   )
-  
+
   return (
     <AdminAuthContext.Provider value={value}>
       {children}
@@ -278,11 +281,11 @@ export function AdminAuthProvider({ children }: AdminAuthProviderProps) {
  */
 export function useAdminAuth(): AdminAuthContextType {
   const context = useContext(AdminAuthContext)
-  
+
   if (context === undefined) {
     throw new Error('useAdminAuth must be used within an AdminAuthProvider')
   }
-  
+
   return context
 }
 
@@ -318,13 +321,13 @@ export function ProtectedRoute({
 }: ProtectedRouteProps) {
   const { isAuthenticated, isLoading, can, canAny } = useAdminAuth()
   const router = useRouter()
-  
+
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       router.push('/admin/login')
     }
   }, [isLoading, isAuthenticated, router])
-  
+
   // Show loading state
   // عرض حالة التحميل
   if (isLoading) {
@@ -337,13 +340,13 @@ export function ProtectedRoute({
       </div>
     )
   }
-  
+
   // Not authenticated
   // غير مصادق عليه
   if (!isAuthenticated) {
     return null
   }
-  
+
   // Check specific permission
   // التحقق من صلاحية معينة
   if (permission && !can(permission)) {
@@ -360,14 +363,14 @@ export function ProtectedRoute({
       </div>
     )
   }
-  
+
   // Check multiple permissions
   // التحقق من صلاحيات متعددة
   if (permissions && permissions.length > 0) {
     const hasAccess = requireAll
       ? permissions.every(p => can(p))
       : canAny(permissions)
-    
+
     if (!hasAccess) {
       return (
         <div className="min-h-screen flex items-center justify-center bg-historical-stone">
@@ -383,7 +386,7 @@ export function ProtectedRoute({
       )
     }
   }
-  
+
   return <>{children}</>
 }
 

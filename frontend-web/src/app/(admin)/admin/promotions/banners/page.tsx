@@ -77,7 +77,7 @@ const getLocationLabel = (location: BannerLocation, t: any) => {
     hero: t.admin.promotions.banners.hero,
     sidebar: t.admin.promotions.banners.sidebar,
     popup: t.admin.promotions.banners.popup,
-    category: t.admin.promotions.banners.category,
+    category: t.admin.promotions.banners.categoryPage,
   }
   return labels[location] || location
 }
@@ -133,11 +133,11 @@ export default function BannersPage() {
     setFilters,
     refresh,
   } = useBanners()
-  
+
   const [filterLocation, setFilterLocation] = useState<BannerLocation | ''>('')
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingBanner, setEditingBanner] = useState<Banner | null>(null)
-  
+
   // Update filters when location filter changes
   useEffect(() => {
     const newFilters = { ...filters }
@@ -153,12 +153,12 @@ export default function BannersPage() {
   const handleToggle = useCallback(async (id: number, isActive: boolean) => {
     const banner = banners.find(b => b.id === id)
     if (!banner) return
-    
+
     const success = await update(id, {
       ...banner,
       is_active: !isActive,
     } as BannerPayload)
-    
+
     if (success) {
       refresh()
     }
@@ -227,7 +227,7 @@ export default function BannersPage() {
           <option value="hero">{t.admin.promotions.banners.hero}</option>
           <option value="sidebar">{t.admin.promotions.banners.sidebar}</option>
           <option value="popup">{t.admin.promotions.banners.popup}</option>
-          <option value="category">{t.admin.promotions.banners.category}</option>
+          <option value="category">{t.admin.promotions.banners.categoryPage}</option>
         </select>
         <div className="flex-1" />
         {isLoading ? (
@@ -274,9 +274,8 @@ export default function BannersPage() {
             <motion.div
               key={banner.id}
               variants={itemVariants}
-              className={`bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm transition-colors duration-300 rounded-2xl border shadow-soft overflow-hidden group ${
-                banner.is_active ? 'border-green-200 dark:border-green-800' : 'border-historical-gold/10 dark:border-gray-700'
-              }`}
+              className={`bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm transition-colors duration-300 rounded-2xl border shadow-soft overflow-hidden group ${banner.is_active ? 'border-green-200 dark:border-green-800' : 'border-historical-gold/10 dark:border-gray-700'
+                }`}
             >
               {/* Banner Image Preview */}
               <div className="relative h-40 bg-historical-stone overflow-hidden">
@@ -345,9 +344,8 @@ export default function BannersPage() {
                   <button
                     onClick={() => handleToggle(banner.id, banner.is_active)}
                     disabled={isProcessing}
-                    className={`relative w-12 h-7 rounded-full transition-colors duration-200 disabled:opacity-50 ${
-                      banner.is_active ? 'bg-green-500 dark:bg-green-600' : 'bg-historical-charcoal/20 dark:bg-gray-600'
-                    }`}
+                    className={`relative w-12 h-7 rounded-full transition-colors duration-200 disabled:opacity-50 ${banner.is_active ? 'bg-green-500 dark:bg-green-600' : 'bg-historical-charcoal/20 dark:bg-gray-600'
+                      }`}
                   >
                     <motion.div
                       initial={false}
@@ -709,7 +707,7 @@ function BannerModal({
                   <option value="hero">{t.admin.promotions.banners.hero}</option>
                   <option value="sidebar">{t.admin.promotions.banners.sidebar}</option>
                   <option value="popup">{t.admin.promotions.banners.popup}</option>
-                  <option value="category">{t.admin.promotions.banners.category}</option>
+                  <option value="category">{t.admin.promotions.banners.categoryPage}</option>
                 </select>
               </div>
               <div>

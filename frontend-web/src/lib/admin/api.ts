@@ -21,7 +21,9 @@ import type {
   SalesChartData,
   RecentOrder,
   RecentActivity,
+  GlobalSearchResponse,
 } from './types'
+
 import type {
   SalesReport,
   ProductsReport,
@@ -119,11 +121,11 @@ export async function adminFetch<T>(
   options: RequestInit = {}
 ): Promise<ApiResponse<T>> {
   const url = `${ADMIN_API_URL}${endpoint}`
-  
+
   // Get access token
   // الحصول على access token
   let accessToken = getAccessToken()
-  
+
   // Check if token is expired and try to refresh
   // التحقق من انتهاء التوكن ومحاولة التجديد
   if (accessToken && isTokenExpired(accessToken)) {
@@ -143,24 +145,24 @@ export async function adminFetch<T>(
       }
     }
   }
-  
+
   // Build headers
   // بناء الهيدرز
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
     ...options.headers,
   }
-  
+
   if (accessToken) {
     (headers as Record<string, string>)['Authorization'] = `Bearer ${accessToken}`
   }
-  
+
   try {
     const response = await fetch(url, {
       ...options,
       headers,
     })
-    
+
     // Handle network errors
     // معالجة أخطاء الشبكة
     if (!response.ok && response.status !== 400 && response.status !== 401) {
@@ -171,7 +173,7 @@ export async function adminFetch<T>(
         errors: null,
       } as ApiResponse<T>
     }
-    
+
     let data: any
     try {
       data = await response.json()
@@ -185,7 +187,7 @@ export async function adminFetch<T>(
         errors: null,
       } as ApiResponse<T>
     }
-    
+
     // Handle 401 Unauthorized
     // معالجة 401 غير مصرح
     if (response.status === 401) {
@@ -197,18 +199,18 @@ export async function adminFetch<T>(
         errors: data.errors || null,
       } as ApiResponse<T>
     }
-    
+
     // Return the API response (may be success or error)
     // إرجاع استجابة API (قد تكون نجاح أو خطأ)
     return data as ApiResponse<T>
-    
+
   } catch (error) {
     // Handle network/fetch errors
     // معالجة أخطاء الشبكة/الجلب
-    const errorMessage = error instanceof Error 
-      ? error.message 
+    const errorMessage = error instanceof Error
+      ? error.message
       : 'Network error. Please check your connection.'
-    
+
     return {
       success: false,
       data: null,
@@ -231,20 +233,20 @@ async function refreshAccessToken(refreshToken: string): Promise<string | null> 
       },
       body: JSON.stringify({ refresh: refreshToken }),
     })
-    
+
     if (!response.ok) {
       return null
     }
-    
+
     const data = await response.json()
-    
+
     if (data.success && data.data?.access) {
       // Save new access token
       // حفظ access token الجديد
       localStorage.setItem(ACCESS_TOKEN_KEY, data.data.access)
       return data.data.access
     }
-    
+
     return null
   } catch {
     return null
@@ -273,15 +275,15 @@ export async function adminLogin(
     },
     body: JSON.stringify(credentials),
   })
-  
+
   const data = await response.json()
-  
+
   // Save tokens if login successful
   // حفظ التوكنات إذا نجح تسجيل الدخول
   if (data.success && data.data?.access && data.data?.refresh) {
     saveTokens(data.data.access, data.data.refresh)
   }
-  
+
   return data as ApiResponse<AdminLoginResponse>
 }
 
@@ -291,7 +293,7 @@ export async function adminLogin(
  */
 export async function adminLogout(): Promise<ApiResponse<null>> {
   const refreshToken = getRefreshToken()
-  
+
   if (refreshToken) {
     try {
       await adminFetch<null>('/auth/logout/', {
@@ -302,9 +304,9 @@ export async function adminLogout(): Promise<ApiResponse<null>> {
       // Ignore errors, just clear tokens
     }
   }
-  
+
   clearTokens()
-  
+
   return {
     success: true,
     data: null,
@@ -435,11 +437,11 @@ export async function exportReport(
   dateRange: DateRange = '30days'
 ): Promise<Blob> {
   const url = `${ADMIN_API_URL}/reports/export/?type=${reportType}&date_range=${dateRange}`
-  
+
   // Get access token
   // الحصول على access token
   let accessToken = getAccessToken()
-  
+
   // Check if token is expired and try to refresh
   // التحقق من انتهاء التوكن ومحاولة التجديد
   if (accessToken && isTokenExpired(accessToken)) {
@@ -465,23 +467,23 @@ export async function exportReport(
       throw new Error('Session expired. Please login again.')
     }
   }
-  
+
   if (!accessToken) {
     throw new Error('Authentication required. Please login again.')
   }
-  
+
   // Build headers
   // بناء الهيدرز
   const headers: HeadersInit = {
     'Authorization': `Bearer ${accessToken}`,
   }
-  
+
   try {
     const response = await fetch(url, {
       method: 'GET',
       headers,
     })
-    
+
     // Handle 401 Unauthorized - try to refresh token once more
     // معالجة 401 غير مصرح - محاولة تجديد التوكن مرة أخرى
     if (response.status === 401) {
@@ -497,12 +499,12 @@ export async function exportReport(
               'Authorization': `Bearer ${refreshed}`,
             },
           })
-          
+
           if (!retryResponse.ok) {
             const errorText = await retryResponse.text().catch(() => 'Unknown error')
             throw new Error(`Failed to export report: ${retryResponse.status} ${retryResponse.statusText}. ${errorText}`)
           }
-          
+
           return retryResponse.blob()
         } else {
           clearTokens()
@@ -513,12 +515,12 @@ export async function exportReport(
         throw new Error('Authentication required. Please login again.')
       }
     }
-    
+
     if (!response.ok) {
       const errorText = await response.text().catch(() => 'Unknown error')
       throw new Error(`Failed to export report: ${response.status} ${response.statusText}. ${errorText}`)
     }
-    
+
     return response.blob()
   } catch (error) {
     if (error instanceof Error) {
@@ -554,7 +556,7 @@ export function hasAnyPermission(
   permissions: string[]
 ): boolean {
   if (!user) return false
-  return permissions.some(p => 
+  return permissions.some(p =>
     user.permissions.includes(p as AdminUser['permissions'][number])
   )
 }
@@ -568,8 +570,26 @@ export function hasAllPermissions(
   permissions: string[]
 ): boolean {
   if (!user) return false
-  return permissions.every(p => 
+  return permissions.every(p =>
     user.permissions.includes(p as AdminUser['permissions'][number])
   )
 }
+
+// =============================================================================
+// Search API Functions
+// دوال API البحث
+// =============================================================================
+
+/**
+ * Global search
+ * البحث العالمي
+ * 
+ * @param query - Search query
+ */
+export async function searchGlobal(
+  query: string
+): Promise<ApiResponse<GlobalSearchResponse>> {
+  return adminFetch<GlobalSearchResponse>(`/search/?q=${encodeURIComponent(query)}`)
+}
+
 

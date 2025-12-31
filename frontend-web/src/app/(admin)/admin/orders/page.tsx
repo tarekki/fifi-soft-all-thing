@@ -152,11 +152,11 @@ const getStatusStyle = (status: OrderStatus) => {
  */
 const getStatusLabel = (status: OrderStatus, t: any) => {
   const labels: Record<OrderStatus, string> = {
-    pending: t.admin.orders.status.pending,
-    confirmed: t.admin.orders.status.confirmed,
-    shipped: t.admin.orders.status.shipped,
-    delivered: t.admin.orders.status.delivered,
-    cancelled: t.admin.orders.status.cancelled,
+    pending: t.admin.orders.statuses.pending,
+    confirmed: t.admin.orders.statuses.confirmed,
+    shipped: t.admin.orders.statuses.shipped,
+    delivered: t.admin.orders.statuses.delivered,
+    cancelled: t.admin.orders.statuses.cancelled,
   }
   return labels[status] || status
 }
@@ -290,11 +290,10 @@ function OrderDetailModal({
                           key={value}
                           onClick={() => onUpdateStatus(order.id, value)}
                           disabled={isUpdating}
-                          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                            isUpdating
-                              ? 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
-                              : 'bg-historical-stone dark:bg-gray-700 hover:bg-historical-gold/20 dark:hover:bg-gray-600 text-historical-charcoal dark:text-gray-200'
-                          }`}
+                          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${isUpdating
+                            ? 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
+                            : 'bg-historical-stone dark:bg-gray-700 hover:bg-historical-gold/20 dark:hover:bg-gray-600 text-historical-charcoal dark:text-gray-200'
+                            }`}
                         >
                           {isUpdating ? Icons.loader : null}
                           {label}
@@ -605,7 +604,7 @@ export default function OrdersPage() {
               <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400 transition-colors duration-300">
                 {stats?.by_status.pending || 0}
               </p>
-              <p className="text-xs text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{t.admin.orders.status.pending}</p>
+              <p className="text-xs text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{t.admin.orders.statuses.pending}</p>
             </div>
           </div>
         </div>
@@ -618,7 +617,7 @@ export default function OrdersPage() {
               <p className="text-2xl font-bold text-blue-600 dark:text-blue-400 transition-colors duration-300">
                 {stats?.by_status.confirmed || 0}
               </p>
-              <p className="text-xs text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{t.admin.orders.status.confirmed}</p>
+              <p className="text-xs text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{t.admin.orders.statuses.confirmed}</p>
             </div>
           </div>
         </div>
@@ -631,7 +630,7 @@ export default function OrdersPage() {
               <p className="text-2xl font-bold text-purple-600 dark:text-purple-400 transition-colors duration-300">
                 {stats?.by_status.shipped || 0}
               </p>
-              <p className="text-xs text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{t.admin.orders.shipping}</p>
+              <p className="text-xs text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{t.admin.orders.statuses.shipped}</p>
             </div>
           </div>
         </div>
@@ -644,7 +643,7 @@ export default function OrdersPage() {
               <p className="text-2xl font-bold text-green-600 dark:text-green-400 transition-colors duration-300">
                 {stats?.by_status.delivered || 0}
               </p>
-              <p className="text-xs text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{t.admin.orders.delivered}</p>
+              <p className="text-xs text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{t.admin.orders.statuses.delivered}</p>
             </div>
           </div>
         </div>
@@ -657,7 +656,7 @@ export default function OrdersPage() {
               <p className="text-2xl font-bold text-red-600 dark:text-red-400 transition-colors duration-300">
                 {stats?.by_status.cancelled || 0}
               </p>
-              <p className="text-xs text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{t.admin.orders.cancelled}</p>
+              <p className="text-xs text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">{t.admin.orders.statuses.cancelled}</p>
             </div>
           </div>
         </div>
@@ -684,11 +683,11 @@ export default function OrdersPage() {
           className="px-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 min-w-[150px] text-historical-charcoal dark:text-gray-200 transition-colors duration-300"
         >
           <option value="">{t.admin.orders.allStatuses}</option>
-          <option value="pending">{t.admin.orders.status.pending}</option>
-          <option value="confirmed">{t.admin.orders.status.confirmed}</option>
-          <option value="shipped">{t.admin.orders.status.shipped}</option>
-          <option value="delivered">{t.admin.orders.status.delivered}</option>
-          <option value="cancelled">{t.admin.orders.status.cancelled}</option>
+          <option value="pending">{t.admin.orders.statuses.pending}</option>
+          <option value="confirmed">{t.admin.orders.statuses.confirmed}</option>
+          <option value="shipped">{t.admin.orders.statuses.shipped}</option>
+          <option value="delivered">{t.admin.orders.statuses.delivered}</option>
+          <option value="cancelled">{t.admin.orders.statuses.cancelled}</option>
         </select>
 
         {/* Bulk Actions */}

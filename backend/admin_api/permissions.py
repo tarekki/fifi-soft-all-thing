@@ -24,17 +24,13 @@ from rest_framework import status
 
 class AdminRoles:
     """
-    Admin role constants.
-    ثوابت أدوار الأدمن.
-    
-    Roles hierarchy (from highest to lowest):
-    - SUPER_ADMIN: Full access to everything
-    - ADMIN: Content management, limited user management
-    - MODERATOR: View only, limited actions
+    Admin role constants mapped to User.Role.
+    ثوابت أدوار الأدمن المرتبطة بـ User.Role.
     """
-    SUPER_ADMIN = 'super_admin'  # كل الصلاحيات
-    ADMIN = 'admin'              # إدارة المحتوى
-    MODERATOR = 'moderator'      # مراجعة فقط
+    SUPER_ADMIN = 'admin'           # الأدمن العام (المطور)
+    CONTENT_MANAGER = 'content_manager' # مدير المحتوى
+    ORDER_MANAGER = 'order_manager'     # مدير الطلبات
+    SUPPORT = 'support'                 # فريق الدعم
 
 
 # =============================================================================
@@ -156,8 +152,11 @@ class CanManageProducts(BasePermission):
         if request.method in ['GET', 'HEAD', 'OPTIONS']:
             return True
         
-        # Write operations require admin or superuser
-        return request.user.is_superuser or hasattr(request.user, 'is_admin_user')
+        # Write operations require Content Manager, Admin or Superuser
+        return (
+            request.user.is_superuser or 
+            request.user.role in [AdminRoles.SUPER_ADMIN, AdminRoles.CONTENT_MANAGER]
+        )
 
 
 class CanManageOrders(BasePermission):
@@ -181,8 +180,11 @@ class CanManageOrders(BasePermission):
         if request.method in ['GET', 'HEAD', 'OPTIONS']:
             return True
         
-        # Write operations require admin or superuser
-        return request.user.is_superuser or hasattr(request.user, 'is_admin_user')
+        # Write operations require Order Manager, Admin or Superuser
+        return (
+            request.user.is_superuser or 
+            request.user.role in [AdminRoles.SUPER_ADMIN, AdminRoles.ORDER_MANAGER]
+        )
 
 
 class CanManageVendors(BasePermission):
@@ -206,8 +208,11 @@ class CanManageVendors(BasePermission):
         if request.method in ['GET', 'HEAD', 'OPTIONS']:
             return True
         
-        # Write operations require admin or superuser
-        return request.user.is_superuser
+        # Write operations require Support, Admin or Superuser
+        return (
+            request.user.is_superuser or 
+            request.user.role in [AdminRoles.SUPER_ADMIN, AdminRoles.SUPPORT]
+        )
 
 
 class CanManageUsers(BasePermission):
@@ -279,10 +284,7 @@ def get_admin_role(user):
         return AdminRoles.SUPER_ADMIN
     
     if user.is_staff:
-        # Check for custom admin role field if exists
-        if hasattr(user, 'admin_role'):
-            return user.admin_role
-        return AdminRoles.ADMIN
+        return user.role
     
     return None
 
@@ -316,15 +318,43 @@ def get_user_permissions(user):
             'reports.view', 'reports.export',
         ]
     
-    # Regular admin permissions
-    return [
-        'dashboard.view',
-        'categories.view', 'categories.create', 'categories.edit',
-        'products.view', 'products.create', 'products.edit',
-        'orders.view', 'orders.edit',
-        'vendors.view', 'vendors.approve', 'vendors.reject',
-        'users.view', 'users.block',
-        'promotions.view', 'promotions.create', 'promotions.edit',
-        'reports.view',
-    ]
+    # Content Manager
+    if user.role == AdminRoles.CONTENT_MANAGER:
+        return [
+            'dashboard.view',
+            'categories.view', 'categories.create', 'categories.edit',
+            'products.view', 'products.create', 'products.edit',
+            'promotions.view', 'promotions.create', 'promotions.edit',
+        ]
+    
+    # Order Manager
+    if user.role == AdminRoles.ORDER_MANAGER:
+        return [
+            'dashboard.view',
+            'orders.view', 'orders.edit', 'orders.refund',
+            'reports.view',
+        ]
+        
+    # Support Staff
+    if user.role == AdminRoles.SUPPORT:
+        return [
+            'dashboard.view',
+            'vendors.view', 'vendors.approve', 'vendors.reject',
+            'users.view', 'users.block',
+        ]
+
+    # Default Admin (Full access if not superuser but has 'admin' role)
+    if user.role == AdminRoles.SUPER_ADMIN:
+        return [
+            'dashboard.view',
+            'categories.view', 'categories.create', 'categories.edit',
+            'products.view', 'products.create', 'products.edit',
+            'orders.view', 'orders.edit',
+            'vendors.view', 'vendors.approve', 'vendors.reject',
+            'users.view', 'users.block',
+            'promotions.view', 'promotions.create', 'promotions.edit',
+            'reports.view',
+        ]
+    
+    return ['dashboard.view']
 

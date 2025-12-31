@@ -18,6 +18,7 @@ interface NavItem {
   icon: React.ReactNode
   href?: string
   children?: NavItem[]
+  roles?: string[] // Roles allowed to see this item (empty means all admin roles)
 }
 
 interface AdminSidebarProps {
@@ -112,12 +113,14 @@ const navigationItems: NavItem[] = [
     labelAr: 'لوحة التحكم',
     icon: Icons.dashboard(),
     href: '/admin/dashboard',
+    roles: ['admin', 'content_manager', 'order_manager', 'support'],
   },
   {
     id: 'settings',
     label: 'Site Settings',
     labelAr: 'إعدادات الموقع',
     icon: Icons.settings(),
+    roles: ['admin'],
     children: [
       { id: 'settings-general', label: 'General', labelAr: 'عام', icon: Icons.settings(), href: '/admin/settings/general' },
       { id: 'settings-seo', label: 'SEO', labelAr: 'تحسين البحث', icon: Icons.settings(), href: '/admin/settings/seo' },
@@ -135,6 +138,7 @@ const navigationItems: NavItem[] = [
     labelAr: 'الفئات',
     icon: Icons.categories(),
     href: '/admin/categories',
+    roles: ['admin', 'content_manager'],
   },
   {
     id: 'products',
@@ -142,6 +146,7 @@ const navigationItems: NavItem[] = [
     labelAr: 'المنتجات',
     icon: Icons.products(),
     href: '/admin/products',
+    roles: ['admin', 'content_manager'],
   },
   {
     id: 'vendors',
@@ -149,6 +154,7 @@ const navigationItems: NavItem[] = [
     labelAr: 'البائعون',
     icon: Icons.vendors(),
     href: '/admin/vendors',
+    roles: ['admin', 'support'],
   },
   {
     id: 'vendor-applications',
@@ -156,6 +162,7 @@ const navigationItems: NavItem[] = [
     labelAr: 'طلبات الانضمام',
     icon: Icons.vendors(),
     href: '/admin/vendor-applications',
+    roles: ['admin', 'support'],
   },
   {
     id: 'orders',
@@ -163,6 +170,7 @@ const navigationItems: NavItem[] = [
     labelAr: 'الطلبات',
     icon: Icons.orders(),
     href: '/admin/orders',
+    roles: ['admin', 'order_manager'],
   },
   {
     id: 'carts',
@@ -170,19 +178,23 @@ const navigationItems: NavItem[] = [
     labelAr: 'السلل',
     icon: Icons.shoppingCart(),
     href: '/admin/carts',
+    roles: ['admin', 'order_manager'],
   },
   {
     id: 'users',
     label: 'Users',
+    labelAr: 'المخدمون',
     labelAr: 'المستخدمون',
     icon: Icons.users(),
     href: '/admin/users',
+    roles: ['admin', 'support'],
   },
   {
     id: 'promotions',
     label: 'Promotions',
     labelAr: 'العروض',
     icon: Icons.promotions(),
+    roles: ['admin', 'content_manager'],
     children: [
       { id: 'promo-banners', label: 'Banners', labelAr: 'البانرات', icon: Icons.promotions(), href: '/admin/promotions/banners' },
       { id: 'promo-stories', label: 'Stories', labelAr: 'القصص', icon: Icons.promotions(), href: '/admin/promotions/stories' },
@@ -195,6 +207,7 @@ const navigationItems: NavItem[] = [
     labelAr: 'التقارير',
     icon: Icons.reports(),
     href: '/admin/reports',
+    roles: ['admin', 'order_manager'],
   },
 ]
 
@@ -431,15 +444,20 @@ export function AdminSidebar({ isCollapsed, onToggleCollapse }: AdminSidebarProp
 
       {/* Navigation */}
       <nav className="flex-1 p-3 space-y-1 overflow-y-auto custom-scrollbar">
-        {navigationItems.map(item => (
-          <NavItemComponent
-            key={item.id}
-            item={item}
-            isCollapsed={isCollapsed}
-            isActive={item.href === pathname}
-            pathname={pathname}
-          />
-        ))}
+        {navigationItems
+          .filter(item => {
+            if (!item.roles || item.roles.length === 0) return true
+            return user?.role && item.roles.includes(user.role)
+          })
+          .map(item => (
+            <NavItemComponent
+              key={item.id}
+              item={item}
+              isCollapsed={isCollapsed}
+              isActive={item.href === pathname}
+              pathname={pathname}
+            />
+          ))}
       </nav>
 
       {/* Footer */}

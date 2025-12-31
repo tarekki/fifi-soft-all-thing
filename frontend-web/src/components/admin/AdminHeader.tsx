@@ -8,6 +8,7 @@ import { useLanguage } from '@/lib/i18n/context'
 import { useNotifications } from '@/lib/admin/hooks/useNotifications'
 import { useUIStore } from '@/store/uiStore'
 import type { Notification as NotificationType } from '@/lib/admin/types/notifications'
+import { AdminSearchModal } from './AdminSearchModal'
 
 // =============================================================================
 // Types & Interfaces
@@ -102,7 +103,7 @@ function formatRelativeTime(timestamp: string, language: string): string {
   const diffMins = Math.floor(diffMs / 60000)
   const diffHours = Math.floor(diffMs / 3600000)
   const diffDays = Math.floor(diffMs / 86400000)
-  
+
   if (language === 'ar') {
     if (diffMins < 1) return 'الآن'
     if (diffMins < 60) return `منذ ${diffMins} دقيقة`
@@ -124,301 +125,12 @@ function formatRelativeTime(timestamp: string, language: string): string {
 // Sub-Components
 // =============================================================================
 
-function SearchBar() {
-  const { t, language } = useLanguage()
-  const router = useRouter()
-  const [isExpanded, setIsExpanded] = useState(false)
-  const [query, setQuery] = useState('')
-  const [results, setResults] = useState<{
-    products: Array<{ id: number; name: string; name_ar?: string }>
-    users: Array<{ id: number; full_name: string; email: string }>
-    orders: Array<{ id: number; order_number: string; customer_name: string }>
-    vendors: Array<{ id: number; name: string; name_ar?: string }>
-  }>({
-    products: [],
-    users: [],
-    orders: [],
-    vendors: [],
-  })
-  const [isSearching, setIsSearching] = useState(false)
-  const [showResults, setShowResults] = useState(false)
-
-  // Debounced search function
-  useEffect(() => {
-    if (!query.trim() || query.length < 2) {
-      setResults({ products: [], users: [], orders: [], vendors: [] })
-      setShowResults(false)
-      return
-    }
-
-    const searchTimeout = setTimeout(async () => {
-      setIsSearching(true)
-      try {
-        // Search in parallel across all endpoints using adminFetch
-        const [productsRes, usersRes, ordersRes, vendorsRes] = await Promise.allSettled([
-          adminFetch(`/products/?search=${encodeURIComponent(query)}&page_size=3`),
-          adminFetch(`/users/?search=${encodeURIComponent(query)}&page_size=3`),
-          adminFetch(`/orders/?search=${encodeURIComponent(query)}&page_size=3`),
-          adminFetch(`/vendors/?search=${encodeURIComponent(query)}&page_size=3`),
-        ])
-
-        const newResults = {
-          products: [],
-          users: [],
-          orders: [],
-          vendors: [],
-        }
-
-        if (productsRes.status === 'fulfilled' && productsRes.value.success && productsRes.value.data?.results) {
-          newResults.products = productsRes.value.data.results
-        }
-
-        if (usersRes.status === 'fulfilled' && usersRes.value.success && usersRes.value.data?.results) {
-          newResults.users = usersRes.value.data.results
-        }
-
-        if (ordersRes.status === 'fulfilled' && ordersRes.value.success && ordersRes.value.data?.results) {
-          newResults.orders = ordersRes.value.data.results
-        }
-
-        if (vendorsRes.status === 'fulfilled' && vendorsRes.value.success && vendorsRes.value.data?.results) {
-          newResults.vendors = vendorsRes.value.data.results
-        }
-
-        setResults(newResults)
-        setShowResults(true)
-      } catch (error) {
-        console.error('Search error:', error)
-      } finally {
-        setIsSearching(false)
-      }
-    }, 300) // 300ms debounce
-
-    return () => clearTimeout(searchTimeout)
-  }, [query])
-
-  const handleResultClick = (type: 'products' | 'users' | 'orders' | 'vendors', id: number) => {
-    setQuery('')
-    setShowResults(false)
-    setIsExpanded(false)
-    
-    switch (type) {
-      case 'products':
-        router.push(`/admin/products?id=${id}`)
-        break
-      case 'users':
-        router.push(`/admin/users?id=${id}`)
-        break
-      case 'orders':
-        router.push(`/admin/orders?id=${id}`)
-        break
-      case 'vendors':
-        router.push(`/admin/vendors?id=${id}`)
-        break
-    }
-  }
-
-  const totalResults = results.products.length + results.users.length + results.orders.length + results.vendors.length
-
-  return (
-    <div className="relative">
-      <motion.div
-        initial={false}
-        animate={{ width: isExpanded ? 400 : 44 }}
-        transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
-        className="flex items-center bg-historical-stone/50 dark:bg-gray-800/50 rounded-xl border border-historical-gold/10 dark:border-gray-700 overflow-hidden transition-colors duration-300"
-      >
-        <button
-          onClick={() => {
-            setIsExpanded(!isExpanded)
-            if (isExpanded) {
-              setQuery('')
-              setShowResults(false)
-            }
-          }}
-          className="p-2.5 text-historical-charcoal/50 dark:text-gray-400 hover:text-historical-charcoal dark:hover:text-gray-200 transition-colors"
-        >
-          {Icons.search()}
-        </button>
-        <AnimatePresence>
-          {isExpanded && (
-            <motion.div
-              initial={{ opacity: 0, width: 0 }}
-              animate={{ opacity: 1, width: 'auto' }}
-              exit={{ opacity: 0, width: 0 }}
-              className="flex-1 flex items-center"
-            >
-              <input
-                type="text"
-                placeholder={t.admin.header.search || (language === 'ar' ? 'ابحث عن منتجات، مستخدمين، طلبات...' : 'Search products, users, orders...')}
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                onFocus={() => query.length >= 2 && setShowResults(true)}
-                className="flex-1 bg-transparent py-2.5 pl-4 pr-2 text-sm text-historical-charcoal dark:text-gray-200 placeholder:text-historical-charcoal/40 dark:placeholder:text-gray-500 outline-none transition-colors duration-300"
-                autoFocus
-              />
-              {isSearching && (
-                <div className="w-4 h-4 border-2 border-historical-gold/30 border-t-historical-gold rounded-full animate-spin mr-2" />
-              )}
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </motion.div>
-
-      {/* Search Results Dropdown */}
-      <AnimatePresence>
-        {isExpanded && showResults && query.length >= 2 && (
-          <motion.div
-            initial={{ opacity: 0, y: 10, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 10, scale: 0.95 }}
-            transition={{ duration: 0.2 }}
-            className="absolute left-0 mt-2 w-[500px] bg-white dark:bg-gray-800 rounded-2xl shadow-soft-xl border border-historical-gold/10 dark:border-gray-700 overflow-hidden z-50 transition-colors duration-300 max-h-[500px] overflow-y-auto custom-scrollbar"
-          >
-            {totalResults === 0 && !isSearching ? (
-              <div className="p-8 text-center">
-                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-historical-gold/10 dark:bg-gray-700/50 flex items-center justify-center">
-                  <svg className="w-8 h-8 text-historical-gold/50 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-                  </svg>
-                </div>
-                <p className="text-sm font-medium text-historical-charcoal dark:text-gray-200 mb-1 transition-colors duration-300">
-                  {language === 'ar' ? 'لا توجد نتائج' : 'No results found'}
-                </p>
-                <p className="text-xs text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">
-                  {language === 'ar' 
-                    ? `لم يتم العثور على "${query}" في المنتجات، المستخدمين، الطلبات أو البائعين`
-                    : `No results found for "${query}" in products, users, orders or vendors`}
-                </p>
-              </div>
-            ) : (
-              <div className="p-2">
-                {/* Products */}
-                {results.products.length > 0 && (
-                  <div className="mb-2">
-                    <h4 className="px-3 py-2 text-xs font-semibold text-historical-charcoal/60 dark:text-gray-400 uppercase">
-                      {language === 'ar' ? 'المنتجات' : 'Products'}
-                    </h4>
-                    {results.products.map((product) => (
-                      <button
-                        key={product.id}
-                        onClick={() => handleResultClick('products', product.id)}
-                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-historical-gold/10 dark:hover:bg-gray-700/50 transition-colors text-right"
-                      >
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-historical-charcoal dark:text-gray-200 truncate">
-                            {language === 'ar' && product.name_ar ? product.name_ar : product.name}
-                          </p>
-                        </div>
-                        {Icons.search({ className: "w-4 h-4 text-historical-charcoal/30 dark:text-gray-500" })}
-                      </button>
-                    ))}
-                  </div>
-                )}
-
-                {/* Users */}
-                {results.users.length > 0 && (
-                  <div className="mb-2">
-                    <h4 className="px-3 py-2 text-xs font-semibold text-historical-charcoal/60 dark:text-gray-400 uppercase">
-                      {language === 'ar' ? 'المستخدمين' : 'Users'}
-                    </h4>
-                    {results.users.map((user) => (
-                      <button
-                        key={user.id}
-                        onClick={() => handleResultClick('users', user.id)}
-                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-historical-gold/10 dark:hover:bg-gray-700/50 transition-colors text-right"
-                      >
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-historical-charcoal dark:text-gray-200 truncate">
-                            {user.full_name}
-                          </p>
-                          <p className="text-xs text-historical-charcoal/50 dark:text-gray-400 truncate">
-                            {user.email}
-                          </p>
-                        </div>
-                        {Icons.user({ className: "w-4 h-4 text-historical-charcoal/30 dark:text-gray-500" })}
-                      </button>
-                    ))}
-                  </div>
-                )}
-
-                {/* Orders */}
-                {results.orders.length > 0 && (
-                  <div className="mb-2">
-                    <h4 className="px-3 py-2 text-xs font-semibold text-historical-charcoal/60 dark:text-gray-400 uppercase">
-                      {language === 'ar' ? 'الطلبات' : 'Orders'}
-                    </h4>
-                    {results.orders.map((order) => (
-                      <button
-                        key={order.id}
-                        onClick={() => handleResultClick('orders', order.id)}
-                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-historical-gold/10 dark:hover:bg-gray-700/50 transition-colors text-right"
-                      >
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-historical-charcoal dark:text-gray-200 truncate">
-                            {order.order_number}
-                          </p>
-                          <p className="text-xs text-historical-charcoal/50 dark:text-gray-400 truncate">
-                            {order.customer_name}
-                          </p>
-                        </div>
-                        {Icons.order({ className: "w-4 h-4 text-historical-charcoal/30 dark:text-gray-500" })}
-                      </button>
-                    ))}
-                  </div>
-                )}
-
-                {/* Vendors */}
-                {results.vendors.length > 0 && (
-                  <div className="mb-2">
-                    <h4 className="px-3 py-2 text-xs font-semibold text-historical-charcoal/60 dark:text-gray-400 uppercase">
-                      {language === 'ar' ? 'البائعين' : 'Vendors'}
-                    </h4>
-                    {results.vendors.map((vendor) => (
-                      <button
-                        key={vendor.id}
-                        onClick={() => handleResultClick('vendors', vendor.id)}
-                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-historical-gold/10 dark:hover:bg-gray-700/50 transition-colors text-right"
-                      >
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-historical-charcoal dark:text-gray-200 truncate">
-                            {language === 'ar' && vendor.name_ar ? vendor.name_ar : vendor.name}
-                          </p>
-                        </div>
-                        {Icons.user({ className: "w-4 h-4 text-historical-charcoal/30 dark:text-gray-500" })}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Backdrop */}
-      <AnimatePresence>
-        {isExpanded && showResults && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-40"
-            onClick={() => {
-              setShowResults(false)
-              setIsExpanded(false)
-            }}
-          />
-        )}
-      </AnimatePresence>
-    </div>
-  )
-}
+// SearchBar was replaced by AdminSearchModal
 
 function NotificationDropdown() {
   const { t, language } = useLanguage()
   const [isOpen, setIsOpen] = useState(false)
-  
+
   // Use notifications hook with auto-refresh every 30 seconds
   const {
     notifications,
@@ -450,7 +162,7 @@ function NotificationDropdown() {
       case 'order': return Icons.order({ className: "w-4 h-4" })
       case 'user': return Icons.user({ className: "w-4 h-4" })
       case 'vendor': return Icons.user({ className: "w-4 h-4" })
-      case 'product': 
+      case 'product':
         return (
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
@@ -542,10 +254,10 @@ function NotificationDropdown() {
                 ) : (
                   notifications.map(notification => {
                     // Use Arabic message if available and language is Arabic
-                    const message = (language === 'ar' && notification.message_ar) 
-                      ? notification.message_ar 
+                    const message = (language === 'ar' && notification.message_ar)
+                      ? notification.message_ar
                       : notification.message
-                    
+
                     return (
                       <motion.div
                         key={notification.id}
@@ -594,21 +306,21 @@ function NotificationDropdown() {
 function ThemeToggle() {
   const { theme, setTheme } = useUIStore()
   const { language } = useLanguage()
-  
+
   // Determine if dark mode is active
   // تحديد ما إذا كان الوضع الداكن نشطاً
   const isDark = theme === 'dark' || (
-    theme === 'system' && 
-    typeof window !== 'undefined' && 
+    theme === 'system' &&
+    typeof window !== 'undefined' &&
     window.matchMedia('(prefers-color-scheme: dark)').matches
   )
-  
+
   const toggleTheme = useCallback(() => {
     // Toggle between light and dark (skip system for simplicity)
     // التبديل بين الفاتح والداكن (تخطي النظام للبساطة)
     const newTheme = (theme === 'light' || theme === 'system') ? 'dark' : 'light'
     setTheme(newTheme)
-    
+
     // Apply theme immediately to document
     // تطبيق المظهر فوراً على المستند
     if (typeof window !== 'undefined') {
@@ -619,7 +331,7 @@ function ThemeToggle() {
       }
     }
   }, [theme, setTheme])
-  
+
   // Apply theme when it changes
   // تطبيق المظهر عند تغييره
   useEffect(() => {
@@ -645,7 +357,7 @@ function ThemeToggle() {
       onClick={toggleTheme}
       className="relative p-2.5 rounded-xl text-historical-charcoal/60 hover:text-historical-charcoal hover:bg-historical-gold/10 transition-all duration-200"
       title={
-        language === 'ar' 
+        language === 'ar'
           ? (isDark ? 'الوضع الفاتح' : 'الوضع الداكن')
           : (isDark ? 'Light Mode' : 'Dark Mode')
       }
@@ -684,7 +396,7 @@ function LanguageToggle() {
     >
       {/* Background gradient */}
       <div className="absolute inset-0 bg-gradient-to-r from-historical-gold/5 to-historical-red/5 dark:from-yellow-900/20 dark:to-red-900/20 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
-      
+
       {/* Content wrapper */}
       <div className="relative flex items-center gap-2.5 z-10">
         {/* Arabic option */}
@@ -795,23 +507,31 @@ function UserMenu() {
   const getRoleDisplay = () => {
     if (language === 'ar') {
       switch (user?.role) {
-        case 'super_admin':
-          return 'مدير عام'
         case 'admin':
-          return 'مدير النظام'
-        case 'moderator':
-          return 'مشرف'
+          return 'مدير عام'
+        case 'content_manager':
+          return 'مدير محتوى'
+        case 'order_manager':
+          return 'مدير طلبات'
+        case 'support':
+          return 'فريق الدعم'
+        case 'vendor':
+          return 'بائع'
         default:
           return 'مستخدم'
       }
     } else {
       switch (user?.role) {
-        case 'super_admin':
-          return 'Super Admin'
         case 'admin':
-          return 'Admin'
-        case 'moderator':
-          return 'Moderator'
+          return 'Super Admin'
+        case 'content_manager':
+          return 'Content Manager'
+        case 'order_manager':
+          return 'Order Manager'
+        case 'support':
+          return 'Support Staff'
+        case 'vendor':
+          return 'Vendor'
         default:
           return 'User'
       }
@@ -869,16 +589,16 @@ function UserMenu() {
                   {user?.email || 'admin@yallabuy.com'}
                 </p>
               </div>
-              
+
               <div className="p-2">
-                <button 
+                <button
                   onClick={handleProfileClick}
                   className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm text-historical-charcoal dark:text-gray-200 hover:bg-historical-gold/10 dark:hover:bg-gray-700 transition-colors"
                 >
                   {Icons.user()}
                   <span>{t.admin.header.profile || (language === 'ar' ? 'الملف الشخصي' : 'Profile')}</span>
                 </button>
-                <button 
+                <button
                   onClick={handleSettingsClick}
                   className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm text-historical-charcoal dark:text-gray-200 hover:bg-historical-gold/10 dark:hover:bg-gray-700 transition-colors"
                 >
@@ -887,7 +607,7 @@ function UserMenu() {
                 </button>
               </div>
               <div className="border-t border-historical-gold/10 dark:border-gray-700 p-2 transition-colors duration-300">
-                <button 
+                <button
                   onClick={handleLogout}
                   disabled={isLoggingOut}
                   className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-50"
@@ -935,7 +655,7 @@ export function AdminHeader({ title, titleAr, subtitle, subtitleAr }: AdminHeade
 
         {/* Actions Section */}
         <div className="flex items-center gap-2">
-          <SearchBar />
+          <AdminSearchModal />
           <div className="w-px h-6 bg-historical-gold/20 mx-2 hidden sm:block" />
           <NotificationDropdown />
           <ThemeToggle />

@@ -108,8 +108,11 @@ class AdminUserListView(APIView):
         # فلتر الدور
         # =================================================================
         role = request.query_params.get('role', '').strip()
-        if role and role in ['customer', 'vendor', 'admin']:
-            queryset = queryset.filter(role=role)
+        if role:
+            # allow all roles from the model choices
+            valid_roles = [r[0] for r in User.Role.choices]
+            if role in valid_roles:
+                queryset = queryset.filter(role=role)
         
         # =================================================================
         # Active Status Filter
@@ -566,7 +569,15 @@ class AdminUserStatsView(APIView):
         # العدد حسب الدور
         customers = User.objects.filter(role=User.Role.CUSTOMER).count()
         vendors = User.objects.filter(role=User.Role.VENDOR).count()
-        admins = User.objects.filter(role=User.Role.ADMIN).count()
+        
+        # Count all admin-related roles
+        admin_roles = [
+            User.Role.ADMIN,
+            User.Role.CONTENT_MANAGER,
+            User.Role.ORDER_MANAGER,
+            User.Role.SUPPORT
+        ]
+        admins = User.objects.filter(role__in=admin_roles).count()
         
         # Count by time
         # العدد حسب الوقت

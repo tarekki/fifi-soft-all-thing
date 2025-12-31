@@ -301,6 +301,16 @@ export const translations = {
                 profile: 'الملف الشخصي',
                 settings: 'الإعدادات',
                 logout: 'تسجيل الخروج',
+                globalSearch: {
+                    placeholder: 'ابحث عن منتج، طلب، مستخدم...',
+                    searching: 'جاري البحث...',
+                    noResults: 'لا توجد نتائج',
+                    noResultsMsg: 'لم يتم العثور على نتائج تطابق هذا البحث',
+                    startTyping: 'ابدأ الكتابة للبحث عن أي شيء...',
+                    select: 'للاختيار',
+                    navigate: 'للتنقل',
+                    close: 'للإغلاق',
+                }
             },
             users: {
                 title: 'إدارة المستخدمين',
@@ -318,7 +328,10 @@ export const translations = {
                 role: {
                     customer: 'عميل',
                     vendor: 'بائع',
-                    admin: 'مدير',
+                    admin: 'مدير عام',
+                    content_manager: 'مدير محتوى',
+                    order_manager: 'مدير طلبات',
+                    support: 'فريق الدعم',
                 },
                 cannotSelectSuperuser: 'لا يمكن اختيار المستخدم الفائق',
                 selectedCount: 'تم تحديد {count} مستخدم',
@@ -394,7 +407,7 @@ export const translations = {
                 subtitle: 'عرض وإدارة جميع الطلبات',
                 searchPlaceholder: 'بحث برقم الطلب أو اسم العميل...',
                 filter: 'تصفية',
-                status: {
+                statuses: {
                     all: 'الكل',
                     pending: 'قيد الانتظار',
                     confirmed: 'مؤكد',
@@ -453,10 +466,10 @@ export const translations = {
                 guest: 'ضيف',
                 item: 'عنصر',
                 itemsCount: '{count} عنصر',
-                underReview: 'قيد المراجعة',
-                shipping: 'قيد الشحن',
-                delivered: 'تم التسليم',
-                cancelled: 'ملغى',
+                underReviewStatus: 'قيد المراجعة',
+                shippingStatus: 'قيد الشحن',
+                deliveredStatus: 'تم التسليم',
+                cancelledStatus: 'ملغى',
             },
             carts: {
                 title: 'إدارة السلل',
@@ -510,7 +523,7 @@ export const translations = {
                 searchPlaceholder: 'بحث بالاسم أو SKU...',
                 filter: 'تصفية',
                 sort: 'ترتيب',
-                status: {
+                statuses: {
                     all: 'الكل',
                     active: 'نشط',
                     inactive: 'غير نشط',
@@ -601,7 +614,7 @@ export const translations = {
                 subtitle: 'عرض وإدارة جميع البائعين',
                 addVendor: 'إضافة بائع',
                 searchPlaceholder: 'بحث بالاسم أو الوصف...',
-                status: {
+                statuses: {
                     all: 'الكل',
                     active: 'نشط',
                     inactive: 'غير نشط',
@@ -652,7 +665,7 @@ export const translations = {
                 title: 'طلبات الانضمام',
                 subtitle: 'مراجعة طلبات الانضمام كبائع',
                 searchPlaceholder: 'بحث بالاسم أو البريد...',
-                status: {
+                statuses: {
                     all: 'الكل',
                     pending: 'قيد الانتظار',
                     approved: 'موافق عليها',
@@ -728,7 +741,7 @@ export const translations = {
                     hero: 'الصفحة الرئيسية',
                     sidebar: 'الشريط الجانبي',
                     popup: 'نافذة منبثقة',
-                    category: 'صفحة الفئة',
+                    categoryPage: 'صفحة الفئة',
                     total: 'الإجمالي',
                     loading: 'جاري التحميل...',
                     noBanners: 'لا توجد بانرات',
@@ -757,7 +770,7 @@ export const translations = {
                     cancel: 'إلغاء',
                     saving: 'جاري الحفظ...',
                     saveChanges: 'حفظ التغييرات',
-                    addBanner: 'إضافة البانر',
+                    addBannerSubmit: 'إضافة البانر',
                     titleArRequired: 'العنوان بالعربية مطلوب',
                     titleEnRequired: 'العنوان بالإنجليزية مطلوب',
                     linkRequired: 'الرابط مطلوب',
@@ -793,7 +806,7 @@ export const translations = {
                     cancel: 'إلغاء',
                     saving: 'جاري الحفظ...',
                     saveChanges: 'حفظ التغييرات',
-                    addStory: 'إضافة القصة',
+                    addStorySubmit: 'إضافة القصة',
                     titleArRequired: 'العنوان بالعربية مطلوب',
                     titleEnRequired: 'العنوان بالإنجليزية مطلوب',
                     imageRequired: 'الصورة مطلوبة',
@@ -860,7 +873,7 @@ export const translations = {
                     cancel: 'إلغاء',
                     saving: 'جاري الحفظ...',
                     saveChanges: 'حفظ التغييرات',
-                    createCoupon: 'إنشاء الكوبون',
+                    createCouponSubmit: 'إنشاء الكوبون',
                     codeRequired: 'كود الخصم مطلوب',
                     codeMinLength: 'كود الخصم يجب أن يكون 3 أحرف على الأقل',
                     descriptionArRequired: 'الوصف بالعربية مطلوب',
@@ -1224,6 +1237,16 @@ export const translations = {
                 profile: 'Profile',
                 settings: 'Settings',
                 logout: 'Logout',
+                globalSearch: {
+                    placeholder: 'Search for product, order, user...',
+                    searching: 'Searching...',
+                    noResults: 'No results found',
+                    noResultsMsg: 'No matches found for this search',
+                    startTyping: 'Start typing to search for anything...',
+                    select: 'to select',
+                    navigate: 'to navigate',
+                    close: 'to close',
+                }
             },
             users: {
                 title: 'Users Management',
@@ -1241,7 +1264,10 @@ export const translations = {
                 role: {
                     customer: 'Customer',
                     vendor: 'Vendor',
-                    admin: 'Admin',
+                    admin: 'Super Admin',
+                    content_manager: 'Content Manager',
+                    order_manager: 'Order Manager',
+                    support: 'Support Staff',
                 },
                 cannotSelectSuperuser: 'Cannot select superuser',
                 selectedCount: '{count} users selected',
@@ -1317,7 +1343,7 @@ export const translations = {
                 subtitle: 'View and manage all orders',
                 searchPlaceholder: 'Search by order number or customer name...',
                 filter: 'Filter',
-                status: {
+                statuses: {
                     all: 'All',
                     pending: 'Pending',
                     confirmed: 'Confirmed',
@@ -1376,10 +1402,10 @@ export const translations = {
                 guest: 'Guest',
                 item: 'item',
                 itemsCount: '{count} items',
-                underReview: 'Under Review',
-                shipping: 'Shipping',
-                delivered: 'Delivered',
-                cancelled: 'Cancelled',
+                underReviewStatus: 'Under Review',
+                shippingStatus: 'Shipping',
+                deliveredStatus: 'Delivered',
+                cancelledStatus: 'Cancelled',
             },
             carts: {
                 title: 'Carts Management',
@@ -1433,7 +1459,7 @@ export const translations = {
                 searchPlaceholder: 'Search by name or SKU...',
                 filter: 'Filter',
                 sort: 'Sort',
-                status: {
+                statuses: {
                     all: 'All',
                     active: 'Active',
                     inactive: 'Inactive',
@@ -1524,7 +1550,7 @@ export const translations = {
                 subtitle: 'View and manage all vendors',
                 addVendor: 'Add Vendor',
                 searchPlaceholder: 'Search by name or description...',
-                status: {
+                statuses: {
                     all: 'All',
                     active: 'Active',
                     inactive: 'Inactive',
@@ -1575,7 +1601,7 @@ export const translations = {
                 title: 'Vendor Applications',
                 subtitle: 'Review vendor join requests',
                 searchPlaceholder: 'Search by name or email...',
-                status: {
+                statuses: {
                     all: 'All',
                     pending: 'Pending',
                     approved: 'Approved',
@@ -1651,7 +1677,7 @@ export const translations = {
                     hero: 'Homepage',
                     sidebar: 'Sidebar',
                     popup: 'Popup',
-                    category: 'Category Page',
+                    categoryPage: 'Category Page',
                     total: 'Total',
                     loading: 'Loading...',
                     noBanners: 'No banners',
@@ -1680,7 +1706,7 @@ export const translations = {
                     cancel: 'Cancel',
                     saving: 'Saving...',
                     saveChanges: 'Save Changes',
-                    addBanner: 'Add Banner',
+                    addBannerSubmit: 'Add Banner',
                     titleArRequired: 'Arabic title is required',
                     titleEnRequired: 'English title is required',
                     linkRequired: 'Link is required',
@@ -1716,7 +1742,7 @@ export const translations = {
                     cancel: 'Cancel',
                     saving: 'Saving...',
                     saveChanges: 'Save Changes',
-                    addStory: 'Add Story',
+                    addStorySubmit: 'Add Story',
                     titleArRequired: 'Arabic title is required',
                     titleEnRequired: 'English title is required',
                     imageRequired: 'Image is required',
@@ -1783,7 +1809,7 @@ export const translations = {
                     cancel: 'Cancel',
                     saving: 'Saving...',
                     saveChanges: 'Save Changes',
-                    createCoupon: 'Create Coupon',
+                    createCouponSubmit: 'Create Coupon',
                     codeRequired: 'Discount code is required',
                     codeMinLength: 'Discount code must be at least 3 characters',
                     descriptionArRequired: 'Arabic description is required',

@@ -15,13 +15,13 @@
  * Admin role constants
  * ثوابت أدوار الأدمن
  */
-export type AdminRole = 'super_admin' | 'admin' | 'moderator'
+export type AdminRole = 'admin' | 'content_manager' | 'order_manager' | 'support' | 'vendor'
 
 /**
  * Admin permission string
  * سلسلة صلاحيات الأدمن
  */
-export type AdminPermission = 
+export type AdminPermission =
   | 'dashboard.view'
   | 'settings.view' | 'settings.edit'
   | 'categories.view' | 'categories.create' | 'categories.edit' | 'categories.delete'
@@ -97,25 +97,25 @@ export interface DashboardOverview {
   total_revenue: number
   total_revenue_change: number
   today_revenue: number
-  
+
   // Orders
   total_orders: number
   total_orders_change: number
   today_orders: number
   pending_orders: number
   processing_orders: number
-  
+
   // Products
   total_products: number
   active_products: number
   low_stock_products: number
   out_of_stock_products: number
-  
+
   // Users
   total_users: number
   new_users_today: number
   new_users_week: number
-  
+
   // Vendors
   total_vendors: number
   active_vendors: number
@@ -198,16 +198,16 @@ export interface SiteSettings {
   site_name_ar: string
   tagline: string
   tagline_ar: string
-  
+
   // Branding
   logo_url: string
   logo_dark_url: string
   favicon_url: string
-  
+
   // Description
   description: string
   description_ar: string
-  
+
   // SEO
   meta_title: string
   meta_title_ar: string
@@ -215,31 +215,31 @@ export interface SiteSettings {
   meta_description_ar: string
   meta_keywords: string
   meta_keywords_ar: string
-  
+
   // Contact
   contact_email: string
   contact_phone: string
   contact_whatsapp: string
-  
+
   // Address
   address: string
   address_ar: string
   google_maps_url: string
-  
+
   // Working Hours
   working_hours: string
   working_hours_ar: string
-  
+
   // Currency
   currency_code: string
   currency_symbol: string
   currency_position: 'before' | 'after'
-  
+
   // Maintenance
   is_maintenance_mode: boolean
   maintenance_message: string
   maintenance_message_ar: string
-  
+
   // Timestamps
   created_at: string
   updated_at: string
@@ -253,17 +253,17 @@ export type SiteSettingsUpdate = Partial<Omit<SiteSettings, 'id' | 'created_at' 
 /**
  * Social media platform types
  */
-export type SocialPlatform = 
-  | 'facebook' 
-  | 'instagram' 
-  | 'twitter' 
-  | 'tiktok' 
-  | 'youtube' 
-  | 'linkedin' 
-  | 'telegram' 
-  | 'whatsapp' 
-  | 'snapchat' 
-  | 'pinterest' 
+export type SocialPlatform =
+  | 'facebook'
+  | 'instagram'
+  | 'twitter'
+  | 'tiktok'
+  | 'youtube'
+  | 'linkedin'
+  | 'telegram'
+  | 'whatsapp'
+  | 'snapchat'
+  | 'pinterest'
   | 'other'
 
 /**
@@ -312,23 +312,23 @@ export type LanguagePayload = Omit<Language, 'id'>
 /**
  * Navigation item location types
  */
-export type NavigationLocation = 
-  | 'header' 
-  | 'header_mobile' 
-  | 'footer_about' 
-  | 'footer_support' 
-  | 'footer_legal' 
+export type NavigationLocation =
+  | 'header'
+  | 'header_mobile'
+  | 'footer_about'
+  | 'footer_support'
+  | 'footer_legal'
   | 'sidebar'
 
 /**
  * Navigation item visibility types
  */
-export type NavigationVisibility = 
-  | 'all' 
-  | 'guest' 
-  | 'authenticated' 
-  | 'customer' 
-  | 'vendor' 
+export type NavigationVisibility =
+  | 'all'
+  | 'guest'
+  | 'authenticated'
+  | 'customer'
+  | 'vendor'
   | 'admin'
 
 /**
@@ -485,4 +485,34 @@ export interface AllSettings {
   payment_methods: PaymentMethod[]
   shipping_methods: ShippingMethod[]
 }
+
+// =============================================================================
+// Search Types
+// أنواع البحث
+// =============================================================================
+
+/**
+ * Global search result
+ * نتيجة بحث عالمي
+ */
+export interface GlobalSearchResult {
+  id: string
+  type: 'product' | 'order' | 'user' | 'vendor'
+  title: string
+  subtitle?: string
+  image?: string | null
+  url: string
+  status?: string | null
+  created_at?: string
+}
+
+/**
+ * Global search response
+ * استجابة البحث العالمي
+ */
+export interface GlobalSearchResponse {
+  results: GlobalSearchResult[]
+  count: number
+}
+
 

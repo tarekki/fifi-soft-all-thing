@@ -113,6 +113,7 @@ from .carts import (
     AdminCartClearView,
     AdminCartStatsView,
 )
+from .search import AdminGlobalSearchView
 
 __all__ = [
     # Auth
@@ -209,5 +210,7 @@ __all__ = [
     'AdminCartItemDeleteView',
     'AdminCartClearView',
     'AdminCartStatsView',
+    # Search
+    'AdminGlobalSearchView',
 ]
 

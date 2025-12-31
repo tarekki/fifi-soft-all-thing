@@ -96,8 +96,9 @@ class IsAdmin(permissions.BasePermission):
         return (
             request.user and
             request.user.is_authenticated and
-            (request.user.role == User.Role.ADMIN or request.user.is_superuser)
+            (request.user.is_admin or request.user.is_superuser)
         )
+
 
 
 # ============================================================================
@@ -185,6 +186,7 @@ class IsAdminOrReadOnly(permissions.BasePermission):
         return (
             request.user and
             request.user.is_authenticated and
-            (request.user.role == User.Role.ADMIN or request.user.is_superuser)
+            (request.user.is_admin or request.user.is_superuser)
         )
+
 

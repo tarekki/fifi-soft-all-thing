@@ -305,6 +305,18 @@ class AdminUserCreateSerializer(serializers.ModelSerializer):
         password = validated_data.pop('password')
         validated_data.pop('password_confirm', None)
         
+        # Auto-set is_staff for admin roles if not explicitly set
+        role = validated_data.get('role', User.Role.CUSTOMER)
+        admin_roles = [
+            User.Role.ADMIN,
+            User.Role.CONTENT_MANAGER,
+            User.Role.ORDER_MANAGER,
+            User.Role.SUPPORT
+        ]
+        
+        if role in admin_roles:
+            validated_data['is_staff'] = True
+        
         # Create user
         user = User.objects.create_user(
             password=password,
