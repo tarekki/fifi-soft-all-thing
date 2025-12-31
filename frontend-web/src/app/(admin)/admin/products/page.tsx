@@ -464,6 +464,233 @@ function ProductModal({ isOpen, onClose, onSave, product, categories, vendors, i
 }
 
 // =============================================================================
+// =============================================================================
+// Alert Modal Component
+// مكون نافذة التنبيه
+// =============================================================================
+
+interface AlertModalProps {
+  isOpen: boolean
+  onClose: () => void
+  title: string
+  message: string
+  type?: 'error' | 'warning' | 'info' | 'success'
+  onConfirm?: () => void
+  confirmText?: string
+  cancelText?: string
+  showCancel?: boolean
+}
+
+function AlertModal({ 
+  isOpen, 
+  onClose, 
+  title, 
+  message, 
+  type = 'info',
+  onConfirm,
+  confirmText,
+  cancelText,
+  showCancel = false
+}: AlertModalProps) {
+  const { t } = useLanguage()
+  
+  if (!isOpen) return null
+
+  const typeStyles = {
+    error: 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-700 dark:text-red-400',
+    warning: 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800 text-yellow-700 dark:text-yellow-400',
+    info: 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-400',
+    success: 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-700 dark:text-green-400',
+  }
+
+  const iconStyles = {
+    error: (
+      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+      </svg>
+    ),
+    warning: (
+      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+      </svg>
+    ),
+    info: (
+      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+      </svg>
+    ),
+    success: (
+      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    ),
+  }
+
+  const handleConfirm = () => {
+    if (onConfirm) {
+      onConfirm()
+    }
+    onClose()
+  }
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="fixed inset-0 z-[9998] bg-black/50 backdrop-blur-sm"
+          />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="w-full max-w-md bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden transition-colors duration-300">
+              {/* Header */}
+              <div className={`flex items-center gap-3 p-4 border-b ${typeStyles[type]}`}>
+                <div className="flex-shrink-0">
+                  {iconStyles[type]}
+                </div>
+                <h3 className="text-lg font-bold">{title}</h3>
+              </div>
+              
+              {/* Message */}
+              <div className="p-6">
+                <p className="text-historical-charcoal dark:text-gray-200 transition-colors duration-300">
+                  {message}
+                </p>
+              </div>
+              
+              {/* Actions */}
+              <div className="flex gap-3 p-6 border-t border-historical-gold/10 dark:border-gray-700">
+                {showCancel && (
+                  <button
+                    onClick={onClose}
+                    className="flex-1 px-4 py-2 rounded-xl border border-historical-gold/20 dark:border-gray-600 text-historical-charcoal dark:text-gray-200 hover:bg-historical-gold/10 dark:hover:bg-gray-700/50 transition-colors font-medium"
+                  >
+                    {cancelText || t.admin.users?.form?.cancel || 'إلغاء'}
+                  </button>
+                )}
+                <button
+                  onClick={handleConfirm}
+                  className={`flex-1 px-4 py-2 rounded-xl font-medium transition-colors ${
+                    type === 'error' 
+                      ? 'bg-red-500 text-white hover:bg-red-600'
+                      : type === 'warning'
+                      ? 'bg-yellow-500 text-white hover:bg-yellow-600'
+                      : type === 'success'
+                      ? 'bg-green-500 text-white hover:bg-green-600'
+                      : 'bg-historical-gold text-white hover:bg-historical-gold/90'
+                  }`}
+                >
+                  {confirmText || 'موافق'}
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+  )
+}
+
+// =============================================================================
+// Confirm Modal Component
+// مكون نافذة التأكيد
+// =============================================================================
+
+interface ConfirmModalProps {
+  isOpen: boolean
+  onClose: () => void
+  onConfirm: () => void
+  title: string
+  message: string
+  confirmText?: string
+  cancelText?: string
+  isSubmitting?: boolean
+}
+
+function ConfirmModal({ 
+  isOpen, 
+  onClose, 
+  onConfirm, 
+  title, 
+  message,
+  confirmText,
+  cancelText,
+  isSubmitting = false
+}: ConfirmModalProps) {
+  const { t } = useLanguage()
+  
+  if (!isOpen) return null
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="fixed inset-0 z-[9998] bg-black/50 backdrop-blur-sm"
+          />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="w-full max-w-md bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden transition-colors duration-300">
+              {/* Header */}
+              <div className="p-6 border-b border-historical-gold/10 dark:border-gray-700">
+                <h3 className="text-xl font-bold text-historical-charcoal dark:text-gray-100 transition-colors duration-300">
+                  {title}
+                </h3>
+              </div>
+              
+              {/* Message */}
+              <div className="p-6">
+                <p className="text-historical-charcoal/70 dark:text-gray-300 transition-colors duration-300">
+                  {message}
+                </p>
+              </div>
+              
+              {/* Actions */}
+              <div className="flex gap-3 p-6 border-t border-historical-gold/10 dark:border-gray-700">
+                <button
+                  onClick={onClose}
+                  disabled={isSubmitting}
+                  className="flex-1 px-4 py-2 rounded-xl border border-historical-gold/20 dark:border-gray-600 text-historical-charcoal dark:text-gray-200 hover:bg-historical-gold/10 dark:hover:bg-gray-700/50 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {cancelText || t.admin.users?.form?.cancel || 'إلغاء'}
+                </button>
+                <button
+                  onClick={onConfirm}
+                  disabled={isSubmitting}
+                  className="flex-1 px-4 py-2 rounded-xl bg-historical-gold text-white hover:bg-historical-gold/90 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isSubmitting ? (t.admin.products.saving || 'جاري الحفظ...') : (confirmText || 'تأكيد')}
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+  )
+}
+
+// =============================================================================
 // Delete Confirmation Modal
 // =============================================================================
 
@@ -631,25 +858,29 @@ function ViewProductModal({ isOpen, onClose, product }: ViewProductModalProps) {
   
   // Handle delete image
   const handleDeleteImage = async (imageId: number) => {
-    if (!product || !confirm(t.admin.products.confirmDeleteImage || 'هل أنت متأكد من حذف هذه الصورة؟')) {
-      return
-    }
+    if (!product) return
     
-    setIsDeletingImage(imageId)
-    try {
-      const response = await deleteProductImage(product.id, imageId)
-      if (response.success) {
-        // Refresh product details
-        await fetchProductDetails()
-      } else {
-        alert(response.message || 'فشل حذف الصورة')
+    showConfirm(
+      t.admin.products.confirmDeleteImage || 'تأكيد الحذف',
+      t.admin.products.confirmDeleteImage || 'هل أنت متأكد من حذف هذه الصورة؟',
+      async () => {
+        setIsDeletingImage(imageId)
+        try {
+          const response = await deleteProductImage(product.id, imageId)
+          if (response.success) {
+            // Refresh product details
+            await fetchProductDetails()
+          } else {
+            showAlert('خطأ', response.message || 'فشل حذف الصورة', 'error')
+          }
+        } catch (err) {
+          console.error('Error deleting image:', err)
+          showAlert('خطأ', 'حدث خطأ أثناء حذف الصورة', 'error')
+        } finally {
+          setIsDeletingImage(null)
+        }
       }
-    } catch (err) {
-      console.error('Error deleting image:', err)
-      alert('حدث خطأ أثناء حذف الصورة')
-    } finally {
-      setIsDeletingImage(null)
-    }
+    )
   }
   
   // Handle set primary image
@@ -664,11 +895,11 @@ function ViewProductModal({ isOpen, onClose, product }: ViewProductModalProps) {
       if (response.success) {
         await fetchProductDetails()
       } else {
-        alert(response.message || 'فشل تحديث الصورة')
+        showAlert('خطأ', response.message || 'فشل تحديث الصورة', 'error')
       }
     } catch (err) {
       console.error('Error updating image:', err)
-      alert('حدث خطأ أثناء تحديث الصورة')
+      showAlert('خطأ', 'حدث خطأ أثناء تحديث الصورة', 'error')
     } finally {
       setIsUpdatingImage(null)
     }
@@ -697,11 +928,11 @@ function ViewProductModal({ isOpen, onClose, product }: ViewProductModalProps) {
         }
         setNewImagePreview(null)
       } else {
-        alert(response.message || 'فشل رفع الصورة')
+        showAlert('خطأ', response.message || 'فشل رفع الصورة', 'error')
       }
     } catch (err) {
       console.error('Error adding image:', err)
-      alert('حدث خطأ أثناء رفع الصورة')
+      showAlert('خطأ', 'حدث خطأ أثناء رفع الصورة', 'error')
     } finally {
       setIsUpdatingImage(null)
     }
@@ -726,11 +957,11 @@ function ViewProductModal({ isOpen, onClose, product }: ViewProductModalProps) {
         }
         setReplaceImagePreview(null)
       } else {
-        alert(response.message || 'فشل استبدال الصورة')
+        showAlert('خطأ', response.message || 'فشل استبدال الصورة', 'error')
       }
     } catch (err) {
       console.error('Error replacing image:', err)
-      alert('حدث خطأ أثناء استبدال الصورة')
+      showAlert('خطأ', 'حدث خطأ أثناء استبدال الصورة', 'error')
     } finally {
       setIsUpdatingImage(null)
     }
@@ -802,12 +1033,12 @@ function ViewProductModal({ isOpen, onClose, product }: ViewProductModalProps) {
     if (!product) return
     
     if (!variantFormData.color.trim()) {
-      alert('اللون مطلوب / Color is required')
+      showAlert('خطأ', 'اللون مطلوب / Color is required', 'error')
       return
     }
     
     if (variantFormData.stock_quantity < 0) {
-      alert('المخزون يجب أن يكون أكبر من أو يساوي صفر / Stock must be >= 0')
+      showAlert('خطأ', 'المخزون يجب أن يكون أكبر من أو يساوي صفر / Stock must be >= 0', 'error')
       return
     }
     
@@ -843,11 +1074,11 @@ function ViewProductModal({ isOpen, onClose, product }: ViewProductModalProps) {
         }
         setVariantImagePreview(null)
       } else {
-        alert(response.message || 'فشل حفظ المتغير / Failed to save variant')
+        showAlert('خطأ', response.message || 'فشل حفظ المتغير / Failed to save variant', 'error')
       }
     } catch (err) {
       console.error('Error saving variant:', err)
-      alert('حدث خطأ أثناء حفظ المتغير / Error saving variant')
+      showAlert('خطأ', 'حدث خطأ أثناء حفظ المتغير / Error saving variant', 'error')
     } finally {
       setIsSavingVariant(false)
     }
@@ -855,25 +1086,29 @@ function ViewProductModal({ isOpen, onClose, product }: ViewProductModalProps) {
   
   // Delete variant
   const handleDeleteVariant = async (variantId: number) => {
-    if (!product || !confirm('هل أنت متأكد من حذف هذا المتغير؟ / Are you sure you want to delete this variant?')) {
-      return
-    }
+    if (!product) return
     
-    setIsDeletingVariant(variantId)
-    try {
-      const response = await deleteProductVariant(product.id, variantId)
-      if (response.success) {
-        await fetchVariants()
-        await fetchProductDetails() // Refresh to update total_stock
-      } else {
-        alert(response.message || 'فشل حذف المتغير / Failed to delete variant')
+    showConfirm(
+      'تأكيد الحذف',
+      'هل أنت متأكد من حذف هذا المتغير؟ / Are you sure you want to delete this variant?',
+      async () => {
+        setIsDeletingVariant(variantId)
+        try {
+          const response = await deleteProductVariant(product.id, variantId)
+          if (response.success) {
+            await fetchVariants()
+            await fetchProductDetails() // Refresh to update total_stock
+          } else {
+            showAlert('خطأ', response.message || 'فشل حذف المتغير / Failed to delete variant', 'error')
+          }
+        } catch (err) {
+          console.error('Error deleting variant:', err)
+          showAlert('خطأ', 'حدث خطأ أثناء حذف المتغير / Error deleting variant', 'error')
+        } finally {
+          setIsDeletingVariant(null)
+        }
       }
-    } catch (err) {
-      console.error('Error deleting variant:', err)
-      alert('حدث خطأ أثناء حذف المتغير / Error deleting variant')
-    } finally {
-      setIsDeletingVariant(null)
-    }
+    )
   }
   
   // Handle image file selection
@@ -1104,7 +1339,7 @@ function ViewProductModal({ isOpen, onClose, product }: ViewProductModalProps) {
                       <p className="text-historical-charcoal/50 dark:text-gray-400">
                         {t.admin.products.noImage || 'لا توجد صورة / No image'}
                       </p>
-                    </div>
+              </div>
                   )}
                 </div>
 
@@ -1549,6 +1784,40 @@ export default function ProductsPage() {
   const [deletingProduct, setDeletingProduct] = useState<Product | null>(null)
   const [isViewModalOpen, setIsViewModalOpen] = useState(false)
   const [viewingProduct, setViewingProduct] = useState<Product | null>(null)
+  
+  // Alert & Confirm Modals
+  const [alertModal, setAlertModal] = useState<{
+    isOpen: boolean
+    title: string
+    message: string
+    type?: 'error' | 'warning' | 'info' | 'success'
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    type: 'info',
+  })
+  
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean
+    title: string
+    message: string
+    onConfirm: () => void
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+  })
+  
+  // Helper functions to show alerts and confirms
+  const showAlert = (title: string, message: string, type: 'error' | 'warning' | 'info' | 'success' = 'error') => {
+    setAlertModal({ isOpen: true, title, message, type })
+  }
+  
+  const showConfirm = (title: string, message: string, onConfirm: () => void) => {
+    setConfirmModal({ isOpen: true, title, message, onConfirm })
+  }
 
   // Debounced search
   useEffect(() => {
@@ -1612,12 +1881,20 @@ export default function ProductsPage() {
   const handleSaveProduct = async (formData: ProductFormData) => {
     // Validate required fields
     if (!formData.name || !formData.name.trim()) {
-      alert(t.admin.products.nameRequired || 'اسم المنتج مطلوب')
+      showAlert(
+        t.admin.products.nameRequired || 'اسم المنتج مطلوب',
+        t.admin.products.nameRequired || 'يرجى إدخال اسم المنتج',
+        'error'
+      )
       return
     }
     
     if (!formData.base_price || formData.base_price <= 0) {
-      alert(t.admin.products.priceRequired || 'السعر مطلوب ويجب أن يكون أكبر من صفر')
+      showAlert(
+        t.admin.products.priceRequired || 'السعر مطلوب',
+        t.admin.products.priceRequired || 'السعر مطلوب ويجب أن يكون أكبر من صفر',
+        'error'
+      )
       return
     }
 
@@ -1640,7 +1917,11 @@ export default function ProductsPage() {
       // For new products, vendor_id is required
       // البائع مطلوب للمنتجات الجديدة
       if (!formData.vendor_id || formData.vendor_id <= 0) {
-        alert(t.admin.products.vendorRequired || 'البائع مطلوب / Vendor is required')
+        showAlert(
+          t.admin.products.vendorRequired || 'البائع مطلوب',
+          t.admin.products.vendorRequired || 'يرجى اختيار البائع',
+          'error'
+        )
         return
       }
       
@@ -1683,7 +1964,11 @@ export default function ProductsPage() {
             } catch (imageError) {
               console.error('Error uploading images:', imageError)
               // Don't fail the whole operation if images fail
-              alert('تم إنشاء المنتج بنجاح، لكن حدث خطأ في رفع بعض الصور')
+              showAlert(
+                'تم إنشاء المنتج بنجاح',
+                'تم إنشاء المنتج بنجاح، لكن حدث خطأ في رفع بعض الصور',
+                'warning'
+              )
             }
           }
           
@@ -1700,7 +1985,7 @@ export default function ProductsPage() {
       } catch (err) {
         console.error('Error in handleSaveProduct:', err)
         const errorMessage = err instanceof Error ? err.message : 'حدث خطأ غير متوقع'
-        alert(errorMessage)
+        showAlert('خطأ', errorMessage, 'error')
       }
     }
   }
@@ -1726,10 +2011,14 @@ export default function ProductsPage() {
   }
 
   const handleBulkDelete = async () => {
-    if (confirm(t.admin.products.confirmBulkDelete.replace('{count}', selectedProducts.length.toString()))) {
-      await bulkAction(selectedProducts, 'delete')
-      setSelectedProducts([])
-    }
+    showConfirm(
+      t.admin.products.confirmDelete || 'تأكيد الحذف',
+      t.admin.products.confirmBulkDelete.replace('{count}', selectedProducts.length.toString()),
+      async () => {
+        await bulkAction(selectedProducts, 'delete')
+        setSelectedProducts([])
+      }
+    )
   }
 
   const SortIcon = ({ field }: { field: SortField }) => (
@@ -2115,6 +2404,24 @@ export default function ProductsPage() {
           setViewingProduct(null)
         }}
         product={viewingProduct}
+      />
+
+      {/* Alert Modal */}
+      <AlertModal
+        isOpen={alertModal.isOpen}
+        onClose={() => setAlertModal({ ...alertModal, isOpen: false })}
+        title={alertModal.title}
+        message={alertModal.message}
+        type={alertModal.type}
+      />
+
+      {/* Confirm Modal */}
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal({ ...confirmModal, isOpen: false })}
+        onConfirm={confirmModal.onConfirm}
+        title={confirmModal.title}
+        message={confirmModal.message}
       />
     </motion.div>
   )
