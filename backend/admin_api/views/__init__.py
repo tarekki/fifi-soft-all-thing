@@ -11,6 +11,7 @@ from .auth import (
     AdminLogoutView,
     AdminMeView,
     AdminTokenRefreshView,
+    AdminAvatarUploadView,
 )
 from .dashboard import (
     DashboardOverviewView,
@@ -123,6 +124,7 @@ __all__ = [
     'AdminLogoutView',
     'AdminMeView',
     'AdminTokenRefreshView',
+    'AdminAvatarUploadView',
     # Dashboard
     'DashboardOverviewView',
     'DashboardSalesChartView',

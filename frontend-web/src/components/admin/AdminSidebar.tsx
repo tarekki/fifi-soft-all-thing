@@ -459,6 +459,7 @@ function NavItemComponent({ item, isCollapsed, isActive, pathname }: NavItemComp
 export function AdminSidebar({ isCollapsed, onToggleCollapse }: AdminSidebarProps) {
   const pathname = usePathname()
   const { user } = useAdminAuth()
+  const [logoImageError, setLogoImageError] = useState(false)
 
   // Get user initials for avatar
   // الحصول على الأحرف الأولى للصورة الرمزية
@@ -471,6 +472,12 @@ export function AdminSidebar({ isCollapsed, onToggleCollapse }: AdminSidebarProp
     }
     return 'A'
   }
+
+  // Reset image error when avatar_url changes
+  // إعادة تعيين خطأ الصورة عند تغيير avatar_url
+  useEffect(() => {
+    setLogoImageError(false)
+  }, [user?.avatar_url])
 
   // Get user display name
   // الحصول على اسم المستخدم للعرض
@@ -511,8 +518,18 @@ export function AdminSidebar({ isCollapsed, onToggleCollapse }: AdminSidebarProp
               exit={{ opacity: 0 }}
               className="flex items-center gap-3"
             >
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-historical-gold to-historical-red flex items-center justify-center shadow-lg">
-                <span className="text-white font-bold text-lg">Y</span>
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-historical-gold to-historical-red flex items-center justify-center shadow-lg overflow-hidden">
+                {user?.avatar_url && !logoImageError ? (
+                  <img 
+                    key={user.avatar_url}
+                    src={user.avatar_url} 
+                    alt={getUserDisplayName()} 
+                    className="w-full h-full object-cover"
+                    onError={() => setLogoImageError(true)}
+                  />
+                ) : (
+                  <span className="text-white font-bold text-lg">{getInitials()}</span>
+                )}
               </div>
               <div>
                 <h1 className="font-bold text-historical-charcoal dark:text-gray-100 text-lg leading-tight transition-colors duration-300">Yalla Buy</h1>
@@ -525,9 +542,19 @@ export function AdminSidebar({ isCollapsed, onToggleCollapse }: AdminSidebarProp
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="w-10 h-10 mx-auto rounded-xl bg-gradient-to-br from-historical-gold to-historical-red flex items-center justify-center shadow-lg"
+              className="w-10 h-10 mx-auto rounded-xl bg-gradient-to-br from-historical-gold to-historical-red flex items-center justify-center shadow-lg overflow-hidden"
             >
-              <span className="text-white font-bold text-lg">Y</span>
+              {user?.avatar_url && !logoImageError ? (
+                <img 
+                  key={user.avatar_url}
+                  src={user.avatar_url} 
+                  alt={getUserDisplayName()} 
+                  className="w-full h-full object-cover"
+                  onError={() => setLogoImageError(true)}
+                />
+              ) : (
+                <span className="text-white font-bold text-lg">{getInitials()}</span>
+              )}
             </motion.div>
           )}
         </AnimatePresence>
@@ -579,8 +606,16 @@ export function AdminSidebar({ isCollapsed, onToggleCollapse }: AdminSidebarProp
               exit={{ opacity: 0 }}
               className="flex items-center gap-3 px-3 py-2 rounded-xl bg-historical-gold/5 dark:bg-gray-700/50 transition-colors duration-300"
             >
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-historical-blue to-historical-charcoal flex items-center justify-center">
-                <span className="text-white text-sm font-medium">{getInitials()}</span>
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-historical-blue to-historical-charcoal flex items-center justify-center overflow-hidden">
+                {user?.avatar_url ? (
+                  <img 
+                    src={user.avatar_url} 
+                    alt={getUserDisplayName()} 
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span className="text-white text-sm font-medium">{getInitials()}</span>
+                )}
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-historical-charcoal dark:text-gray-200 truncate transition-colors duration-300">{getUserDisplayName()}</p>

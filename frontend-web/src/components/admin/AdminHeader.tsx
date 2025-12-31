@@ -458,12 +458,256 @@ function LanguageToggle() {
   )
 }
 
+// =============================================================================
+// Alert Modal Component
+// مكون نافذة التنبيه
+// =============================================================================
+
+interface AlertModalProps {
+  isOpen: boolean
+  onClose: () => void
+  title: string
+  message: string
+  type?: 'error' | 'warning' | 'info' | 'success'
+  onConfirm?: () => void
+  confirmText?: string
+}
+
+function AlertModal({ 
+  isOpen, 
+  onClose, 
+  title, 
+  message, 
+  type = 'info',
+  onConfirm,
+  confirmText,
+}: AlertModalProps) {
+  const { t } = useLanguage()
+  
+  if (!isOpen) return null
+
+  const typeStyles = {
+    error: 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-700 dark:text-red-400',
+    warning: 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800 text-yellow-700 dark:text-yellow-400',
+    info: 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-400',
+    success: 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-700 dark:text-green-400',
+  }
+
+  const iconStyles = {
+    error: (
+      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+      </svg>
+    ),
+    warning: (
+      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+      </svg>
+    ),
+    info: (
+      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+      </svg>
+    ),
+    success: (
+      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    ),
+  }
+
+  const handleConfirm = () => {
+    if (onConfirm) {
+      onConfirm()
+    }
+    onClose()
+  }
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="fixed inset-0 z-[9998] bg-black/50 backdrop-blur-sm"
+          />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="w-full max-w-md bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden transition-colors duration-300">
+              {/* Header */}
+              <div className={`flex items-center gap-3 p-4 border-b ${typeStyles[type]}`}>
+                <div className="flex-shrink-0">
+                  {iconStyles[type]}
+                </div>
+                <h3 className="text-lg font-bold">{title}</h3>
+              </div>
+              
+              {/* Message */}
+              <div className="p-6">
+                <p className="text-historical-charcoal dark:text-gray-200 transition-colors duration-300">
+                  {message}
+                </p>
+              </div>
+              
+              {/* Actions */}
+              <div className="flex gap-3 p-6 border-t border-historical-gold/10 dark:border-gray-700">
+                <button
+                  onClick={handleConfirm}
+                  className={`flex-1 px-4 py-2 rounded-xl font-medium transition-colors ${
+                    type === 'error' 
+                      ? 'bg-red-500 text-white hover:bg-red-600'
+                      : type === 'warning'
+                      ? 'bg-yellow-500 text-white hover:bg-yellow-600'
+                      : type === 'success'
+                      ? 'bg-green-500 text-white hover:bg-green-600'
+                      : 'bg-historical-gold text-white hover:bg-historical-gold/90'
+                  }`}
+                >
+                  {confirmText || 'موافق'}
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+  )
+}
+
+// =============================================================================
+// Confirm Modal Component
+// مكون نافذة التأكيد
+// =============================================================================
+
+interface ConfirmModalProps {
+  isOpen: boolean
+  onClose: () => void
+  onConfirm: () => void
+  title: string
+  message: string
+  confirmText?: string
+  cancelText?: string
+}
+
+function ConfirmModal({ 
+  isOpen, 
+  onClose, 
+  onConfirm, 
+  title, 
+  message,
+  confirmText,
+  cancelText,
+}: ConfirmModalProps) {
+  const { t } = useLanguage()
+  
+  if (!isOpen) return null
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="fixed inset-0 z-[9998] bg-black/50 backdrop-blur-sm"
+          />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="w-full max-w-md bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden transition-colors duration-300">
+              {/* Header */}
+              <div className="p-6 border-b border-historical-gold/10 dark:border-gray-700">
+                <h3 className="text-xl font-bold text-historical-charcoal dark:text-gray-100 transition-colors duration-300">
+                  {title}
+                </h3>
+              </div>
+              
+              {/* Message */}
+              <div className="p-6">
+                <p className="text-historical-charcoal/70 dark:text-gray-300 transition-colors duration-300">
+                  {message}
+                </p>
+              </div>
+              
+              {/* Actions */}
+              <div className="flex gap-3 p-6 border-t border-historical-gold/10 dark:border-gray-700">
+                <button
+                  onClick={onClose}
+                  className="flex-1 px-4 py-2 rounded-xl border border-historical-gold/20 dark:border-gray-600 text-historical-charcoal dark:text-gray-200 hover:bg-historical-gold/10 dark:hover:bg-gray-700/50 transition-colors font-medium"
+                >
+                  {cancelText || t.admin.users?.form?.cancel || 'إلغاء'}
+                </button>
+                <button
+                  onClick={onConfirm}
+                  className="flex-1 px-4 py-2 rounded-xl bg-historical-gold text-white hover:bg-historical-gold/90 transition-colors font-medium"
+                >
+                  {confirmText || 'تأكيد'}
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+  )
+}
+
 function UserMenu() {
   const { t, language } = useLanguage()
   const router = useRouter()
   const [isOpen, setIsOpen] = useState(false)
   const [isLoggingOut, setIsLoggingOut] = useState(false)
-  const { user, logout } = useAdminAuth()
+  const { user, logout, refreshUser } = useAdminAuth()
+  
+  // Alert & Confirm Modals
+  const [alertModal, setAlertModal] = useState<{
+    isOpen: boolean
+    title: string
+    message: string
+    type?: 'error' | 'warning' | 'info' | 'success'
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    type: 'info',
+  })
+  
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean
+    title: string
+    message: string
+    onConfirm: () => void
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+  })
+  
+  // Helper functions to show alerts and confirms
+  const showAlert = (title: string, message: string, type: 'error' | 'warning' | 'info' | 'success' = 'error') => {
+    setAlertModal({ isOpen: true, title, message, type })
+  }
+  
+  const showConfirm = (title: string, message: string, onConfirm: () => void) => {
+    setConfirmModal({ isOpen: true, title, message, onConfirm })
+  }
 
   // Handle logout
   // معالجة تسجيل الخروج
@@ -500,6 +744,119 @@ function UserMenu() {
       return user.email.charAt(0).toUpperCase()
     }
     return 'A'
+  }
+
+  // Handle avatar upload
+  // معالجة رفع الصورة الشخصية
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
+    if (!allowedTypes.includes(file.type)) {
+      showAlert(
+        language === 'ar' ? 'نوع الملف غير مدعوم' : 'File Type Not Supported',
+        language === 'ar' 
+          ? 'نوع الملف غير مدعوم. يرجى استخدام صورة (JPEG, PNG, GIF, WebP)'
+          : 'File type not supported. Please use an image (JPEG, PNG, GIF, WebP)',
+        'error'
+      )
+      return
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      showAlert(
+        language === 'ar' ? 'حجم الملف كبير جداً' : 'File Too Large',
+        language === 'ar'
+          ? 'حجم الملف كبير جداً. الحد الأقصى 5 ميجابايت'
+          : 'File size too large. Maximum 5MB',
+        'error'
+      )
+      return
+    }
+
+    try {
+      const { uploadAdminAvatar } = await import('@/lib/admin/api')
+      const response = await uploadAdminAvatar(file)
+      if (response.success && response.data) {
+        // Refresh user data in context
+        // تحديث بيانات المستخدم في السياق
+        await refreshUser()
+        // Force a small delay to ensure state updates
+        // فرض تأخير صغير لضمان تحديث الحالة
+        await new Promise(resolve => setTimeout(resolve, 200))
+        // Show success message
+        // عرض رسالة نجاح
+        showAlert(
+          language === 'ar' ? 'نجح' : 'Success',
+          language === 'ar' ? 'تم رفع الصورة الشخصية بنجاح' : 'Avatar uploaded successfully',
+          'success'
+        )
+      } else {
+        showAlert(
+          language === 'ar' ? 'خطأ' : 'Error',
+          response.message || (language === 'ar' ? 'فشل رفع الصورة' : 'Failed to upload avatar'),
+          'error'
+        )
+      }
+    } catch (error) {
+      console.error('Error uploading avatar:', error)
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      showAlert(
+        language === 'ar' ? 'خطأ' : 'Error',
+        language === 'ar' 
+          ? `حدث خطأ أثناء رفع الصورة: ${errorMessage}`
+          : `Error uploading avatar: ${errorMessage}`,
+        'error'
+      )
+    } finally {
+      // Reset input
+      e.target.value = ''
+    }
+  }
+
+  // Handle avatar delete
+  // معالجة حذف الصورة الشخصية
+  const handleAvatarDelete = async () => {
+    showConfirm(
+      language === 'ar' ? 'تأكيد الحذف' : 'Confirm Delete',
+      language === 'ar' 
+        ? 'هل أنت متأكد من حذف الصورة الشخصية؟'
+        : 'Are you sure you want to delete your avatar?',
+      async () => {
+        try {
+          const { deleteAdminAvatar } = await import('@/lib/admin/api')
+          const response = await deleteAdminAvatar()
+          if (response.success && response.data) {
+            // Refresh user data in context
+            // تحديث بيانات المستخدم في السياق
+            await refreshUser()
+            // Show success message
+            // عرض رسالة نجاح
+            showAlert(
+              language === 'ar' ? 'نجح' : 'Success',
+              language === 'ar' ? 'تم حذف الصورة الشخصية بنجاح' : 'Avatar deleted successfully',
+              'success'
+            )
+          } else {
+            showAlert(
+              language === 'ar' ? 'خطأ' : 'Error',
+              response.message || (language === 'ar' ? 'فشل حذف الصورة' : 'Failed to delete avatar'),
+              'error'
+            )
+          }
+        } catch (error) {
+          console.error('Error deleting avatar:', error)
+          showAlert(
+            language === 'ar' ? 'خطأ' : 'Error',
+            language === 'ar' ? 'حدث خطأ أثناء حذف الصورة' : 'Error deleting avatar',
+            'error'
+          )
+        }
+      }
+    )
   }
 
   // Get role display name
@@ -544,8 +901,16 @@ function UserMenu() {
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-3 p-1.5 pr-3 rounded-xl hover:bg-historical-gold/10 dark:hover:bg-gray-700 transition-all duration-200"
       >
-        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-historical-gold to-historical-red flex items-center justify-center shadow-lg">
-          <span className="text-white font-bold text-sm">{getInitials()}</span>
+        <div className="relative w-9 h-9 rounded-xl bg-gradient-to-br from-historical-gold to-historical-red flex items-center justify-center shadow-lg overflow-hidden">
+          {user?.avatar_url ? (
+            <img 
+              src={user.avatar_url} 
+              alt={user.full_name || 'Admin'} 
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <span className="text-white font-bold text-sm">{getInitials()}</span>
+          )}
         </div>
         <div className="text-right hidden sm:block">
           <p className="text-sm font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300">
@@ -591,6 +956,31 @@ function UserMenu() {
               </div>
 
               <div className="p-2">
+                {/* Avatar Upload */}
+                <label className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm text-historical-charcoal dark:text-gray-200 hover:bg-historical-gold/10 dark:hover:bg-gray-700 transition-colors cursor-pointer">
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a41.04 41.04 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
+                  </svg>
+                  <span>{language === 'ar' ? 'تغيير الصورة الشخصية' : 'Change Avatar'}</span>
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                    onChange={handleAvatarUpload}
+                    className="hidden"
+                  />
+                </label>
+                {user?.avatar_url && (
+                  <button
+                    onClick={handleAvatarDelete}
+                    className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                  >
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                    </svg>
+                    <span>{language === 'ar' ? 'حذف الصورة الشخصية' : 'Delete Avatar'}</span>
+                  </button>
+                )}
                 <button
                   onClick={handleProfileClick}
                   className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm text-historical-charcoal dark:text-gray-200 hover:bg-historical-gold/10 dark:hover:bg-gray-700 transition-colors"
@@ -627,6 +1017,24 @@ function UserMenu() {
           </>
         )}
       </AnimatePresence>
+
+      {/* Alert Modal */}
+      <AlertModal
+        isOpen={alertModal.isOpen}
+        onClose={() => setAlertModal({ ...alertModal, isOpen: false })}
+        title={alertModal.title}
+        message={alertModal.message}
+        type={alertModal.type}
+      />
+
+      {/* Confirm Modal */}
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal({ ...confirmModal, isOpen: false })}
+        onConfirm={confirmModal.onConfirm}
+        title={confirmModal.title}
+        message={confirmModal.message}
+      />
     </div>
   )
 }

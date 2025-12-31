@@ -25,6 +25,7 @@ from admin_api.views import (
     AdminLogoutView,
     AdminMeView,
     AdminTokenRefreshView,
+    AdminAvatarUploadView,
     # Dashboard
     DashboardOverviewView,
     DashboardSalesChartView,
@@ -164,6 +165,16 @@ auth_urlpatterns = [
         'me/',
         AdminMeView.as_view(),
         name='me'
+    ),
+    
+    # POST /api/v1/admin/auth/avatar/
+    # رفع الصورة الشخصية
+    # DELETE /api/v1/admin/auth/avatar/
+    # حذف الصورة الشخصية
+    path(
+        'avatar/',
+        AdminAvatarUploadView.as_view(),
+        name='avatar'
     ),
 ]
 

@@ -69,6 +69,8 @@ export {
   adminLogin,
   adminLogout,
   getAdminMe,
+  uploadAdminAvatar,
+  deleteAdminAvatar,
   
   // Dashboard
   getDashboardOverview,

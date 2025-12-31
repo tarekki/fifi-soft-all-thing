@@ -218,6 +218,9 @@ class AdminUserSerializer(serializers.ModelSerializer):
         # التحقق من وجود صورة شخصية
         if hasattr(obj, 'profile') and obj.profile and hasattr(obj.profile, 'avatar'):
             if obj.profile.avatar:
+                request = self.context.get('request')
+                if request:
+                    return request.build_absolute_uri(obj.profile.avatar.url)
                 return obj.profile.avatar.url
         return None
 

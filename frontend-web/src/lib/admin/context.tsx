@@ -213,10 +213,13 @@ export function AdminAuthProvider({ children }: AdminAuthProviderProps) {
       const response = await getAdminMe()
 
       if (response.success && response.data) {
-        setUser(response.data)
+        // Force update by creating a new object reference
+        // فرض التحديث عن طريق إنشاء مرجع كائن جديد
+        setUser({ ...response.data })
       }
-    } catch {
-      // Ignore errors
+    } catch (error) {
+      console.error('Error refreshing user:', error)
+      // Ignore errors but log them
     }
   }, [])
 

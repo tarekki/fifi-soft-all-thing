@@ -29,6 +29,7 @@ from admin_api.serializers.auth import (
     AdminTokenRefreshSerializer,
 )
 from core.utils import success_response, error_response
+from users.models import UserProfile
 
 
 # =============================================================================
@@ -244,7 +245,10 @@ class AdminMeView(APIView):
         Returns:
             Admin user information with role and permissions.
         """
-        serializer = AdminUserSerializer(request.user)
+        serializer = AdminUserSerializer(
+            request.user,
+            context={'request': request}
+        )
         
         return success_response(
             data=serializer.data,
@@ -307,5 +311,160 @@ class AdminTokenRefreshView(APIView):
                 'access': serializer.validated_data['access'],
             },
             message=_('تم تجديد التوكن بنجاح / Token refreshed successfully')
+        )
+
+
+# =============================================================================
+# Admin Avatar Upload View
+# عرض رفع الصورة الشخصية للأدمن
+# =============================================================================
+
+class AdminAvatarUploadView(APIView):
+    """
+    Upload or update admin profile picture.
+    رفع أو تحديث صورة الملف الشخصي للأدمن.
+    
+    Allows admin to upload/update their profile picture.
+    يسمح للأدمن برفع/تحديث صورة ملفه الشخصي.
+    """
+    
+    permission_classes = [IsAdminUser]
+    
+    @extend_schema(
+        summary='Upload Admin Avatar',
+        description='Upload or update admin profile picture',
+        request={
+            'multipart/form-data': {
+                'type': 'object',
+                'properties': {
+                    'avatar': {
+                        'type': 'string',
+                        'format': 'binary',
+                        'description': 'Profile picture image file'
+                    }
+                },
+                'required': ['avatar']
+            }
+        },
+        responses={
+            200: AdminUserSerializer,
+            400: OpenApiResponse(description='Invalid file or missing avatar'),
+            401: OpenApiResponse(description='Not authenticated'),
+        },
+        tags=['Admin Auth'],
+    )
+    def post(self, request):
+        """
+        Upload admin avatar.
+        رفع صورة الأدمن.
+        
+        Request:
+            - avatar: Image file (multipart/form-data)
+            
+        Returns:
+            Updated admin user information with new avatar URL.
+        """
+        if 'avatar' not in request.FILES:
+            return error_response(
+                message=_('الصورة مطلوبة / Avatar file is required'),
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
+        
+        avatar_file = request.FILES['avatar']
+        
+        # Validate file type
+        # التحقق من نوع الملف
+        allowed_types = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
+        if avatar_file.content_type not in allowed_types:
+            return error_response(
+                message=_('نوع الملف غير مدعوم. يرجى استخدام صورة (JPEG, PNG, GIF, WebP) / File type not supported. Please use an image (JPEG, PNG, GIF, WebP)'),
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Validate file size (max 5MB)
+        # التحقق من حجم الملف (حد أقصى 5 ميجابايت)
+        max_size = 5 * 1024 * 1024  # 5MB
+        if avatar_file.size > max_size:
+            return error_response(
+                message=_('حجم الملف كبير جداً. الحد الأقصى 5 ميجابايت / File size too large. Maximum 5MB'),
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Get or create user profile
+        # الحصول على أو إنشاء ملف المستخدم الشخصي
+        profile, created = UserProfile.objects.get_or_create(user=request.user)
+        
+        # Delete old avatar if exists
+        # حذف الصورة القديمة إن وجدت
+        if profile.avatar:
+            profile.avatar.delete(save=False)
+        
+        # Save new avatar
+        # حفظ الصورة الجديدة
+        profile.avatar = avatar_file
+        profile.save()
+        
+        # Return updated user info
+        # إرجاع معلومات المستخدم المحدثة
+        # Refresh user from database to get updated profile
+        # تحديث المستخدم من قاعدة البيانات للحصول على الملف الشخصي المحدث
+        request.user.refresh_from_db()
+        serializer = AdminUserSerializer(
+            request.user,
+            context={'request': request}
+        )
+        
+        return success_response(
+            data=serializer.data,
+            message=_('تم رفع الصورة الشخصية بنجاح / Avatar uploaded successfully')
+        )
+    
+    @extend_schema(
+        summary='Delete Admin Avatar',
+        description='Delete admin profile picture',
+        responses={
+            200: AdminUserSerializer,
+            401: OpenApiResponse(description='Not authenticated'),
+        },
+        tags=['Admin Auth'],
+    )
+    def delete(self, request):
+        """
+        Delete admin avatar.
+        حذف صورة الأدمن.
+        
+        Returns:
+            Updated admin user information without avatar.
+        """
+        # Get user profile
+        # الحصول على ملف المستخدم الشخصي
+        try:
+            profile = request.user.profile
+        except UserProfile.DoesNotExist:
+            return success_response(
+                data=AdminUserSerializer(request.user).data,
+                message=_('لا توجد صورة شخصية / No avatar to delete')
+            )
+        
+        # Delete avatar if exists
+        # حذف الصورة إن وجدت
+        if profile.avatar:
+            profile.avatar.delete(save=False)
+            profile.avatar = None
+            profile.save()
+        
+        # Return updated user info
+        # إرجاع معلومات المستخدم المحدثة
+        # Refresh user from database to get updated profile
+        # تحديث المستخدم من قاعدة البيانات للحصول على الملف الشخصي المحدث
+        request.user.refresh_from_db()
+        serializer = AdminUserSerializer(
+            request.user,
+            context={'request': request}
+        )
+        
+        return success_response(
+            data=serializer.data,
+            message=_('تم حذف الصورة الشخصية بنجاح / Avatar deleted successfully')
         )
 

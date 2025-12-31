@@ -148,13 +148,32 @@ export async function adminFetch<T>(
 
   // Build headers
   // بناء الهيدرز
-  const headers: HeadersInit = {
-    'Content-Type': 'application/json',
-    ...options.headers,
+  const headers: Record<string, string> = {}
+  
+  // Only set Content-Type for JSON, not for FormData
+  // تعيين Content-Type فقط لـ JSON، وليس لـ FormData
+  if (!(options.body instanceof FormData)) {
+    headers['Content-Type'] = 'application/json'
+  }
+  
+  // Merge with user-provided headers
+  // دمج مع الرؤوس المقدمة من المستخدم
+  if (options.headers) {
+    if (options.headers instanceof Headers) {
+      options.headers.forEach((value, key) => {
+        headers[key] = value
+      })
+    } else if (Array.isArray(options.headers)) {
+      options.headers.forEach(([key, value]) => {
+        headers[key] = value
+      })
+    } else {
+      Object.assign(headers, options.headers)
+    }
   }
 
   if (accessToken) {
-    (headers as Record<string, string>)['Authorization'] = `Bearer ${accessToken}`
+    headers['Authorization'] = `Bearer ${accessToken}`
   }
 
   try {
@@ -210,11 +229,36 @@ export async function adminFetch<T>(
     const errorMessage = error instanceof Error
       ? error.message
       : 'Network error. Please check your connection.'
+    
+    // Check if it's a network error
+    // التحقق من أنه خطأ في الشبكة
+    const isNetworkError = 
+      errorMessage.includes('fetch') ||
+      errorMessage.includes('Failed to fetch') ||
+      errorMessage.includes('NetworkError') ||
+      errorMessage.includes('Network request failed') ||
+      errorMessage.includes('ERR_INTERNET_DISCONNECTED') ||
+      errorMessage.includes('ERR_NETWORK_CHANGED')
+    
+    if (isNetworkError) {
+      // Log diagnostic information
+      // تسجيل معلومات تشخيصية
+      console.error('[Admin API] Network error details:', {
+        url,
+        adminApiUrl: ADMIN_API_URL,
+        endpoint,
+        errorMessage,
+        errorType: error instanceof Error ? error.constructor.name : typeof error,
+        isClientSide: typeof window !== 'undefined',
+      })
+    }
 
     return {
       success: false,
       data: null,
-      message: errorMessage,
+      message: isNetworkError 
+        ? `فشل الاتصال بالخادم. يرجى التحقق من أن الخادم يعمل على ${ADMIN_API_URL} / Failed to connect to server. Please make sure the server is running on ${ADMIN_API_URL}`
+        : errorMessage,
       errors: null,
     } as ApiResponse<T>
   }
@@ -321,6 +365,32 @@ export async function adminLogout(): Promise<ApiResponse<null>> {
  */
 export async function getAdminMe(): Promise<ApiResponse<AdminUser>> {
   return adminFetch<AdminUser>('/auth/me/')
+}
+
+/**
+ * Upload admin avatar
+ * رفع الصورة الشخصية للأدمن
+ */
+export async function uploadAdminAvatar(avatarFile: File): Promise<ApiResponse<AdminUser>> {
+  const formData = new FormData()
+  formData.append('avatar', avatarFile)
+  
+  return adminFetch<AdminUser>('/auth/avatar/', {
+    method: 'POST',
+    body: formData,
+    // Don't set Content-Type header, let browser set it with boundary for multipart/form-data
+    // لا تقم بتعيين رأس Content-Type، دع المتصفح يضبطه مع boundary لـ multipart/form-data
+  })
+}
+
+/**
+ * Delete admin avatar
+ * حذف الصورة الشخصية للأدمن
+ */
+export async function deleteAdminAvatar(): Promise<ApiResponse<AdminUser>> {
+  return adminFetch<AdminUser>('/auth/avatar/', {
+    method: 'DELETE',
+  })
 }
 
 // =============================================================================
