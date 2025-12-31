@@ -10,8 +10,11 @@ from rest_framework import viewsets, filters, status
 from rest_framework.permissions import AllowAny
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 from django_filters.rest_framework import DjangoFilterBackend
 from django_filters import rest_framework as django_filters
+from django.conf import settings
 from decimal import Decimal
 
 from core.utils import success_response
@@ -131,6 +134,26 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     # Default ordering
     # الترتيب الافتراضي
     ordering = ['-created_at']  # Default: newest first
+
+    # Cache time from settings (if defined)
+    _list_cache_timeout = getattr(settings, 'CACHE_TIMEOUTS', {}).get('products_list', 60 * 15)
+    _detail_cache_timeout = getattr(settings, 'CACHE_TIMEOUTS', {}).get('product_detail', 60 * 30)
+
+    @method_decorator(cache_page(_list_cache_timeout))
+    def list(self, request, *args, **kwargs):
+        """
+        List all products with caching
+        عرض جميع المنتجات مع التخزين المؤقت
+        """
+        return super().list(request, *args, **kwargs)
+
+    @method_decorator(cache_page(_detail_cache_timeout))
+    def retrieve(self, request, *args, **kwargs):
+        """
+        Retrieve specific product with caching
+        عرض منتج معين مع التخزين المؤقت
+        """
+        return super().retrieve(request, *args, **kwargs)
     
     def get_queryset(self):
         """

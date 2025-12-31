@@ -13,13 +13,13 @@ ENV PYTHONUNBUFFERED=1
 WORKDIR /app
 
 # Install system dependencies
-# تثبيت التبعيات النظامية
-RUN apt-get update && apt-get install -y \
+# تثبيت التبعيات النظامية - تم التحسين لتقليل استهلاك الرام
+RUN apt-get update && apt-get install -y --no-install-recommends \
     postgresql-client \
-    build-essential \
-    libpq-dev \
     curl \
+    && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
+
 
 # Install Python dependencies
 # تثبيت تبعيات Python

@@ -76,6 +76,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "django.middleware.gzip.GZipMiddleware",  # GZip compression for responses - ضغط الاستجابات
     "django.contrib.sessions.middleware.SessionMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -139,18 +140,31 @@ if database_url:
     DATABASES = {
         "default": dj_database_url.parse(database_url)
     }
+    # Enable pooling for dj_database_url if using postgres
+    if DATABASES['default']['ENGINE'] == 'django.db.backends.postgresql':
+        DATABASES['default']['ENGINE'] = 'dj_db_conn_pool.backends.postgresql'
+        DATABASES['default']['POOL_OPTIONS'] = {
+            'POOL_SIZE': config('DB_POOL_SIZE', default=10, cast=int),
+            'MAX_OVERFLOW': config('DB_MAX_OVERFLOW', default=20, cast=int),
+            'RECYCLE': 3600,  # 1 hour
+        }
 else:
     # Individual Database Settings (Priority 2: For Local Development)
     # إعدادات قاعدة البيانات الفردية (الأولوية الثانية: للتطوير المحلي)
     # في الإنتاج: يجب استخدام DATABASE_URL بدلاً من هذه القيم
     DATABASES = {
         "default": {
-            "ENGINE": "django.db.backends.postgresql",
+            "ENGINE": "dj_db_conn_pool.backends.postgresql", # Updated for pooling
             "NAME": config('DB_NAME'),  # مطلوب - اسم قاعدة البيانات
             "USER": config('DB_USER'),  # مطلوب - مستخدم قاعدة البيانات
             "PASSWORD": config('DB_PASSWORD'),  # مطلوب - كلمة مرور قوية
             "HOST": config('DB_HOST', default='localhost'),  # افتراضي: localhost
             "PORT": config('DB_PORT', default='5432'),  # افتراضي: 5432
+            "POOL_OPTIONS": {
+                'POOL_SIZE': 10,
+                'MAX_OVERFLOW': 20,
+                'RECYCLE': 3600,
+            }
         }
     }
 
@@ -428,3 +442,254 @@ EMAIL_SUBJECT_PREFIX = "[Trendyol-SY] "
 # Frontend URL (for email verification links)
 # رابط Frontend (لروابط التحقق من البريد الإلكتروني)
 FRONTEND_URL = config("FRONTEND_URL", default="http://localhost:3000")
+
+# ============================================================================
+# Production Security Headers
+# إعدادات الأمان للإنتاج
+# ============================================================================
+# These settings only apply in production (DEBUG=False)
+# هذه الإعدادات تعمل فقط في الإنتاج (DEBUG=False)
+
+if not DEBUG:
+    # HTTPS Security
+    # أمان HTTPS
+    SECURE_SSL_REDIRECT = config('SECURE_SSL_REDIRECT', default=True, cast=bool)
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    
+    # Cookies Security
+    # أمان Cookies
+    SESSION_COOKIE_SECURE = True  # Only send cookies over HTTPS
+    CSRF_COOKIE_SECURE = True     # Only send CSRF cookie over HTTPS
+    SESSION_COOKIE_HTTPONLY = True  # Prevent JavaScript access to session cookie
+    CSRF_COOKIE_HTTPONLY = True     # Prevent JavaScript access to CSRF cookie
+    
+    # Cookie Same-Site Policy
+    # سياسة Same-Site للـ Cookies
+    SESSION_COOKIE_SAMESITE = 'Lax'  # Protect against CSRF
+    CSRF_COOKIE_SAMESITE = 'Lax'
+    
+    # Browser Security Headers
+    # Headers أمان المتصفح
+    SECURE_BROWSER_XSS_FILTER = True  # Enable XSS filter in browsers
+    SECURE_CONTENT_TYPE_NOSNIFF = True  # Prevent MIME type sniffing
+    X_FRAME_OPTIONS = 'DENY'  # Prevent clickjacking attacks
+    
+    # HSTS (HTTP Strict Transport Security)
+    # أمان النقل الصارم - يجبر المتصفحات على استخدام HTTPS فقط
+    SECURE_HSTS_SECONDS = 31536000  # 1 year
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True  # Apply to all subdomains
+    SECURE_HSTS_PRELOAD = True  # Allow preloading in browsers
+
+# ============================================================================
+# Enhanced Password Validation
+# تعزيز التحقق من كلمات المرور
+# ============================================================================
+# Override default password validators with stricter requirements
+# تجاوز validators الافتراضية بمتطلبات أكثر صرامة
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
+        "OPTIONS": {
+            "max_similarity": 0.6,  # More strict similarity check
+        }
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+        "OPTIONS": {
+            "min_length": 10,  # Increased from 8 to 10
+        }
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
+    },
+]
+
+# ============================================================================
+# Session Security Configuration
+# إعدادات أمان الجلسات
+# ============================================================================
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # Database-backed sessions
+SESSION_COOKIE_AGE = 60 * 60 * 24 * 7  # 7 days (in seconds)
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # Session persists after browser closes
+SESSION_SAVE_EVERY_REQUEST = True  # Refresh session on every request
+
+# ============================================================================
+# Logging Configuration
+# إعدادات التسجيل (Logging)
+# ============================================================================
+# Comprehensive logging for debugging and monitoring
+# تسجيل شامل للتصحيح والمراقبة
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    
+    # Formatters - تنسيق الرسائل
+    'formatters': {
+        'verbose': {
+            'format': '[{asctime}] {levelname} {name} {module} {message}',
+            'style': '{',
+            'datefmt': '%Y-%m-%d %H:%M:%S',
+        },
+        'simple': {
+            'format': '[{levelname}] {message}',
+            'style': '{',
+        },
+        'json': {
+            'format': '{{"time": "{asctime}", "level": "{levelname}", "module": "{module}", "message": "{message}"}}',
+            'style': '{',
+            'datefmt': '%Y-%m-%d %H:%M:%S',
+        },
+    },
+    
+    # Handlers - معالجات الرسائل
+    'handlers': {
+        'console': {
+            'level': 'DEBUG' if DEBUG else 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple' if DEBUG else 'verbose',
+        },
+        'file': {
+            'level': 'WARNING',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': BASE_DIR / 'logs' / 'django.log',
+            'maxBytes': 10 * 1024 * 1024,  # 10 MB
+            'backupCount': 5,
+            'formatter': 'verbose',
+        },
+        'security_file': {
+            'level': 'WARNING',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': BASE_DIR / 'logs' / 'security.log',
+            'maxBytes': 10 * 1024 * 1024,  # 10 MB
+            'backupCount': 10,
+            'formatter': 'verbose',
+        },
+    },
+    
+    # Loggers - المسجلات
+    'loggers': {
+        'django': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'django.security': {
+            'handlers': ['console', 'security_file'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+        'django.request': {
+            'handlers': ['console', 'file'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+        'django.db.backends': {
+            'handlers': ['console'],
+            'level': 'WARNING',  # Set to DEBUG to see SQL queries
+            'propagate': False,
+        },
+        # App-specific loggers
+        'core': {
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG' if DEBUG else 'INFO',
+            'propagate': False,
+        },
+        'users': {
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG' if DEBUG else 'INFO',
+            'propagate': False,
+        },
+        'products': {
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG' if DEBUG else 'INFO',
+            'propagate': False,
+        },
+        'orders': {
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG' if DEBUG else 'INFO',
+            'propagate': False,
+        },
+    },
+    
+    # Root logger
+    'root': {
+        'handlers': ['console'],
+        'level': 'WARNING',
+    },
+}
+
+# Create logs directory if it doesn't exist
+# إنشاء مجلد logs إذا لم يكن موجوداً
+import os
+LOGS_DIR = BASE_DIR / 'logs'
+if not os.path.exists(LOGS_DIR):
+    os.makedirs(LOGS_DIR)
+
+# ============================================================================
+# Caching Configuration (Redis)
+# إعدادات التخزين المؤقت (Redis)
+# ============================================================================
+# Redis is optional - falls back to local memory cache if not available
+# Redis اختياري - يرجع إلى ذاكرة التخزين المؤقت المحلية إذا لم يكن متاحاً
+
+REDIS_URL = config('REDIS_URL', default='')
+
+if REDIS_URL:
+    # Use Redis for caching (Production)
+    # استخدام Redis للتخزين المؤقت (الإنتاج)
+    CACHES = {
+        'default': {
+            'BACKEND': 'django_redis.cache.RedisCache', # Updated to use django-redis
+            'LOCATION': REDIS_URL,
+            'OPTIONS': {
+                'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+            },
+            'KEY_PREFIX': 'trendyol',
+            'TIMEOUT': 300,  # 5 minutes default
+        }
+    }
+
+    
+    # Use Redis for sessions too (faster)
+    # استخدام Redis للجلسات أيضاً (أسرع)
+    SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+    SESSION_CACHE_ALIAS = 'default'
+else:
+    # Use local memory cache (Development)
+    # استخدام ذاكرة التخزين المؤقت المحلية (التطوير)
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+            'LOCATION': 'unique-snowflake',
+            'TIMEOUT': 300,
+            'OPTIONS': {
+                'MAX_ENTRIES': 1000,
+            }
+        }
+    }
+
+# ============================================================================
+# Cache Timeouts (in seconds)
+# أوقات انتهاء التخزين المؤقت (بالثواني)
+# ============================================================================
+CACHE_TIMEOUTS = {
+    'products_list': 60 * 15,      # 15 minutes - قائمة المنتجات
+    'product_detail': 60 * 30,     # 30 minutes - تفاصيل المنتج
+    'categories': 60 * 60,          # 1 hour - الفئات
+    'vendors': 60 * 30,             # 30 minutes - البائعين
+    'settings': 60 * 60,            # 1 hour - الإعدادات
+    'homepage': 60 * 5,             # 5 minutes - الصفحة الرئيسية
+}
+
+# ============================================================================
+# Data Upload Limits
+# حدود رفع البيانات
+# ============================================================================
+# Maximum size for uploaded files
+# الحجم الأقصى للملفات المرفوعة
+DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10 MB
+FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10 MB
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 1000  # Maximum form fields
