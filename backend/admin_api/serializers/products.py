@@ -8,8 +8,64 @@ This module contains serializers for managing products in the admin panel.
 
 from rest_framework import serializers
 from django.db import transaction
-from products.models import Product, ProductVariant, Category
+from products.models import Product, ProductVariant, ProductImage, Category
 from vendors.models import Vendor
+
+
+# =============================================================================
+# Product Image Serializers
+# مسلسلات صور المنتج
+# =============================================================================
+
+class AdminProductImageSerializer(serializers.ModelSerializer):
+    """
+    Admin Product Image Serializer
+    مسلسل صورة المنتج للإدارة
+    
+    Used for displaying and managing product images.
+    يُستخدم لعرض وإدارة صور المنتج.
+    """
+    
+    image_url = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = ProductImage
+        fields = [
+            'id',
+            'image',
+            'image_url',
+            'display_order',
+            'is_primary',
+            'alt_text',
+            'created_at',
+            'updated_at',
+        ]
+        read_only_fields = ['id', 'created_at', 'updated_at']
+    
+    def get_image_url(self, obj) -> str | None:
+        """Get full image URL"""
+        if obj.image and hasattr(obj.image, 'url'):
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.image.url)
+            return obj.image.url
+        return None
+
+
+class AdminProductImageCreateSerializer(serializers.ModelSerializer):
+    """
+    Admin Product Image Create Serializer
+    مسلسل إنشاء صورة المنتج للإدارة
+    """
+    
+    class Meta:
+        model = ProductImage
+        fields = [
+            'image',
+            'display_order',
+            'is_primary',
+            'alt_text',
+        ]
 
 
 # =============================================================================
@@ -173,7 +229,15 @@ class AdminProductListSerializer(serializers.ModelSerializer):
         return sum(v.stock_quantity for v in obj.variants.all())
     
     def get_main_image(self, obj) -> str | None:
-        """Get main product image (first variant's image)"""
+        """Get main product image (primary image or first variant's image)"""
+        # Try to get primary product image first
+        primary_image = obj.primary_image
+        if primary_image and primary_image.image:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(primary_image.image.url)
+            return primary_image.image.url
+        # Fallback to first variant image
         first_variant = obj.variants.filter(image__isnull=False).first()
         if first_variant and first_variant.image:
             request = self.context.get('request')
@@ -219,6 +283,10 @@ class AdminProductDetailSerializer(serializers.ModelSerializer):
     category_name = serializers.SerializerMethodField()
     category_name_ar = serializers.SerializerMethodField()
     
+    # Images (nested)
+    # الصور (متداخلة)
+    images = AdminProductImageSerializer(many=True, read_only=True)
+    
     # Variants (nested)
     # المتغيرات (متداخلة)
     variants = AdminProductVariantSerializer(many=True, read_only=True)
@@ -244,6 +312,7 @@ class AdminProductDetailSerializer(serializers.ModelSerializer):
             'category',
             'category_name',
             'category_name_ar',
+            'images',
             'variants',
             'variants_count',
             'total_stock',
@@ -284,6 +353,15 @@ class AdminProductDetailSerializer(serializers.ModelSerializer):
         return sum(v.stock_quantity for v in obj.variants.all())
     
     def get_main_image(self, obj) -> str | None:
+        """Get main product image (primary image or first variant's image)"""
+        # Try to get primary product image first
+        primary_image = obj.primary_image
+        if primary_image and primary_image.image:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(primary_image.image.url)
+            return primary_image.image.url
+        # Fallback to first variant image
         first_variant = obj.variants.filter(image__isnull=False).first()
         if first_variant and first_variant.image:
             request = self.context.get('request')

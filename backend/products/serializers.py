@@ -8,7 +8,7 @@ This module contains serializers for Category, Product and ProductVariant models
 
 from rest_framework import serializers
 from vendors.serializers import VendorSerializer
-from .models import Category, Product, ProductVariant
+from .models import Category, Product, ProductVariant, ProductImage
 
 
 # =============================================================================
@@ -190,6 +190,53 @@ class CategoryTreeSerializer(serializers.ModelSerializer):
 
 
 # =============================================================================
+# Product Image Serializers
+# مسلسلات صور المنتج
+# =============================================================================
+
+class ProductImageSerializer(serializers.ModelSerializer):
+    """
+    Product Image Serializer
+    مسلسل صورة المنتج
+    
+    Serializes ProductImage model data.
+    يسلسل بيانات نموذج ProductImage
+    """
+    
+    image_url = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = ProductImage
+        fields = [
+            'id',
+            'image',
+            'image_url',
+            'display_order',
+            'is_primary',
+            'alt_text',
+            'created_at',
+            'updated_at',
+        ]
+        read_only_fields = [
+            'id',
+            'created_at',
+            'updated_at',
+        ]
+    
+    def get_image_url(self, obj):
+        """
+        Get full image URL
+        الحصول على رابط الصورة الكامل
+        """
+        if obj.image and hasattr(obj.image, 'url'):
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.image.url)
+            return obj.image.url
+        return None
+
+
+# =============================================================================
 # Product Variant Serializers
 # مسلسلات متغيرات المنتجات
 # =============================================================================
@@ -304,6 +351,10 @@ class ProductSerializer(serializers.ModelSerializer):
     # معرف الفئة للفلترة (للكتابة فقط)
     category_id = serializers.IntegerField(write_only=True, required=False, allow_null=True)
     
+    # Main image URL for list view
+    # رابط الصورة الرئيسية لعرض القائمة
+    main_image_url = serializers.SerializerMethodField()
+    
     class Meta:
         model = Product
         fields = [
@@ -317,6 +368,7 @@ class ProductSerializer(serializers.ModelSerializer):
             'vendor_id',
             'category',
             'category_id',
+            'main_image_url',
             'is_active',
             'created_at',
             'updated_at',
@@ -326,9 +378,27 @@ class ProductSerializer(serializers.ModelSerializer):
             'slug',
             'vendor',
             'category',
+            'main_image_url',
             'created_at',
             'updated_at',
         ]
+    
+    def get_main_image_url(self, obj):
+        """Get main product image URL"""
+        primary = obj.primary_image
+        if primary and primary.image:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(primary.image.url)
+            return primary.image.url
+        # Fallback to first variant image
+        first_variant = obj.variants.filter(image__isnull=False).first()
+        if first_variant and first_variant.image:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(first_variant.image.url)
+            return first_variant.image.url
+        return None
 
 
 class ProductDetailSerializer(serializers.ModelSerializer):
@@ -343,6 +413,7 @@ class ProductDetailSerializer(serializers.ModelSerializer):
     - Full product information
     - Vendor details
     - Category details
+    - All product images
     - All product variants (colors, sizes, models)
     """
     
@@ -354,9 +425,17 @@ class ProductDetailSerializer(serializers.ModelSerializer):
     # معلومات الفئة (متداخل)
     category = CategorySerializer(read_only=True)
     
+    # All images for this product (nested)
+    # جميع الصور لهذا المنتج (متداخلة)
+    images = ProductImageSerializer(many=True, read_only=True)
+    
     # All variants for this product (nested)
     # جميع المتغيرات لهذا المنتج (متداخلة)
     variants = ProductVariantSerializer(many=True, read_only=True)
+    
+    # Main image URL for backward compatibility
+    # رابط الصورة الرئيسية للتوافق مع الإصدارات السابقة
+    main_image_url = serializers.SerializerMethodField()
     
     class Meta:
         model = Product
@@ -369,6 +448,8 @@ class ProductDetailSerializer(serializers.ModelSerializer):
             'product_type',
             'vendor',
             'category',
+            'images',
+            'main_image_url',
             'variants',
             'is_active',
             'created_at',
@@ -379,8 +460,27 @@ class ProductDetailSerializer(serializers.ModelSerializer):
             'slug',
             'vendor',
             'category',
+            'images',
+            'main_image_url',
             'variants',
             'created_at',
             'updated_at',
         ]
+    
+    def get_main_image_url(self, obj):
+        """Get main product image URL"""
+        primary = obj.primary_image
+        if primary and primary.image:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(primary.image.url)
+            return primary.image.url
+        # Fallback to first variant image
+        first_variant = obj.variants.filter(image__isnull=False).first()
+        if first_variant and first_variant.image:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(first_variant.image.url)
+            return first_variant.image.url
+        return None
 

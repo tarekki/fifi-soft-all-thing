@@ -142,13 +142,17 @@ export function useProducts(initialFilters?: ProductFilters): UseProductsReturn 
       })
       
       if (response.success && response.data) {
-        setProducts(response.data.results)
-        setTotalCount(response.data.count)
-        setTotalPages(Math.ceil(response.data.count / pageSize))
+        setProducts(response.data.results || [])
+        setTotalCount(response.data.count || 0)
+        setTotalPages(Math.ceil((response.data.count || 0) / pageSize))
         setCurrentPage(filtersToUse.page || 1)
       } else {
         setError(response.message || 'فشل في جلب المنتجات')
         console.error('Failed to fetch products:', response.message)
+        // Set default values on error
+        setProducts([])
+        setTotalCount(0)
+        setTotalPages(1)
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'حدث خطأ غير متوقع'
@@ -209,15 +213,32 @@ export function useProducts(initialFilters?: ProductFilters): UseProductsReturn 
         return response.data
       } else {
         // Show detailed error message
-        let errorMsg = response.message || 'فشل في إنشاء المنتج'
+        let errorMsg = response.message || 'فشل في إنشاء المنتج / Failed to create product'
+        
+        // Format validation errors
         if (response.errors) {
           const errorDetails = Object.entries(response.errors)
-            .map(([key, value]) => `${key}: ${Array.isArray(value) ? value.join(', ') : value}`)
+            .map(([key, value]) => {
+              const fieldName = key === 'vendor_id' ? 'البائع / Vendor' : 
+                               key === 'name' ? 'الاسم / Name' :
+                               key === 'base_price' ? 'السعر / Price' : key
+              const errorValue = Array.isArray(value) ? value.join(', ') : String(value)
+              return `${fieldName}: ${errorValue}`
+            })
             .join('\n')
-          errorMsg = `${errorMsg}\n${errorDetails}`
+          errorMsg = `${errorMsg}\n\n${errorDetails}`
         }
+        
         setError(errorMsg)
-        console.error('Failed to create product:', response.message, response.errors)
+        console.error('Failed to create product:', {
+          message: response.message,
+          errors: response.errors,
+          fullResponse: response
+        })
+        
+        // Also show alert for better UX
+        alert(errorMsg)
+        
         return null
       }
     } catch (err) {

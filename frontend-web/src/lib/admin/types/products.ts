@@ -16,6 +16,37 @@ export type ProductStatus = 'active' | 'draft' | 'out_of_stock'
 
 
 // =============================================================================
+// Product Image
+// صورة المنتج
+// =============================================================================
+
+export interface ProductImage {
+  id: number
+  image: string
+  image_url: string
+  display_order: number
+  is_primary: boolean
+  alt_text: string
+  created_at: string
+  updated_at: string
+}
+
+export interface ProductImageCreatePayload {
+  image: File
+  display_order?: number
+  is_primary?: boolean
+  alt_text?: string
+}
+
+export interface ProductImageUpdatePayload {
+  display_order?: number
+  is_primary?: boolean
+  alt_text?: string
+  image?: File
+}
+
+
+// =============================================================================
 // Product Variant
 // متغير المنتج
 // =============================================================================
@@ -78,6 +109,7 @@ export interface Product {
 }
 
 export interface ProductDetail extends Product {
+  images: ProductImage[]
   variants: ProductVariant[]
 }
 

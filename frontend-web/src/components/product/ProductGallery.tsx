@@ -1,12 +1,18 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { cn } from '@/lib/utils'; // Assuming you have a utils file for classnames
+import { cn } from '@/lib/utils';
+
+/**
+ * Product Image Type
+ * يمكن أن تكون الصور إما strings (URLs) أو objects من API
+ */
+type ProductImageInput = string | { image_url?: string; image?: string; alt_text?: string };
 
 interface ProductGalleryProps {
-    images: string[];
+    images: ProductImageInput[];
     productName: string;
     className?: string;
 }
@@ -14,8 +20,31 @@ interface ProductGalleryProps {
 export function ProductGallery({ images, productName, className }: ProductGalleryProps) {
     const [selectedIndex, setSelectedIndex] = useState(0);
 
-    // If no images provided, show a placeholder
-    const safeImages = images.length > 0 ? images : ['/placeholder-image.jpg'];
+    // Normalize images to URLs
+    // تحويل الصور إلى URLs
+    const normalizedImages = useMemo(() => {
+        if (images.length === 0) return ['/placeholder-image.jpg'];
+        
+        return images.map((img) => {
+            if (typeof img === 'string') {
+                return img;
+            }
+            // Handle object format from API
+            return img.image_url || img.image || '/placeholder-image.jpg';
+        });
+    }, [images]);
+
+    // Get alt text for current image
+    // الحصول على نص بديل للصورة الحالية
+    const getAltText = (index: number): string => {
+        const img = images[index];
+        if (typeof img === 'object' && img.alt_text) {
+            return img.alt_text;
+        }
+        return `${productName} - View ${index + 1}`;
+    };
+
+    const safeImages = normalizedImages;
 
     return (
         <div className={cn("flex flex-col gap-4", className)}>
@@ -36,7 +65,7 @@ export function ProductGallery({ images, productName, className }: ProductGaller
                     >
                         <Image
                             src={safeImages[selectedIndex]}
-                            alt={`${productName} - View ${selectedIndex + 1}`}
+                            alt={getAltText(selectedIndex)}
                             fill
                             priority={selectedIndex === 0}
                             className="object-cover mix-blend-multiply cursor-zoom-in"
@@ -64,7 +93,7 @@ export function ProductGallery({ images, productName, className }: ProductGaller
                     >
                         <Image
                             src={img}
-                            alt={`${productName} thumb ${idx + 1}`}
+                            alt={getAltText(idx)}
                             fill
                             className="object-cover"
                             sizes="80px"

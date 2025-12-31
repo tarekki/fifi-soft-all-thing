@@ -16,6 +16,9 @@ import type {
   ProductBulkActionPayload,
   ProductVariant,
   ProductVariantCreatePayload,
+  ProductImage,
+  ProductImageCreatePayload,
+  ProductImageUpdatePayload,
 } from '../types/products'
 import {
   getAccessToken,
@@ -375,6 +378,140 @@ export async function deleteProductVariant(
 ): Promise<ApiResponse<null>> {
   return adminFetch<null>(`/products/${productId}/variants/${variantId}/`, {
     method: 'DELETE',
+  })
+}
+
+
+// =============================================================================
+// Product Images API
+// واجهة برمجة صور المنتج
+// =============================================================================
+
+/**
+ * Get all images for a product
+ * جلب جميع صور منتج
+ */
+export async function getProductImages(
+  productId: number
+): Promise<ApiResponse<ProductImage[]>> {
+  return adminFetch<ProductImage[]>(`/products/${productId}/images/`)
+}
+
+
+/**
+ * Get single image details
+ * جلب تفاصيل صورة واحدة
+ */
+export async function getProductImage(
+  productId: number,
+  imageId: number
+): Promise<ApiResponse<ProductImage>> {
+  return adminFetch<ProductImage>(`/products/${productId}/images/${imageId}/`)
+}
+
+
+/**
+ * Create a new product image
+ * إنشاء صورة منتج جديدة
+ */
+export async function createProductImage(
+  productId: number,
+  data: ProductImageCreatePayload
+): Promise<ApiResponse<ProductImage>> {
+  const formData = new FormData()
+  formData.append('image', data.image)
+  if (data.display_order !== undefined) {
+    formData.append('display_order', String(data.display_order))
+  }
+  if (data.is_primary !== undefined) {
+    formData.append('is_primary', data.is_primary ? 'true' : 'false')
+  }
+  if (data.alt_text) {
+    formData.append('alt_text', data.alt_text)
+  }
+  
+  return adminFetch<ProductImage>(`/products/${productId}/images/`, {
+    method: 'POST',
+    body: formData,
+  })
+}
+
+
+/**
+ * Update a product image
+ * تحديث صورة منتج
+ */
+export async function updateProductImage(
+  productId: number,
+  imageId: number,
+  data: ProductImageUpdatePayload
+): Promise<ApiResponse<ProductImage>> {
+  const hasFile = data.image instanceof File
+  
+  if (hasFile) {
+    // Use FormData for file upload
+    const formData = new FormData()
+    if (data.image) formData.append('image', data.image)
+    if (data.display_order !== undefined) {
+      formData.append('display_order', String(data.display_order))
+    }
+    if (data.is_primary !== undefined) {
+      formData.append('is_primary', data.is_primary ? 'true' : 'false')
+    }
+    if (data.alt_text !== undefined) {
+      formData.append('alt_text', data.alt_text)
+    }
+    
+    return adminFetch<ProductImage>(`/products/${productId}/images/${imageId}/`, {
+      method: 'PUT',
+      body: formData,
+    })
+  }
+  
+  // Use JSON for non-file requests
+  const payload: Record<string, string | number | boolean> = {}
+  if (data.display_order !== undefined) payload.display_order = data.display_order
+  if (data.is_primary !== undefined) payload.is_primary = data.is_primary
+  if (data.alt_text !== undefined) payload.alt_text = data.alt_text
+  
+  return adminFetch<ProductImage>(`/products/${productId}/images/${imageId}/`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  })
+}
+
+
+/**
+ * Delete a product image
+ * حذف صورة منتج
+ */
+export async function deleteProductImage(
+  productId: number,
+  imageId: number
+): Promise<ApiResponse<null>> {
+  return adminFetch<null>(`/products/${productId}/images/${imageId}/`, {
+    method: 'DELETE',
+  })
+}
+
+
+/**
+ * Reorder product images
+ * إعادة ترتيب صور المنتج
+ */
+export async function reorderProductImages(
+  productId: number,
+  imageIds: number[]
+): Promise<ApiResponse<{ message: string }>> {
+  return adminFetch<{ message: string }>(`/products/${productId}/images/reorder/`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ image_ids: imageIds }),
   })
 }
 

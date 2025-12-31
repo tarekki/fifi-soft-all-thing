@@ -30,6 +30,8 @@ from .products import (
     AdminProductBulkActionView,
     AdminProductVariantListCreateView,
     AdminProductVariantDetailView,
+    AdminProductImageListCreateView,
+    AdminProductImageDetailView,
 )
 from .orders import (
     AdminOrderListView,
@@ -137,6 +139,8 @@ __all__ = [
     'AdminProductBulkActionView',
     'AdminProductVariantListCreateView',
     'AdminProductVariantDetailView',
+    'AdminProductImageListCreateView',
+    'AdminProductImageDetailView',
     # Orders
     'AdminOrderListView',
     'AdminOrderDetailView',

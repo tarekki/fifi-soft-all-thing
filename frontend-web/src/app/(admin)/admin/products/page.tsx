@@ -16,7 +16,19 @@
 import { useState, useCallback, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useProducts, useCategories, useVendors } from '@/lib/admin'
-import type { Product, ProductStatus, ProductFilters, ProductCreatePayload } from '@/lib/admin'
+import type { Product, ProductDetail, ProductStatus, ProductFilters, ProductCreatePayload } from '@/lib/admin'
+import { 
+  createProductImage, 
+  getProduct, 
+  deleteProductImage, 
+  updateProductImage, 
+  getProductImages,
+  getProductVariants,
+  createProductVariant,
+  updateProductVariant,
+  deleteProductVariant
+} from '@/lib/admin/api/products'
+import type { ProductImage, ProductVariant, ProductVariantCreatePayload } from '@/lib/admin/types/products'
 import { useLanguage } from '@/lib/i18n/context'
 
 // =============================================================================
@@ -34,6 +46,7 @@ interface ProductFormData {
   vendor_id: number | null
   category_id: number | null
   is_active: boolean
+  images?: File[] // صور المنتج
 }
 
 // =============================================================================
@@ -146,9 +159,9 @@ const getStatusStyle = (status: ProductStatus) => {
 
 const getStatusLabel = (status: ProductStatus, t: any) => {
   const labels = {
-    active: t.admin.products.status.active,
-    draft: t.admin.products.status.draft,
-    out_of_stock: t.admin.products.status.outOfStock,
+    active: t.admin.products.statuses.active,
+    draft: t.admin.products.statuses.draft,
+    out_of_stock: t.admin.products.statuses.outOfStock,
   }
   return labels[status] || status
 }
@@ -171,10 +184,11 @@ interface ProductModalProps {
   onSave: (data: ProductFormData) => Promise<void>
   product?: Product | null
   categories: { id: number; name: string; name_ar: string }[]
+  vendors: { id: number; name: string }[]
   isSubmitting: boolean
 }
 
-function ProductModal({ isOpen, onClose, onSave, product, categories, isSubmitting }: ProductModalProps) {
+function ProductModal({ isOpen, onClose, onSave, product, categories, vendors, isSubmitting }: ProductModalProps) {
   const { t } = useLanguage()
   const [formData, setFormData] = useState<ProductFormData>({
     name: '',
@@ -184,7 +198,9 @@ function ProductModal({ isOpen, onClose, onSave, product, categories, isSubmitti
     vendor_id: null,
     category_id: null,
     is_active: true,
+    images: [],
   })
+  const [imagePreviews, setImagePreviews] = useState<string[]>([])
 
   useEffect(() => {
     if (product) {
@@ -196,7 +212,9 @@ function ProductModal({ isOpen, onClose, onSave, product, categories, isSubmitti
         vendor_id: product.vendor,
         category_id: product.category,
         is_active: product.is_active,
+        images: [],
       })
+      setImagePreviews([])
     } else {
       setFormData({
         name: '',
@@ -206,9 +224,16 @@ function ProductModal({ isOpen, onClose, onSave, product, categories, isSubmitti
         vendor_id: null,
         category_id: null,
         is_active: true,
+        images: [],
       })
+      setImagePreviews([])
     }
-  }, [product])
+    
+    // Cleanup preview URLs when modal closes
+    return () => {
+      imagePreviews.forEach(url => URL.revokeObjectURL(url))
+    }
+  }, [product, isOpen])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -224,9 +249,10 @@ function ProductModal({ isOpen, onClose, onSave, product, categories, isSubmitti
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
-        className="relative w-full max-w-lg bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-6 mx-4 transition-colors duration-300"
+        className="relative w-full max-w-lg bg-white dark:bg-gray-800 rounded-2xl shadow-2xl mx-4 my-4 transition-colors duration-300 flex flex-col max-h-[90vh]"
       >
-        <div className="flex items-center justify-between mb-6">
+        {/* Header - Fixed */}
+        <div className="flex items-center justify-between p-6 border-b border-historical-gold/10 dark:border-gray-700 flex-shrink-0">
           <h2 className="text-xl font-bold text-historical-charcoal dark:text-gray-100 transition-colors duration-300">
             {product ? t.admin.products.edit : t.admin.products.addProduct}
           </h2>
@@ -235,7 +261,8 @@ function ProductModal({ isOpen, onClose, onSave, product, categories, isSubmitti
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Form - Scrollable */}
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-4">
           <div>
             <label className="block text-sm font-medium text-historical-charcoal/70 dark:text-gray-300 mb-1 transition-colors duration-300">
               {t.admin.products.name}
@@ -259,6 +286,26 @@ function ProductModal({ isOpen, onClose, onSave, product, categories, isSubmitti
               rows={3}
               className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 text-historical-charcoal dark:text-gray-200 resize-none transition-colors duration-300"
             />
+          </div>
+
+          {/* Vendor Selection - Required */}
+          <div>
+            <label className="block text-sm font-medium text-historical-charcoal/70 dark:text-gray-300 mb-1 transition-colors duration-300">
+              {t.admin.products.vendor} <span className="text-red-500">*</span>
+            </label>
+            <select
+              value={formData.vendor_id || ''}
+              onChange={(e) => setFormData({ ...formData, vendor_id: e.target.value ? Number(e.target.value) : null })}
+              className="w-full px-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 text-historical-charcoal dark:text-gray-200 transition-colors duration-300"
+              required
+            >
+              <option value="">{t.admin.products.selectVendor || 'اختر البائع / Select Vendor'}</option>
+              {vendors.map((vendor) => (
+                <option key={vendor.id} value={vendor.id}>
+                  {vendor.name}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -295,6 +342,88 @@ function ProductModal({ isOpen, onClose, onSave, product, categories, isSubmitti
             </div>
           </div>
 
+          {/* Product Images Upload */}
+          <div>
+            <label className="block text-sm font-medium text-historical-charcoal/70 dark:text-gray-300 mb-2 transition-colors duration-300">
+              {t.admin.products.images || 'صور المنتج / Product Images'}
+            </label>
+            <div className="space-y-3">
+              {/* Image Previews */}
+              {imagePreviews.length > 0 && (
+                <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-48 overflow-y-auto p-2 bg-historical-stone/20 dark:bg-gray-700/20 rounded-lg">
+                  {imagePreviews.map((preview, index) => (
+                    <div key={index} className="relative group">
+                      <img
+                        src={preview}
+                        alt={`Preview ${index + 1}`}
+                        className="w-full h-20 sm:h-24 object-cover rounded-lg border border-historical-gold/20"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newImages = formData.images?.filter((_, i) => i !== index) || []
+                          const newPreviews = imagePreviews.filter((_, i) => i !== index)
+                          // Cleanup URL
+                          URL.revokeObjectURL(preview)
+                          setFormData({ ...formData, images: newImages })
+                          setImagePreviews(newPreviews)
+                        }}
+                        className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                        title="حذف"
+                      >
+                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                      {index === 0 && (
+                        <span className="absolute bottom-1 left-1 px-1.5 py-0.5 bg-historical-gold text-white text-[10px] rounded">
+                          {t.admin.products.primary || 'أساسية'}
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+              
+              {/* Upload Button */}
+              <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-historical-gold/30 dark:border-gray-600 rounded-xl cursor-pointer hover:border-historical-gold/50 dark:hover:border-gray-500 transition-colors bg-historical-stone/20 dark:bg-gray-700/20">
+                <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                  <svg className="w-8 h-8 mb-2 text-historical-charcoal/40 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                  </svg>
+                  <p className="mb-2 text-sm text-historical-charcoal/50 dark:text-gray-400">
+                    <span className="font-semibold">{t.admin.products.clickToUpload || 'اضغط للرفع / Click to upload'}</span>
+                  </p>
+                  <p className="text-xs text-historical-charcoal/40 dark:text-gray-500">
+                    {t.admin.products.imageFormat || 'PNG, JPG, GIF (حتى 5MB)'}
+                  </p>
+                </div>
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const files = Array.from(e.target.files || [])
+                    if (files.length > 0) {
+                      const newImages = [...(formData.images || []), ...files]
+                      setFormData({ ...formData, images: newImages })
+                      
+                      // Create previews
+                      const newPreviews = files.map(file => URL.createObjectURL(file))
+                      setImagePreviews([...imagePreviews, ...newPreviews])
+                    }
+                  }}
+                />
+              </label>
+              {formData.images && formData.images.length > 0 && (
+                <p className="text-xs text-historical-charcoal/50 dark:text-gray-400">
+                  {t.admin.products.selectedImages || 'الصور المحددة'}: {formData.images.length}
+                </p>
+              )}
+            </div>
+          </div>
+
           <div className="flex items-center gap-3">
             <input
               type="checkbox"
@@ -304,13 +433,17 @@ function ProductModal({ isOpen, onClose, onSave, product, categories, isSubmitti
               className="w-5 h-5 rounded border-2 border-historical-gold/40 dark:border-gray-500 bg-white dark:bg-gray-700 text-historical-gold dark:text-yellow-400 focus:ring-2 focus:ring-historical-gold/50 dark:focus:ring-yellow-500/50 cursor-pointer transition-all duration-300 flex-shrink-0"
             />
             <label htmlFor="is_active" className="text-base font-semibold text-historical-charcoal dark:text-gray-100 transition-colors duration-300 cursor-pointer select-none">
-              تفعيل المنتج - {formData.is_active ? t.admin.products.status.active : t.admin.products.status.inactive || 'غير نشط'}
+              تفعيل المنتج - {formData.is_active ? t.admin.products.statuses.active : t.admin.products.statuses.inactive || 'غير نشط'}
             </label>
           </div>
 
-          <div className="flex gap-3 pt-4">
+        </form>
+
+        {/* Footer - Fixed */}
+        <div className="flex gap-3 p-6 border-t border-historical-gold/10 dark:border-gray-700 flex-shrink-0">
             <button
               type="submit"
+            onClick={handleSubmit}
               disabled={isSubmitting}
               className="flex-1 flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-l from-historical-gold to-historical-red text-white font-medium shadow-lg hover:shadow-xl transition-shadow disabled:opacity-50"
             >
@@ -325,7 +458,6 @@ function ProductModal({ isOpen, onClose, onSave, product, categories, isSubmitti
               {t.admin.users.form.cancel}
             </button>
           </div>
-        </form>
       </motion.div>
     </div>
   )
@@ -393,6 +525,367 @@ interface ViewProductModalProps {
 
 function ViewProductModal({ isOpen, onClose, product }: ViewProductModalProps) {
   const { t } = useLanguage()
+  const [productDetail, setProductDetail] = useState<ProductDetail | null>(null)
+  const [isLoadingDetail, setIsLoadingDetail] = useState(false)
+  const [isDeletingImage, setIsDeletingImage] = useState<number | null>(null)
+  const [isUpdatingImage, setIsUpdatingImage] = useState<number | null>(null)
+  const [showAddImageForm, setShowAddImageForm] = useState(false)
+  const [newImageFile, setNewImageFile] = useState<File | null>(null)
+  const [newImagePreview, setNewImagePreview] = useState<string | null>(null)
+  const [replacingImageId, setReplacingImageId] = useState<number | null>(null)
+  const [replaceImageFile, setReplaceImageFile] = useState<File | null>(null)
+  const [replaceImagePreview, setReplaceImagePreview] = useState<string | null>(null)
+  
+  // Variants Management State
+  const [variants, setVariants] = useState<ProductVariant[]>([])
+  const [isLoadingVariants, setIsLoadingVariants] = useState(false)
+  const [showVariantForm, setShowVariantForm] = useState(false)
+  const [editingVariant, setEditingVariant] = useState<ProductVariant | null>(null)
+  const [isSavingVariant, setIsSavingVariant] = useState(false)
+  const [isDeletingVariant, setIsDeletingVariant] = useState<number | null>(null)
+  const [variantFormData, setVariantFormData] = useState<ProductVariantCreatePayload>({
+    color: '',
+    color_hex: '',
+    size: '',
+    model: '',
+    sku: '',
+    stock_quantity: 0,
+    price_override: null,
+    image: null,
+    is_available: true,
+  })
+  const [variantImagePreview, setVariantImagePreview] = useState<string | null>(null)
+  
+  // Fetch product details when modal opens
+  const fetchProductDetails = useCallback(async () => {
+    if (product) {
+      setIsLoadingDetail(true)
+      try {
+        const response = await getProduct(product.id)
+        if (response.success && response.data) {
+          setProductDetail(response.data)
+        }
+      } catch (err) {
+        console.error('Error fetching product details:', err)
+      } finally {
+        setIsLoadingDetail(false)
+      }
+    }
+  }, [product])
+  
+  // Fetch variants
+  const fetchVariants = useCallback(async () => {
+    if (product) {
+      setIsLoadingVariants(true)
+      try {
+        const response = await getProductVariants(product.id)
+        if (response.success && response.data) {
+          setVariants(response.data)
+        }
+      } catch (err) {
+        console.error('Error fetching variants:', err)
+      } finally {
+        setIsLoadingVariants(false)
+      }
+    }
+  }, [product])
+  
+  useEffect(() => {
+    if (isOpen && product) {
+      fetchProductDetails()
+      fetchVariants()
+    } else {
+      setProductDetail(null)
+      setVariants([])
+      setShowAddImageForm(false)
+      setShowVariantForm(false)
+      setEditingVariant(null)
+      if (newImagePreview) {
+        URL.revokeObjectURL(newImagePreview)
+      }
+      if (replaceImagePreview) {
+        URL.revokeObjectURL(replaceImagePreview)
+      }
+      if (variantImagePreview) {
+        URL.revokeObjectURL(variantImagePreview)
+      }
+      setNewImageFile(null)
+      setNewImagePreview(null)
+      setReplacingImageId(null)
+      setReplaceImageFile(null)
+      setReplaceImagePreview(null)
+      setVariantFormData({
+        color: '',
+        color_hex: '',
+        size: '',
+        model: '',
+        sku: '',
+        stock_quantity: 0,
+        price_override: null,
+        image: null,
+        is_available: true,
+      })
+      setVariantImagePreview(null)
+    }
+  }, [isOpen, product, fetchProductDetails, fetchVariants])
+  
+  // Handle delete image
+  const handleDeleteImage = async (imageId: number) => {
+    if (!product || !confirm(t.admin.products.confirmDeleteImage || 'هل أنت متأكد من حذف هذه الصورة؟')) {
+      return
+    }
+    
+    setIsDeletingImage(imageId)
+    try {
+      const response = await deleteProductImage(product.id, imageId)
+      if (response.success) {
+        // Refresh product details
+        await fetchProductDetails()
+      } else {
+        alert(response.message || 'فشل حذف الصورة')
+      }
+    } catch (err) {
+      console.error('Error deleting image:', err)
+      alert('حدث خطأ أثناء حذف الصورة')
+    } finally {
+      setIsDeletingImage(null)
+    }
+  }
+  
+  // Handle set primary image
+  const handleSetPrimary = async (imageId: number) => {
+    if (!product) return
+    
+    setIsUpdatingImage(imageId)
+    try {
+      const response = await updateProductImage(product.id, imageId, {
+        is_primary: true,
+      })
+      if (response.success) {
+        await fetchProductDetails()
+      } else {
+        alert(response.message || 'فشل تحديث الصورة')
+      }
+    } catch (err) {
+      console.error('Error updating image:', err)
+      alert('حدث خطأ أثناء تحديث الصورة')
+    } finally {
+      setIsUpdatingImage(null)
+    }
+  }
+  
+  // Handle add new image
+  const handleAddImage = async () => {
+    if (!product || !newImageFile) return
+    
+    setIsUpdatingImage(-1) // Use -1 to indicate adding new image
+    try {
+      const currentImagesCount = productDetail?.images?.length || 0
+      const response = await createProductImage(product.id, {
+        image: newImageFile,
+        display_order: currentImagesCount,
+        is_primary: currentImagesCount === 0, // Primary if first image
+        alt_text: `${product.name} - Image ${currentImagesCount + 1}`,
+      })
+      
+      if (response.success) {
+        await fetchProductDetails()
+        setShowAddImageForm(false)
+        setNewImageFile(null)
+        if (newImagePreview) {
+          URL.revokeObjectURL(newImagePreview)
+        }
+        setNewImagePreview(null)
+      } else {
+        alert(response.message || 'فشل رفع الصورة')
+      }
+    } catch (err) {
+      console.error('Error adding image:', err)
+      alert('حدث خطأ أثناء رفع الصورة')
+    } finally {
+      setIsUpdatingImage(null)
+    }
+  }
+  
+  // Handle replace image
+  const handleReplaceImage = async (imageId: number) => {
+    if (!product || !replaceImageFile) return
+    
+    setIsUpdatingImage(imageId)
+    try {
+      const response = await updateProductImage(product.id, imageId, {
+        image: replaceImageFile,
+      })
+      
+      if (response.success) {
+        await fetchProductDetails()
+        setReplacingImageId(null)
+        setReplaceImageFile(null)
+        if (replaceImagePreview) {
+          URL.revokeObjectURL(replaceImagePreview)
+        }
+        setReplaceImagePreview(null)
+      } else {
+        alert(response.message || 'فشل استبدال الصورة')
+      }
+    } catch (err) {
+      console.error('Error replacing image:', err)
+      alert('حدث خطأ أثناء استبدال الصورة')
+    } finally {
+      setIsUpdatingImage(null)
+    }
+  }
+  
+  // Handle replace image file selection
+  const handleReplaceImageFileChange = (e: React.ChangeEvent<HTMLInputElement>, imageId: number) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      setReplacingImageId(imageId)
+      setReplaceImageFile(file)
+      const preview = URL.createObjectURL(file)
+      setReplaceImagePreview(preview)
+    }
+  }
+  
+  // =============================================================================
+  // Variants Management Functions
+  // =============================================================================
+  
+  // Handle variant image file selection
+  const handleVariantImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      setVariantFormData({ ...variantFormData, image: file })
+      const preview = URL.createObjectURL(file)
+      setVariantImagePreview(preview)
+    }
+  }
+  
+  // Open variant form for adding new variant
+  const handleAddVariant = () => {
+    setEditingVariant(null)
+    setVariantFormData({
+      color: '',
+      color_hex: '',
+      size: '',
+      model: '',
+      sku: '',
+      stock_quantity: 0,
+      price_override: null,
+      image: null,
+      is_available: true,
+    })
+    setVariantImagePreview(null)
+    setShowVariantForm(true)
+  }
+  
+  // Open variant form for editing
+  const handleEditVariant = (variant: ProductVariant) => {
+    setEditingVariant(variant)
+    setVariantFormData({
+      color: variant.color,
+      color_hex: variant.color_hex || '',
+      size: variant.size || '',
+      model: variant.model || '',
+      sku: variant.sku || '',
+      stock_quantity: variant.stock_quantity,
+      price_override: variant.price_override,
+      image: null, // Don't set image file, will use existing
+      is_available: variant.is_available,
+    })
+    setVariantImagePreview(variant.image_url || null)
+    setShowVariantForm(true)
+  }
+  
+  // Save variant (create or update)
+  const handleSaveVariant = async () => {
+    if (!product) return
+    
+    if (!variantFormData.color.trim()) {
+      alert('اللون مطلوب / Color is required')
+      return
+    }
+    
+    if (variantFormData.stock_quantity < 0) {
+      alert('المخزون يجب أن يكون أكبر من أو يساوي صفر / Stock must be >= 0')
+      return
+    }
+    
+    setIsSavingVariant(true)
+    try {
+      let response
+      if (editingVariant) {
+        // Update existing variant
+        response = await updateProductVariant(product.id, editingVariant.id, variantFormData)
+      } else {
+        // Create new variant
+        response = await createProductVariant(product.id, variantFormData)
+      }
+      
+      if (response.success) {
+        await fetchVariants()
+        await fetchProductDetails() // Refresh to update total_stock
+        setShowVariantForm(false)
+        setEditingVariant(null)
+        setVariantFormData({
+          color: '',
+          color_hex: '',
+          size: '',
+          model: '',
+          sku: '',
+          stock_quantity: 0,
+          price_override: null,
+          image: null,
+          is_available: true,
+        })
+        if (variantImagePreview) {
+          URL.revokeObjectURL(variantImagePreview)
+        }
+        setVariantImagePreview(null)
+      } else {
+        alert(response.message || 'فشل حفظ المتغير / Failed to save variant')
+      }
+    } catch (err) {
+      console.error('Error saving variant:', err)
+      alert('حدث خطأ أثناء حفظ المتغير / Error saving variant')
+    } finally {
+      setIsSavingVariant(false)
+    }
+  }
+  
+  // Delete variant
+  const handleDeleteVariant = async (variantId: number) => {
+    if (!product || !confirm('هل أنت متأكد من حذف هذا المتغير؟ / Are you sure you want to delete this variant?')) {
+      return
+    }
+    
+    setIsDeletingVariant(variantId)
+    try {
+      const response = await deleteProductVariant(product.id, variantId)
+      if (response.success) {
+        await fetchVariants()
+        await fetchProductDetails() // Refresh to update total_stock
+      } else {
+        alert(response.message || 'فشل حذف المتغير / Failed to delete variant')
+      }
+    } catch (err) {
+      console.error('Error deleting variant:', err)
+      alert('حدث خطأ أثناء حذف المتغير / Error deleting variant')
+    } finally {
+      setIsDeletingVariant(null)
+    }
+  }
+  
+  // Handle image file selection
+  const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      setNewImageFile(file)
+      const preview = URL.createObjectURL(file)
+      setNewImagePreview(preview)
+    }
+  }
+  
   if (!isOpen || !product) return null
 
   return (
@@ -426,11 +919,512 @@ function ViewProductModal({ isOpen, onClose, product }: ViewProductModalProps) {
 
           {/* Content */}
           <div className="p-6 space-y-6 overflow-y-auto">
-            {/* Product Image */}
-            {product.main_image && (
+            {isLoadingDetail ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-historical-gold"></div>
+              </div>
+            ) : (
+              <>
+                {/* Product Images Management */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-bold text-historical-charcoal dark:text-gray-100">
+                      {t.admin.products.images || 'صور المنتج'}
+                    </h3>
+                    <button
+                      onClick={() => setShowAddImageForm(!showAddImageForm)}
+                      className="px-4 py-2 rounded-lg bg-historical-gold/10 text-historical-gold hover:bg-historical-gold/20 transition-colors text-sm font-medium"
+                    >
+                      {showAddImageForm ? 'إلغاء' : '+'} {t.admin.products.addImage || 'إضافة صورة'}
+                    </button>
+                  </div>
+                  
+                  {/* Add Image Form */}
+                  {showAddImageForm && (
+                    <div className="p-4 rounded-xl bg-historical-stone/30 dark:bg-gray-700/30 border border-historical-gold/20">
+                      <div className="space-y-3">
+                        {newImagePreview ? (
+                          <div className="relative w-full h-48 rounded-lg overflow-hidden">
+                            <img src={newImagePreview} alt="Preview" className="w-full h-full object-cover" />
+                            <button
+                              onClick={() => {
+                                setNewImageFile(null)
+                                setNewImagePreview(null)
+                              }}
+                              className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full"
+                            >
+                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            </button>
+                          </div>
+                        ) : (
+                          <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-historical-gold/30 rounded-lg cursor-pointer hover:border-historical-gold/50 transition-colors">
+                            <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                              <svg className="w-8 h-8 mb-2 text-historical-charcoal/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                              </svg>
+                              <p className="mb-2 text-sm text-historical-charcoal/50">
+                                <span className="font-semibold">اضغط للاختيار</span>
+                              </p>
+                            </div>
+                            <input type="file" accept="image/*" className="hidden" onChange={handleImageFileChange} />
+                          </label>
+                        )}
+                        <div className="flex gap-2">
+                          <button
+                            onClick={handleAddImage}
+                            disabled={!newImageFile || isUpdatingImage === -1}
+                            className="flex-1 px-4 py-2 rounded-lg bg-historical-gold text-white hover:bg-historical-gold/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                          >
+                            {isUpdatingImage === -1 ? 'جاري الرفع...' : 'رفع الصورة'}
+                          </button>
+                          <button
+                            onClick={() => {
+                              setShowAddImageForm(false)
+                              setNewImageFile(null)
+                              setNewImagePreview(null)
+                            }}
+                            className="px-4 py-2 rounded-lg border border-historical-gold/20 text-historical-charcoal dark:text-gray-200 hover:bg-historical-gold/5 transition-colors"
+                          >
+                            إلغاء
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Images Grid */}
+                  {productDetail?.images && productDetail.images.length > 0 ? (
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                      {productDetail.images.map((img, index) => (
+                        <div key={img.id} className="relative group">
+                          <div className="relative aspect-square rounded-lg overflow-hidden border-2 border-historical-gold/20">
+                            <img 
+                              src={img.image_url || img.image} 
+                              alt={img.alt_text || product.name} 
+                              className="w-full h-full object-cover" 
+                            />
+                            
+                            {/* Overlay with actions */}
+                            {replacingImageId !== img.id && (
+                              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 p-2">
+                                <button
+                                  onClick={() => handleSetPrimary(img.id)}
+                                  disabled={img.is_primary || isUpdatingImage === img.id}
+                                  className="w-full px-3 py-1.5 rounded-lg bg-historical-gold text-white text-xs font-medium hover:bg-historical-gold/90 disabled:opacity-50 transition-colors"
+                                  title="تحديد كصورة أساسية"
+                                >
+                                  {img.is_primary ? '⭐ أساسية' : '⭐ جعل أساسية'}
+                                </button>
+                                <label className="w-full px-3 py-1.5 rounded-lg bg-blue-500 text-white text-xs font-medium hover:bg-blue-600 cursor-pointer transition-colors text-center">
+                                  🔄 استبدال
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    className="hidden"
+                                    onChange={(e) => handleReplaceImageFileChange(e, img.id)}
+                                  />
+                                </label>
+                                <button
+                                  onClick={() => handleDeleteImage(img.id)}
+                                  disabled={isDeletingImage === img.id}
+                                  className="w-full px-3 py-1.5 rounded-lg bg-red-500 text-white text-xs font-medium hover:bg-red-600 disabled:opacity-50 transition-colors"
+                                  title="حذف الصورة"
+                                >
+                                  {isDeletingImage === img.id ? 'جاري الحذف...' : '🗑️ حذف'}
+                                </button>
+                              </div>
+                            )}
+                            
+                            {/* Replace Image Form */}
+                            {replacingImageId === img.id && (
+                              <div className="absolute inset-0 bg-black/90 flex flex-col items-center justify-center gap-2 p-2">
+                                {replaceImagePreview ? (
+                                  <>
+                                    <img src={replaceImagePreview} alt="Preview" className="w-20 h-20 object-cover rounded" />
+                                    <div className="flex gap-2">
+                                      <button
+                                        onClick={() => handleReplaceImage(img.id)}
+                                        disabled={isUpdatingImage === img.id}
+                                        className="px-3 py-1.5 rounded-lg bg-green-500 text-white text-xs font-medium hover:bg-green-600 disabled:opacity-50 transition-colors"
+                                      >
+                                        {isUpdatingImage === img.id ? 'جاري...' : '✓ حفظ'}
+                                      </button>
+                                      <button
+                                        onClick={() => {
+                                          setReplacingImageId(null)
+                                          setReplaceImageFile(null)
+                                          if (replaceImagePreview) {
+                                            URL.revokeObjectURL(replaceImagePreview)
+                                          }
+                                          setReplaceImagePreview(null)
+                                        }}
+                                        className="px-3 py-1.5 rounded-lg bg-gray-500 text-white text-xs font-medium hover:bg-gray-600 transition-colors"
+                                      >
+                                        ✕ إلغاء
+                                      </button>
+                                    </div>
+                                  </>
+                                ) : (
+                                  <label className="px-3 py-1.5 rounded-lg bg-blue-500 text-white text-xs font-medium hover:bg-blue-600 cursor-pointer transition-colors">
+                                    اختر صورة جديدة
+                                    <input
+                                      type="file"
+                                      accept="image/*"
+                                      className="hidden"
+                                      onChange={(e) => handleReplaceImageFileChange(e, img.id)}
+                                    />
+                                  </label>
+                                )}
+                              </div>
+                            )}
+                            
+                            {/* Primary badge */}
+                            {img.is_primary && (
+                              <span className="absolute top-2 left-2 px-2 py-1 bg-historical-gold text-white text-xs font-medium rounded">
+                                ⭐ {t.admin.products.primary || 'أساسية'}
+                              </span>
+                            )}
+                            
+                            {/* Order badge */}
+                            <span className="absolute top-2 right-2 px-2 py-1 bg-black/50 text-white text-xs rounded">
+                              #{index + 1}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : product.main_image ? (
               <div className="w-full h-64 rounded-xl overflow-hidden bg-historical-stone dark:bg-gray-700">
                 <img src={product.main_image} alt={product.name} className="w-full h-full object-cover" />
               </div>
+                  ) : (
+                    <div className="w-full h-64 rounded-xl bg-historical-stone/30 dark:bg-gray-700/30 flex items-center justify-center">
+                      <p className="text-historical-charcoal/50 dark:text-gray-400">
+                        {t.admin.products.noImage || 'لا توجد صورة / No image'}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Product Variants Management */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-bold text-historical-charcoal dark:text-gray-100">
+                      {t.admin.products.variants || 'متغيرات المنتج / Product Variants'}
+                    </h3>
+                    <button
+                      onClick={handleAddVariant}
+                      disabled={showVariantForm}
+                      className="px-4 py-2 rounded-lg bg-historical-gold/10 text-historical-gold hover:bg-historical-gold/20 transition-colors text-sm font-medium disabled:opacity-50"
+                    >
+                      + {t.admin.products.addVariant || 'إضافة متغير / Add Variant'}
+                    </button>
+                  </div>
+
+                  {/* Variant Form */}
+                  {showVariantForm && (
+                    <div className="p-4 rounded-xl bg-historical-stone/30 dark:bg-gray-700/30 border border-historical-gold/20">
+                      <h4 className="text-md font-semibold text-historical-charcoal dark:text-gray-100 mb-4">
+                        {editingVariant ? (t.admin.products.editVariant || 'تعديل متغير / Edit Variant') : (t.admin.products.addVariant || 'إضافة متغير جديد / Add New Variant')}
+                      </h4>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* Color */}
+                        <div>
+                          <label className="block text-sm font-medium text-historical-charcoal/70 dark:text-gray-300 mb-1">
+                            {t.admin.products.color || 'اللون / Color'} <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            value={variantFormData.color}
+                            onChange={(e) => setVariantFormData({ ...variantFormData, color: e.target.value })}
+                            className="w-full px-4 py-2 rounded-lg border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 text-historical-charcoal dark:text-gray-200"
+                            required
+                          />
+                        </div>
+
+                        {/* Color Hex */}
+                        <div>
+                          <label className="block text-sm font-medium text-historical-charcoal/70 dark:text-gray-300 mb-1">
+                            {t.admin.products.colorHex || 'كود اللون / Color Hex'}
+                          </label>
+                          <div className="flex gap-2">
+                            <input
+                              type="color"
+                              value={variantFormData.color_hex || '#000000'}
+                              onChange={(e) => setVariantFormData({ ...variantFormData, color_hex: e.target.value })}
+                              className="w-16 h-10 rounded-lg border border-historical-gold/20 cursor-pointer"
+                            />
+                            <input
+                              type="text"
+                              value={variantFormData.color_hex || ''}
+                              onChange={(e) => setVariantFormData({ ...variantFormData, color_hex: e.target.value })}
+                              placeholder="#000000"
+                              className="flex-1 px-4 py-2 rounded-lg border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 text-historical-charcoal dark:text-gray-200"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Size */}
+                        <div>
+                          <label className="block text-sm font-medium text-historical-charcoal/70 dark:text-gray-300 mb-1">
+                            {t.admin.products.size || 'الحجم / Size'}
+                          </label>
+                          <input
+                            type="text"
+                            value={variantFormData.size || ''}
+                            onChange={(e) => setVariantFormData({ ...variantFormData, size: e.target.value })}
+                            className="w-full px-4 py-2 rounded-lg border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 text-historical-charcoal dark:text-gray-200"
+                            placeholder="مثال: 38, 40, 42"
+                          />
+                        </div>
+
+                        {/* Model */}
+                        <div>
+                          <label className="block text-sm font-medium text-historical-charcoal/70 dark:text-gray-300 mb-1">
+                            {t.admin.products.model || 'الموديل / Model'}
+                          </label>
+                          <input
+                            type="text"
+                            value={variantFormData.model || ''}
+                            onChange={(e) => setVariantFormData({ ...variantFormData, model: e.target.value })}
+                            className="w-full px-4 py-2 rounded-lg border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 text-historical-charcoal dark:text-gray-200"
+                          />
+                        </div>
+
+                        {/* SKU */}
+                        <div>
+                          <label className="block text-sm font-medium text-historical-charcoal/70 dark:text-gray-300 mb-1">
+                            {t.admin.products.sku || 'SKU'}
+                          </label>
+                          <input
+                            type="text"
+                            value={variantFormData.sku || ''}
+                            onChange={(e) => setVariantFormData({ ...variantFormData, sku: e.target.value })}
+                            className="w-full px-4 py-2 rounded-lg border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 text-historical-charcoal dark:text-gray-200"
+                            placeholder="سيتم توليده تلقائياً إذا تركت فارغاً"
+                          />
+                        </div>
+
+                        {/* Stock Quantity */}
+                        <div>
+                          <label className="block text-sm font-medium text-historical-charcoal/70 dark:text-gray-300 mb-1">
+                            {t.admin.products.stockQuantity || 'المخزون / Stock Quantity'} <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="number"
+                            value={variantFormData.stock_quantity}
+                            onChange={(e) => setVariantFormData({ ...variantFormData, stock_quantity: Number(e.target.value) })}
+                            className="w-full px-4 py-2 rounded-lg border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 text-historical-charcoal dark:text-gray-200"
+                            min={0}
+                            required
+                          />
+                        </div>
+
+                        {/* Price Override */}
+                        <div>
+                          <label className="block text-sm font-medium text-historical-charcoal/70 dark:text-gray-300 mb-1">
+                            {t.admin.products.priceOverride || 'سعر خاص / Price Override'}
+                          </label>
+                          <input
+                            type="number"
+                            value={variantFormData.price_override || ''}
+                            onChange={(e) => setVariantFormData({ ...variantFormData, price_override: e.target.value ? Number(e.target.value) : null })}
+                            className="w-full px-4 py-2 rounded-lg border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 text-historical-charcoal dark:text-gray-200"
+                            min={0}
+                            step="0.01"
+                            placeholder="اتركه فارغاً لاستخدام السعر الأساسي"
+                          />
+                        </div>
+
+                        {/* Is Available */}
+                        <div className="flex items-center">
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={variantFormData.is_available}
+                              onChange={(e) => setVariantFormData({ ...variantFormData, is_available: e.target.checked })}
+                              className="w-4 h-4 rounded border-historical-gold/20 text-historical-gold focus:ring-historical-gold/30"
+                            />
+                            <span className="text-sm font-medium text-historical-charcoal/70 dark:text-gray-300">
+                              {t.admin.products.isAvailable || 'متاح / Available'}
+                            </span>
+                          </label>
+                        </div>
+
+                        {/* Variant Image */}
+                        <div className="md:col-span-2">
+                          <label className="block text-sm font-medium text-historical-charcoal/70 dark:text-gray-300 mb-1">
+                            {t.admin.products.variantImage || 'صورة المتغير / Variant Image'}
+                          </label>
+                          {variantImagePreview ? (
+                            <div className="relative w-32 h-32 rounded-lg overflow-hidden border-2 border-historical-gold/20">
+                              <img src={variantImagePreview} alt="Preview" className="w-full h-full object-cover" />
+                              <button
+                                onClick={() => {
+                                  setVariantFormData({ ...variantFormData, image: null })
+                                  if (variantImagePreview && !editingVariant?.image_url) {
+                                    URL.revokeObjectURL(variantImagePreview)
+                                  }
+                                  setVariantImagePreview(null)
+                                }}
+                                className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full text-xs"
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          ) : (
+                            <label className="flex flex-col items-center justify-center w-32 h-32 border-2 border-dashed border-historical-gold/30 rounded-lg cursor-pointer hover:border-historical-gold/50 transition-colors">
+                              <svg className="w-6 h-6 mb-1 text-historical-charcoal/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                              </svg>
+                              <span className="text-xs text-historical-charcoal/50">إضافة صورة</span>
+                              <input type="file" accept="image/*" className="hidden" onChange={handleVariantImageChange} />
+                            </label>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Form Actions */}
+                      <div className="flex gap-2 mt-4">
+                        <button
+                          onClick={handleSaveVariant}
+                          disabled={isSavingVariant || !variantFormData.color.trim()}
+                          className="flex-1 px-4 py-2 rounded-lg bg-historical-gold text-white hover:bg-historical-gold/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        >
+                          {isSavingVariant ? (t.admin.products.saving || 'جاري الحفظ...') : (t.admin.products.save || 'حفظ')}
+                        </button>
+                        <button
+                          onClick={() => {
+                            setShowVariantForm(false)
+                            setEditingVariant(null)
+                            setVariantFormData({
+                              color: '',
+                              color_hex: '',
+                              size: '',
+                              model: '',
+                              sku: '',
+                              stock_quantity: 0,
+                              price_override: null,
+                              image: null,
+                              is_available: true,
+                            })
+                            if (variantImagePreview && !editingVariant?.image_url) {
+                              URL.revokeObjectURL(variantImagePreview)
+                            }
+                            setVariantImagePreview(null)
+                          }}
+                          className="px-4 py-2 rounded-lg border border-historical-gold/20 text-historical-charcoal dark:text-gray-200 hover:bg-historical-gold/5 transition-colors"
+                        >
+                          {t.admin.users.form.cancel || 'إلغاء'}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Variants Table */}
+                  {isLoadingVariants ? (
+                    <div className="flex items-center justify-center py-8">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-historical-gold"></div>
+                    </div>
+                  ) : variants.length > 0 ? (
+                    <div className="overflow-x-auto">
+                      <table className="w-full border-collapse">
+                        <thead>
+                          <tr className="bg-historical-stone/30 dark:bg-gray-700/30 border-b border-historical-gold/20">
+                            <th className="text-right text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-4 py-3">{t.admin.products.color || 'اللون'}</th>
+                            <th className="text-right text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-4 py-3">{t.admin.products.size || 'الحجم'}</th>
+                            <th className="text-right text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-4 py-3">{t.admin.products.sku || 'SKU'}</th>
+                            <th className="text-right text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-4 py-3">{t.admin.products.stockQuantity || 'المخزون'}</th>
+                            <th className="text-right text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-4 py-3">{t.admin.products.price || 'السعر'}</th>
+                            <th className="text-right text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-4 py-3">{t.admin.products.status || 'الحالة'}</th>
+                            <th className="text-right text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-4 py-3">{t.admin.products.actions || 'الإجراءات'}</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {variants.map((variant) => (
+                            <tr key={variant.id} className="border-b border-historical-gold/10 dark:border-gray-700 hover:bg-historical-stone/10 dark:hover:bg-gray-700/10 transition-colors">
+                              <td className="px-4 py-3">
+                                <div className="flex items-center gap-2">
+                                  {variant.color_hex && (
+                                    <div 
+                                      className="w-4 h-4 rounded-full border border-historical-gold/20" 
+                                      style={{ backgroundColor: variant.color_hex }}
+                                    />
+                                  )}
+                                  <span className="text-sm text-historical-charcoal dark:text-gray-200">{variant.color}</span>
+                                </div>
+                              </td>
+                              <td className="px-4 py-3 text-sm text-historical-charcoal dark:text-gray-200">{variant.size || '-'}</td>
+                              <td className="px-4 py-3 text-sm text-historical-charcoal/70 dark:text-gray-400 font-mono">{variant.sku || '-'}</td>
+                              <td className="px-4 py-3">
+                                <span className={`text-sm font-medium ${
+                                  variant.stock_quantity === 0 
+                                    ? 'text-red-500 dark:text-red-400' 
+                                    : variant.stock_quantity < 10 
+                                      ? 'text-yellow-600 dark:text-yellow-400' 
+                                      : 'text-historical-charcoal dark:text-gray-200'
+                                }`}>
+                                  {variant.stock_quantity}
+                                </span>
+                              </td>
+                              <td className="px-4 py-3 text-sm text-historical-charcoal dark:text-gray-200">
+                                {formatPrice(variant.final_price)}
+                                {variant.price_override && (
+                                  <span className="text-xs text-historical-charcoal/50 dark:text-gray-400 block">(خاص)</span>
+                                )}
+                              </td>
+                              <td className="px-4 py-3">
+                                <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${
+                                  variant.is_available 
+                                    ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' 
+                                    : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                                }`}>
+                                  {variant.is_available ? (t.admin.products.available || 'متاح') : (t.admin.products.unavailable || 'غير متاح')}
+                                </span>
+                              </td>
+                              <td className="px-4 py-3">
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    onClick={() => handleEditVariant(variant)}
+                                    className="p-1.5 rounded-lg text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+                                    title={t.admin.products.edit || 'تعديل'}
+                                  >
+                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                    </svg>
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeleteVariant(variant.id)}
+                                    disabled={isDeletingVariant === variant.id}
+                                    className="p-1.5 rounded-lg text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-50"
+                                    title={t.admin.products.delete || 'حذف'}
+                                  >
+                                    {isDeletingVariant === variant.id ? (
+                                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600"></div>
+                                    ) : (
+                                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                      </svg>
+                                    )}
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-historical-charcoal/50 dark:text-gray-400">
+                      <p>{t.admin.products.noVariants || 'لا توجد متغيرات / No variants'}</p>
+                      <p className="text-xs mt-1">{t.admin.products.addFirstVariant || 'اضغط على "إضافة متغير" لإضافة أول متغير / Click "Add Variant" to add the first variant'}</p>
+                    </div>
+                  )}
+                </div>
+              </>
             )}
 
             {/* Product Info */}
@@ -644,19 +1638,13 @@ export default function ProductsPage() {
       }
     } else {
       // For new products, vendor_id is required
-      // Use first available vendor if not provided, otherwise use default vendor_id = 1
-      // TODO: Add vendor selector to the form
-      let vendorId = formData.vendor_id
-      if (!vendorId) {
-        if (vendors && vendors.length > 0) {
-          vendorId = vendors[0].id
-        } else {
-          // Fallback to vendor_id = 1 if no vendors are loaded
-          // This is a temporary solution until vendor selector is added
-          vendorId = 1
-          console.warn('No vendors loaded, using default vendor_id = 1')
-        }
+      // البائع مطلوب للمنتجات الجديدة
+      if (!formData.vendor_id || formData.vendor_id <= 0) {
+        alert(t.admin.products.vendorRequired || 'البائع مطلوب / Vendor is required')
+        return
       }
+      
+      const vendorId = formData.vendor_id
 
       const payload: ProductCreatePayload = {
         name: formData.name.trim(),
@@ -674,17 +1662,45 @@ export default function ProductsPage() {
       }
       
       console.log('Creating product with payload:', payload)
+      
       try {
         const result = await addProduct(payload)
         if (result) {
+          // Upload images if any
+          // رفع الصور إن وجدت
+          if (formData.images && formData.images.length > 0 && result.id) {
+            try {
+              for (let i = 0; i < formData.images.length; i++) {
+                const image = formData.images[i]
+                await createProductImage(result.id, {
+                  image: image,
+                  display_order: i,
+                  is_primary: i === 0, // First image is primary
+                  alt_text: `${formData.name} - Image ${i + 1}`,
+                })
+              }
+              console.log(`Successfully uploaded ${formData.images.length} images`)
+            } catch (imageError) {
+              console.error('Error uploading images:', imageError)
+              // Don't fail the whole operation if images fail
+              alert('تم إنشاء المنتج بنجاح، لكن حدث خطأ في رفع بعض الصور')
+            }
+          }
+          
           setIsModalOpen(false)
+          setEditingProduct(null)
+          // Reset form
+          // إعادة تعيين النموذج
         } else {
           // Error is already set by addProduct hook
           console.error('Failed to create product')
+          // Show error message from hook
+          // عرض رسالة الخطأ من الهوك
         }
       } catch (err) {
         console.error('Error in handleSaveProduct:', err)
-        alert(err instanceof Error ? err.message : 'حدث خطأ غير متوقع')
+        const errorMessage = err instanceof Error ? err.message : 'حدث خطأ غير متوقع'
+        alert(errorMessage)
       }
     }
   }
@@ -761,7 +1777,7 @@ export default function ProductsPage() {
         <div>
           <h1 className="text-2xl font-bold text-historical-charcoal dark:text-gray-100 transition-colors duration-300">{t.admin.products.title}</h1>
           <p className="text-historical-charcoal/50 dark:text-gray-400 mt-1 transition-colors duration-300">
-            {totalCount} {t.admin.products.name}
+            {totalCount || 0} {t.admin.products.name}
           </p>
         </div>
         <button
@@ -810,9 +1826,9 @@ export default function ProductsPage() {
           className="px-4 py-3 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-800 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 min-w-[150px] text-historical-charcoal dark:text-gray-100 transition-colors duration-300"
         >
           <option value="">{t.admin.products.allStatuses}</option>
-          <option value="active">{t.admin.products.status.active}</option>
-          <option value="draft">{t.admin.products.status.draft}</option>
-          <option value="out_of_stock">{t.admin.products.status.outOfStock}</option>
+          <option value="active">{t.admin.products.statuses.active}</option>
+          <option value="draft">{t.admin.products.statuses.draft}</option>
+          <option value="out_of_stock">{t.admin.products.statuses.outOfStock}</option>
         </select>
 
         {/* View Mode Toggle */}
@@ -1014,7 +2030,10 @@ export default function ProductsPage() {
             {/* Pagination */}
             <div className="flex items-center justify-between px-6 py-4 border-t border-historical-gold/10 dark:border-gray-700 bg-historical-stone/30 dark:bg-gray-700/30 transition-colors duration-300">
               <p className="text-sm text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">
-                {t.admin.products.showingProducts.replace('{start}', (((currentPage - 1) * 10) + 1).toString()).replace('{end}', Math.min(currentPage * 10, totalCount).toString()).replace('{total}', totalCount.toString())}
+                {t.admin.products.showingProducts
+                  .replace('{start}', (((currentPage - 1) * 10) + 1).toString())
+                  .replace('{end}', Math.min(currentPage * 10, totalCount || 0).toString())
+                  .replace('{total}', (totalCount || 0).toString())}
               </p>
               <div className="flex items-center gap-2">
                 <button
@@ -1066,6 +2085,7 @@ export default function ProductsPage() {
             onSave={handleSaveProduct}
             product={editingProduct}
             categories={categories.map(c => ({ id: c.id, name: c.name, name_ar: c.name_ar }))}
+            vendors={vendors?.map(v => ({ id: v.id, name: v.name })) || []}
             isSubmitting={isSubmitting}
           />
         )}

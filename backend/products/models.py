@@ -270,6 +270,112 @@ class Product(models.Model):
     
     def __str__(self):
         return f"{self.vendor.name} - {self.name}"
+    
+    @property
+    def primary_image(self):
+        """Get primary product image"""
+        primary = self.images.filter(is_primary=True).first()
+        if primary:
+            return primary
+        # Fallback to first image if no primary set
+        return self.images.first()
+    
+    @property
+    def main_image_url(self):
+        """Get main image URL for backward compatibility"""
+        primary = self.primary_image
+        if primary and primary.image:
+            return primary.image.url
+        # Fallback to first variant image if no product images
+        first_variant = self.variants.filter(image__isnull=False).first()
+        if first_variant and first_variant.image:
+            return first_variant.image.url
+        return None
+
+
+# =============================================================================
+# Product Image Model
+# نموذج صور المنتج
+# =============================================================================
+
+class ProductImage(models.Model):
+    """
+    Product Image Model
+    نموذج صور المنتج
+    
+    Supports multiple images per product with ordering and primary image selection.
+    يدعم صور متعددة لكل منتج مع الترتيب واختيار الصورة الأساسية.
+    
+    Fields:
+        - product: المنتج المرتبط
+        - image: ملف الصورة
+        - display_order: ترتيب العرض (0 = الأول)
+        - is_primary: هل هي الصورة الأساسية؟
+        - alt_text: نص بديل للصورة (لتحسين SEO)
+    """
+    
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.CASCADE,
+        related_name='images',
+        verbose_name=_('Product'),
+        help_text=_('المنتج المرتبط')
+    )
+    
+    image = models.ImageField(
+        upload_to='products/images/',
+        verbose_name=_('Image'),
+        help_text=_('صورة المنتج')
+    )
+    
+    display_order = models.PositiveIntegerField(
+        default=0,
+        verbose_name=_('Display Order'),
+        help_text=_('ترتيب العرض (0 = الأول، الأصغر يظهر أولاً)')
+    )
+    
+    is_primary = models.BooleanField(
+        default=False,
+        verbose_name=_('Is Primary'),
+        help_text=_('هل هذه الصورة الأساسية للمنتج؟ (يجب أن تكون صورة واحدة فقط أساسية)')
+    )
+    
+    alt_text = models.CharField(
+        max_length=200,
+        blank=True,
+        verbose_name=_('Alt Text'),
+        help_text=_('النص البديل للصورة (لتحسين SEO وإمكانية الوصول)')
+    )
+    
+    # Timestamps
+    # الطوابع الزمنية
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['display_order', 'created_at']
+        verbose_name = _('Product Image')
+        verbose_name_plural = _('Product Images')
+        indexes = [
+            models.Index(fields=['product', 'display_order']),
+            models.Index(fields=['product', 'is_primary']),
+        ]
+    
+    def save(self, *args, **kwargs):
+        """
+        Ensure only one primary image per product
+        ضمان وجود صورة أساسية واحدة فقط لكل منتج
+        """
+        if self.is_primary:
+            # Unset other primary images for this product
+            ProductImage.objects.filter(
+                product=self.product,
+                is_primary=True
+            ).exclude(pk=self.pk).update(is_primary=False)
+        super().save(*args, **kwargs)
+    
+    def __str__(self):
+        return f"{self.product.name} - Image {self.display_order}"
 
 
 class ProductVariant(models.Model):

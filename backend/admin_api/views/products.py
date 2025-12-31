@@ -32,8 +32,10 @@ from admin_api.serializers.products import (
     AdminProductBulkActionSerializer,
     AdminProductVariantSerializer,
     AdminProductVariantCreateSerializer,
+    AdminProductImageSerializer,
+    AdminProductImageCreateSerializer,
 )
-from products.models import Product, ProductVariant
+from products.models import Product, ProductVariant, ProductImage
 from core.utils import success_response, error_response
 from core.pagination import StandardResultsSetPagination
 
@@ -577,5 +579,201 @@ class AdminProductVariantDetailView(APIView):
         
         return success_response(
             message=_('تم حذف المتغير بنجاح / Variant deleted successfully')
+        )
+
+
+# =============================================================================
+# Product Images Views
+# عروض صور المنتج
+# =============================================================================
+
+class AdminProductImageListCreateView(APIView):
+    """
+    List all images for a product or create a new image.
+    عرض جميع صور منتج أو إنشاء صورة جديدة.
+    """
+    
+    permission_classes = [IsAdminUser]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
+    
+    def get_product(self, product_pk):
+        """Get product by ID"""
+        try:
+            return Product.objects.get(pk=product_pk)
+        except Product.DoesNotExist:
+            return None
+    
+    @extend_schema(
+        summary='List Product Images',
+        description='Get all images for a product',
+        responses={200: AdminProductImageSerializer(many=True)},
+        tags=['Admin Products'],
+    )
+    def get(self, request, product_pk):
+        """
+        List product images.
+        عرض صور المنتج.
+        """
+        product = self.get_product(product_pk)
+        if not product:
+            return error_response(
+                message=_('المنتج غير موجود / Product not found'),
+                status_code=status.HTTP_404_NOT_FOUND
+            )
+        
+        images = product.images.all().order_by('display_order', 'created_at')
+        serializer = AdminProductImageSerializer(
+            images,
+            many=True,
+            context={'request': request}
+        )
+        return success_response(data=serializer.data)
+    
+    @extend_schema(
+        summary='Create Product Image',
+        description='Add a new image to a product',
+        request=AdminProductImageCreateSerializer,
+        responses={201: AdminProductImageSerializer},
+        tags=['Admin Products'],
+    )
+    def post(self, request, product_pk):
+        """
+        Create product image.
+        إنشاء صورة للمنتج.
+        """
+        product = self.get_product(product_pk)
+        if not product:
+            return error_response(
+                message=_('المنتج غير موجود / Product not found'),
+                status_code=status.HTTP_404_NOT_FOUND
+            )
+        
+        serializer = AdminProductImageCreateSerializer(
+            data=request.data,
+            context={'request': request}
+        )
+        
+        if serializer.is_valid():
+            image = serializer.save(product=product)
+            
+            detail_serializer = AdminProductImageSerializer(
+                image,
+                context={'request': request}
+            )
+            
+            return success_response(
+                data=detail_serializer.data,
+                message=_('تم إنشاء الصورة بنجاح / Image created successfully'),
+                status_code=status.HTTP_201_CREATED
+            )
+        
+        return error_response(
+            message=_('بيانات غير صالحة / Invalid data'),
+            errors=serializer.errors,
+            status_code=status.HTTP_400_BAD_REQUEST
+        )
+
+
+class AdminProductImageDetailView(APIView):
+    """
+    Get, update, or delete a product image.
+    الحصول على صورة أو تحديثها أو حذفها.
+    """
+    
+    permission_classes = [IsAdminUser]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
+    
+    def get_image(self, product_pk, pk):
+        """Get image by product ID and image ID"""
+        try:
+            return ProductImage.objects.select_related('product').get(
+                product_id=product_pk,
+                pk=pk
+            )
+        except ProductImage.DoesNotExist:
+            return None
+    
+    @extend_schema(
+        summary='Get Image Details',
+        description='Get image details',
+        responses={200: AdminProductImageSerializer},
+        tags=['Admin Products'],
+    )
+    def get(self, request, product_pk, pk):
+        """Get image details."""
+        image = self.get_image(product_pk, pk)
+        if not image:
+            return error_response(
+                message=_('الصورة غير موجودة / Image not found'),
+                status_code=status.HTTP_404_NOT_FOUND
+            )
+        
+        serializer = AdminProductImageSerializer(
+            image,
+            context={'request': request}
+        )
+        return success_response(data=serializer.data)
+    
+    @extend_schema(
+        summary='Update Image',
+        description='Update a product image',
+        request=AdminProductImageCreateSerializer,
+        responses={200: AdminProductImageSerializer},
+        tags=['Admin Products'],
+    )
+    def put(self, request, product_pk, pk):
+        """Update image."""
+        image = self.get_image(product_pk, pk)
+        if not image:
+            return error_response(
+                message=_('الصورة غير موجودة / Image not found'),
+                status_code=status.HTTP_404_NOT_FOUND
+            )
+        
+        serializer = AdminProductImageCreateSerializer(
+            image,
+            data=request.data,
+            partial=True,
+            context={'request': request}
+        )
+        
+        if serializer.is_valid():
+            image = serializer.save()
+            
+            detail_serializer = AdminProductImageSerializer(
+                image,
+                context={'request': request}
+            )
+            
+            return success_response(
+                data=detail_serializer.data,
+                message=_('تم تحديث الصورة بنجاح / Image updated successfully')
+            )
+        
+        return error_response(
+            message=_('بيانات غير صالحة / Invalid data'),
+            errors=serializer.errors,
+            status_code=status.HTTP_400_BAD_REQUEST
+        )
+    
+    @extend_schema(
+        summary='Delete Image',
+        description='Delete a product image',
+        responses={200: None},
+        tags=['Admin Products'],
+    )
+    def delete(self, request, product_pk, pk):
+        """Delete image."""
+        image = self.get_image(product_pk, pk)
+        if not image:
+            return error_response(
+                message=_('الصورة غير موجودة / Image not found'),
+                status_code=status.HTTP_404_NOT_FOUND
+            )
+        
+        image.delete()
+        
+        return success_response(
+            message=_('تم حذف الصورة بنجاح / Image deleted successfully')
         )
 

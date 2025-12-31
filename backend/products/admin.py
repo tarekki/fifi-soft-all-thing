@@ -15,7 +15,7 @@ from django.contrib import messages
 from django.http import HttpResponse
 import csv
 
-from .models import Category, Product, ProductVariant
+from .models import Category, Product, ProductVariant, ProductImage
 
 
 # ============================================================================
@@ -130,6 +130,42 @@ class CategoryAdmin(admin.ModelAdmin):
             )
         return format_html('<span style="color: #999;">No image</span>')
     image_preview.short_description = 'Image Preview'
+
+
+# ============================================================================
+# Product Image Inline (for adding images when creating/editing products)
+# Inline للصور (لإضافة صور عند إنشاء/تعديل المنتجات)
+# ============================================================================
+
+class ProductImageInline(admin.TabularInline):
+    """
+    Inline admin for ProductImage
+    إدارة صور المنتج داخل صفحة المنتج
+    """
+    model = ProductImage
+    extra = 1  # Number of empty forms to show
+    min_num = 0  # Minimum number of images (0 = optional)
+    
+    # Fields to display in the inline form
+    # الحقول المعروضة في النموذج
+    fields = [
+        'image',
+        'image_preview',
+        'display_order',
+        'is_primary',
+        'alt_text',
+    ]
+    readonly_fields = ['image_preview']
+    
+    def image_preview(self, obj):
+        """Display image preview"""
+        if obj and obj.pk and obj.image:
+            return format_html(
+                '<img src="{}" style="max-width: 100px; max-height: 100px; object-fit: cover; border-radius: 4px;" />',
+                obj.image.url
+            )
+        return format_html('<span style="color: #999;">No image</span>')
+    image_preview.short_description = 'Preview'
 
 
 # ============================================================================
@@ -290,9 +326,9 @@ class ProductAdmin(admin.ModelAdmin):
         'variants__model',
     ]
     
-    # Inlines - Show variants when editing product
-    # Inlines - عرض المتغيرات عند تعديل المنتج
-    inlines = [ProductVariantInline]
+    # Inlines - Show images and variants when editing product
+    # Inlines - عرض الصور والمتغيرات عند تعديل المنتج
+    inlines = [ProductImageInline, ProductVariantInline]
     
     # Readonly Fields - Fields that cannot be edited
     # الحقول للقراءة فقط - الحقول التي لا يمكن تعديلها
@@ -590,3 +626,103 @@ class ProductVariantAdmin(admin.ModelAdmin):
         تحسين queryset
         """
         return super().get_queryset(request).select_related('product', 'product__vendor')
+
+
+# ============================================================================
+# Product Image Admin
+# إدارة صور المنتج
+# ============================================================================
+
+@admin.register(ProductImage)
+class ProductImageAdmin(admin.ModelAdmin):
+    """
+    Enhanced Product Image Admin Interface
+    واجهة إدارة محسّنة لصور المنتج
+    """
+    
+    # List Display
+    list_display = [
+        'product',
+        'image_preview',
+        'display_order',
+        'is_primary_badge',
+        'alt_text',
+        'created_at',
+    ]
+    
+    # List Filter
+    list_filter = [
+        'product__vendor',
+        'product__category',
+        'is_primary',
+        'created_at',
+    ]
+    
+    # Search Fields
+    search_fields = [
+        'product__name',
+        'alt_text',
+        'product__vendor__name',
+    ]
+    
+    # Readonly Fields
+    readonly_fields = [
+        'created_at',
+        'updated_at',
+        'image_preview_large',
+    ]
+    
+    # Fieldsets
+    fieldsets = (
+        ('Product', {
+            'fields': ('product',)
+        }),
+        ('Image', {
+            'fields': ('image', 'image_preview_large', 'alt_text')
+        }),
+        ('Display Settings', {
+            'fields': ('display_order', 'is_primary'),
+            'description': 'Set display_order to control image sequence. Only one image can be primary.'
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    # Ordering
+    ordering = ['product', 'display_order', 'created_at']
+    
+    def image_preview(self, obj):
+        """Display small image preview in list view"""
+        if obj.image:
+            return format_html(
+                '<img src="{}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 4px;" />',
+                obj.image.url
+            )
+        return format_html('<span style="color: #999;">No image</span>')
+    image_preview.short_description = 'Image'
+    
+    def image_preview_large(self, obj):
+        """Display large image preview in detail view"""
+        if obj.image:
+            return format_html(
+                '<img src="{}" style="max-width: 400px; max-height: 400px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);" />',
+                obj.image.url
+            )
+        return format_html('<span style="color: #999;">No image uploaded</span>')
+    image_preview_large.short_description = 'Image Preview'
+    
+    def is_primary_badge(self, obj):
+        """Display primary badge"""
+        if obj.is_primary:
+            return format_html(
+                '<span style="background-color: #007bff; color: white; padding: 3px 8px; border-radius: 3px; font-size: 11px;">⭐ Primary</span>'
+            )
+        return '-'
+    is_primary_badge.short_description = 'Primary'
+    is_primary_badge.admin_order_field = 'is_primary'
+    
+    def get_queryset(self, request):
+        """Optimize queryset"""
+        return super().get_queryset(request).select_related('product', 'product__vendor', 'product__category')

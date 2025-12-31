@@ -41,6 +41,8 @@ from admin_api.views import (
     AdminProductBulkActionView,
     AdminProductVariantListCreateView,
     AdminProductVariantDetailView,
+    AdminProductImageListCreateView,
+    AdminProductImageDetailView,
     # Orders
     AdminOrderListView,
     AdminOrderDetailView,
@@ -287,6 +289,22 @@ products_urlpatterns = [
         '<int:product_pk>/variants/<int:pk>/',
         AdminProductVariantDetailView.as_view(),
         name='variant-detail'
+    ),
+    
+    # GET, POST /api/v1/admin/products/{id}/images/
+    # عرض وإنشاء صور المنتج
+    path(
+        '<int:product_pk>/images/',
+        AdminProductImageListCreateView.as_view(),
+        name='images-list-create'
+    ),
+    
+    # GET, PUT, DELETE /api/v1/admin/products/{id}/images/{image_id}/
+    # تفاصيل، تحديث، حذف صورة
+    path(
+        '<int:product_pk>/images/<int:pk>/',
+        AdminProductImageDetailView.as_view(),
+        name='image-detail'
     ),
 ]
 
