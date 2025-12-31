@@ -170,14 +170,14 @@ class DashboardOverviewView(APIView):
         # إحصائيات المستخدمين
         # =================================================================
         
-        total_users = User.objects.filter(is_staff=False).count()
+        # Include all users (customers + staff + admins)
+        # شمل جميع المستخدمين (العملاء + الموظفين + المدراء)
+        total_users = User.objects.count()
         new_users_today = User.objects.filter(
-            is_staff=False,
-            date_joined__gte=today_start
+            created_at__gte=today_start
         ).count()
         new_users_week = User.objects.filter(
-            is_staff=False,
-            date_joined__gte=week_start
+            created_at__gte=week_start
         ).count()
         
         # =================================================================
@@ -469,18 +469,32 @@ class DashboardRecentActivityView(APIView):
         """
         Get recent activity.
         الحصول على النشاطات الأخيرة.
+        
+        Returns activities from all system entities:
+        - Orders (order_created)
+        - Products (product_created)
+        - Users (user_registered)
+        - Vendors (vendor_created)
+        - Categories (category_created)
+        - Vendor Applications (vendor_application_created)
+        
+        يعيد الأنشطة من جميع كيانات النظام:
+        - الطلبات
+        - المنتجات
+        - المستخدمين
+        - البائعين
+        - الفئات
+        - طلبات الانضمام
         """
-        # TODO: Implement when ActivityLog model is created
-        # TODO: تنفيذ عند إنشاء نموذج ActivityLog
-        
-        # For now, return mock data based on recent orders and products
-        # حالياً، نعيد بيانات وهمية بناءً على الطلبات والمنتجات الأخيرة
-        
         from orders.models import Order
-        from products.models import Product
+        from products.models import Product, Category
+        from vendors.models import Vendor, VendorApplication
+        from django.contrib.auth import get_user_model
         
-        limit = int(request.query_params.get('limit', 10))
-        limit = min(limit, 50)
+        User = get_user_model()
+        
+        limit = int(request.query_params.get('limit', 50))
+        limit = min(limit, 200)  # Increased max limit for comprehensive activity log
         
         activities = []
         SYSTEM_EMAIL = 'system@yallabuy.com'
@@ -503,16 +517,20 @@ class DashboardRecentActivityView(APIView):
                 'ip_address': ip_address,
             }
         
-        # Recent orders as activities
+        # Calculate items per type (distribute limit across 6 types)
+        # حساب العناصر لكل نوع (توزيع limit على 6 أنواع)
+        items_per_type = max(limit // 6, 5)  # At least 5 items per type, or limit/6
+        
+        # 1. Recent orders as activities
         # الطلبات الأخيرة كنشاطات
-        recent_orders = Order.objects.select_related('user').order_by('-created_at')[:5]
+        recent_orders = Order.objects.select_related('user').order_by('-created_at')[:items_per_type]
         for order in recent_orders:
             # Get customer name and email
             # الحصول على اسم العميل والبريد الإلكتروني
             if order.user:
                 customer_name = f"{order.user.first_name} {order.user.last_name}".strip()
                 if not customer_name:
-                    customer_name = order.user.email.split('@')[0]
+                    customer_name = order.user.full_name or order.user.email.split('@')[0]
                 customer_email = order.user.email
             else:
                 # Guest orders don't have email in Order model
@@ -531,19 +549,97 @@ class DashboardRecentActivityView(APIView):
                 timestamp=order.created_at,
             ))
         
-        # Recent products as activities
+        # 2. Recent products as activities
         # المنتجات الأخيرة كنشاطات
-        recent_products = Product.objects.order_by('-created_at')[:5]
+        recent_products = Product.objects.select_related('vendor', 'category').order_by('-created_at')[:items_per_type]
         for product in recent_products:
+            # Try to get vendor name or use system
+            # محاولة الحصول على اسم البائع أو استخدام النظام
+            user_name = _('النظام / System')
+            user_email = SYSTEM_EMAIL
+            if product.vendor:
+                user_name = product.vendor.name
+                user_email = SYSTEM_EMAIL
+            
             activities.append(build_activity(
                 activity_id=product.id + 10000,  # Offset to avoid ID conflicts
-                user_name=_('النظام / System'),
-                user_email=SYSTEM_EMAIL,
+                user_name=user_name,
+                user_email=user_email,
                 action='product_created',
                 action_display=_('تمت إضافة منتج جديد / New product added'),
                 target_ref={'type': 'product', 'id': product.id, 'action': 'product_created'},
                 target_name=product.name,
                 timestamp=product.created_at,
+            ))
+        
+        # 3. Recent users as activities
+        # المستخدمين الجدد كنشاطات
+        # Include all users (customers + staff + admins)
+        # شمل جميع المستخدمين (العملاء + الموظفين + المدراء)
+        recent_users = User.objects.order_by('-created_at')[:items_per_type]
+        for user in recent_users:
+            user_name = user.full_name or f"{user.first_name} {user.last_name}".strip()
+            if not user_name:
+                user_name = user.email.split('@')[0]
+            
+            activities.append(build_activity(
+                activity_id=user.id + 20000,  # Offset to avoid ID conflicts
+                user_name=user_name,
+                user_email=user.email,
+                action='user_registered',
+                action_display=_('انضم مستخدم جديد / New user registered'),
+                target_ref={'type': 'user', 'id': user.id, 'action': 'user_registered'},
+                target_name=user_name,
+                timestamp=user.created_at,
+            ))
+        
+        # 4. Recent vendors as activities
+        # البائعين الجدد كنشاطات
+        recent_vendors = Vendor.objects.order_by('-created_at')[:items_per_type]
+        for vendor in recent_vendors:
+            activities.append(build_activity(
+                activity_id=vendor.id + 30000,  # Offset to avoid ID conflicts
+                user_name=_('الإدارة / Administration'),
+                user_email=SYSTEM_EMAIL,
+                action='vendor_created',
+                action_display=_('تمت إضافة بائع جديد / New vendor added'),
+                target_ref={'type': 'vendor', 'id': vendor.id, 'action': 'vendor_created'},
+                target_name=vendor.name,
+                timestamp=vendor.created_at,
+            ))
+        
+        # 5. Recent categories as activities
+        # الفئات الجديدة كنشاطات
+        recent_categories = Category.objects.order_by('-created_at')[:items_per_type]
+        for category in recent_categories:
+            activities.append(build_activity(
+                activity_id=category.id + 40000,  # Offset to avoid ID conflicts
+                user_name=_('الإدارة / Administration'),
+                user_email=SYSTEM_EMAIL,
+                action='category_created',
+                action_display=_('تمت إضافة فئة جديدة / New category added'),
+                target_ref={'type': 'category', 'id': category.id, 'action': 'category_created'},
+                target_name=category.name,
+                timestamp=category.created_at,
+            ))
+        
+        # 6. Recent vendor applications as activities
+        # طلبات الانضمام الجديدة كنشاطات
+        recent_applications = VendorApplication.objects.select_related('user').order_by('-created_at')[:items_per_type]
+        for application in recent_applications:
+            user_name = application.user.full_name or f"{application.user.first_name} {application.user.last_name}".strip()
+            if not user_name:
+                user_name = application.user.email.split('@')[0]
+            
+            activities.append(build_activity(
+                activity_id=application.id + 50000,  # Offset to avoid ID conflicts
+                user_name=user_name,
+                user_email=application.user.email,
+                action='vendor_application_created',
+                action_display=_('تم تقديم طلب انضمام جديد / New vendor application submitted'),
+                target_ref={'type': 'vendor_application', 'id': application.id, 'action': 'vendor_application_created'},
+                target_name=application.brand_name or application.user.email,
+                timestamp=application.created_at,
             ))
         
         # Sort by timestamp and limit

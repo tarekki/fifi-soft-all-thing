@@ -99,6 +99,8 @@ export type ActivityType =
   | 'product_updated'
   | 'user_registered'
   | 'vendor_created'
+  | 'category_created'
+  | 'vendor_application_created'
 
 export interface RecentActivity {
   id: number
@@ -106,7 +108,7 @@ export interface RecentActivity {
   user_email?: string | null  // Optional: null for guest/system activities
   action: ActivityType
   action_display: string
-  target_type?: 'order' | 'product' | 'user' | 'vendor' | (string & {})  // Optional: derived from target_ref, flexible for future types
+  target_type?: 'order' | 'product' | 'user' | 'vendor' | 'category' | 'vendor_application' | (string & {})  // Optional: derived from target_ref, flexible for future types
   target_id?: number  // Optional: derived from target_ref
   target_name?: string | null  // Optional: may be null
   target_ref?: TargetRef  // New: structured reference for frontend navigation

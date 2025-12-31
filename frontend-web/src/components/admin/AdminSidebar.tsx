@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -228,15 +229,63 @@ function NavItemComponent({ item, isCollapsed, isActive, pathname }: NavItemComp
     // Auto-open if any child is active
     return item.children?.some(child => child.href === pathname) ?? false
   })
+  const [showDropdown, setShowDropdown] = useState(false)
+  const [buttonRef, setButtonRef] = useState<HTMLButtonElement | null>(null)
+  const [dropdownPosition, setDropdownPosition] = useState({ left: 0, top: 0 })
+  const [mounted, setMounted] = useState(false)
 
   const hasChildren = item.children && item.children.length > 0
   const isChildActive = hasChildren && item.children.some(child => child.href === pathname)
 
-  const toggleOpen = useCallback(() => {
-    if (hasChildren) {
-      setIsOpen(prev => !prev)
+  // Mount check for portal
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  // Calculate dropdown position when button ref or showDropdown changes
+  useEffect(() => {
+    if (buttonRef && isCollapsed && showDropdown) {
+      const updatePosition = () => {
+        const rect = buttonRef.getBoundingClientRect()
+        // Position dropdown based on language direction
+        // Arabic (RTL): sidebar on right, dropdown on left
+        // English (LTR): sidebar on left, dropdown on right
+        if (language === 'ar') {
+          // Arabic: dropdown to the left of sidebar
+          setDropdownPosition({
+            left: rect.left - 208, // 200px dropdown + 8px spacing
+            top: rect.top,
+          })
+        } else {
+          // English: dropdown to the right of sidebar
+          setDropdownPosition({
+            left: rect.right + 8, // 8px spacing from sidebar
+            top: rect.top,
+          })
+        }
+      }
+      updatePosition()
+      window.addEventListener('resize', updatePosition)
+      window.addEventListener('scroll', updatePosition, true)
+      return () => {
+        window.removeEventListener('resize', updatePosition)
+        window.removeEventListener('scroll', updatePosition, true)
+      }
     }
-  }, [hasChildren])
+  }, [buttonRef, isCollapsed, showDropdown, language])
+
+  const toggleOpen = useCallback((e?: React.MouseEvent) => {
+    e?.preventDefault()
+    e?.stopPropagation()
+    if (hasChildren) {
+      if (isCollapsed) {
+        // When collapsed, show dropdown instead
+        setShowDropdown(prev => !prev)
+      } else {
+        setIsOpen(prev => !prev)
+      }
+    }
+  }, [hasChildren, isCollapsed])
   
   const displayLabel = language === 'ar' ? item.labelAr : item.label
 
@@ -253,11 +302,15 @@ function NavItemComponent({ item, isCollapsed, isActive, pathname }: NavItemComp
 
   if (hasChildren) {
     return (
-      <div>
+      <div className="relative">
         <button
+          ref={setButtonRef}
+          type="button"
           onClick={toggleOpen}
-          className={`${baseStyles} ${activeStyles} w-full justify-between`}
+          className={`${baseStyles} ${activeStyles} w-full justify-between relative z-10`}
           title={isCollapsed ? displayLabel : undefined}
+          aria-expanded={isOpen || showDropdown}
+          aria-controls={`nav-item-${item.id}-children`}
         >
           <span className="flex items-center gap-3">
             <span className="flex-shrink-0">{item.icon}</span>
@@ -284,10 +337,11 @@ function NavItemComponent({ item, isCollapsed, isActive, pathname }: NavItemComp
           )}
         </button>
 
-        {/* Children */}
+        {/* Children - Expanded Sidebar */}
         <AnimatePresence>
           {isOpen && !isCollapsed && (
             <motion.div
+              id={`nav-item-${item.id}-children`}
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
@@ -316,6 +370,61 @@ function NavItemComponent({ item, isCollapsed, isActive, pathname }: NavItemComp
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Children - Collapsed Sidebar (Dropdown using Portal) */}
+        {mounted && showDropdown && isCollapsed && buttonRef && createPortal(
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowDropdown(false)}
+              className="fixed inset-0 z-[9998]"
+            />
+            {/* Dropdown */}
+            <motion.div
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -10 }}
+              transition={{ duration: 0.2 }}
+              onMouseEnter={() => setShowDropdown(true)}
+              onMouseLeave={() => setShowDropdown(false)}
+              className="fixed bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-historical-gold/20 dark:border-gray-700 py-2 w-[200px] z-[9999]"
+              style={{
+                left: `${dropdownPosition.left}px`,
+                top: `${dropdownPosition.top}px`,
+              }}
+            >
+              <div className="px-2 py-1 mb-1 border-b border-historical-gold/10 dark:border-gray-700">
+                <p className="text-xs font-semibold text-historical-charcoal/70 dark:text-gray-400 px-2">
+                  {displayLabel}
+                </p>
+              </div>
+              <div className="space-y-1">
+                {item.children.map(child => (
+                  <Link
+                    key={child.id}
+                    href={child.href!}
+                    onClick={() => setShowDropdown(false)}
+                    className={`
+                      flex items-center gap-2 px-3 py-2 mx-1 rounded-lg text-sm
+                      transition-all duration-150
+                      ${pathname === child.href
+                        ? 'bg-historical-gold/15 dark:bg-gray-700/50 text-historical-charcoal dark:text-gray-100 font-medium'
+                        : 'text-historical-charcoal/70 dark:text-gray-300 hover:bg-historical-gold/10 dark:hover:bg-gray-700/50 hover:text-historical-charcoal dark:hover:text-gray-100'
+                      }
+                    `}
+                  >
+                    <span className="w-1.5 h-1.5 rounded-full bg-current opacity-50" />
+                    {language === 'ar' ? child.labelAr : child.label}
+                  </Link>
+                ))}
+              </div>
+            </motion.div>
+          </>,
+          document.body
+        )}
       </div>
     )
   }
