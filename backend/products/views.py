@@ -103,7 +103,13 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     - Pagination (24 per page)
     """
     
-    queryset = Product.objects.all()
+    queryset = Product.objects.select_related(
+        'vendor',  # Optimize vendor lookups
+        'category',  # Optimize category lookups
+    ).prefetch_related(
+        'images',  # Optimize image lookups
+        'variants',  # Optimize variant lookups
+    ).all()
     serializer_class = ProductSerializer
     permission_classes = [AllowAny]  # Public API - anyone can view products
     filter_backends = [
@@ -118,10 +124,24 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     
     # Search fields - allows searching in these fields
     # حقول البحث - يسمح بالبحث في هذه الحقول
+    # Uses Full-Text Search if PostgreSQL, otherwise falls back to icontains
     search_fields = [
         'name',           # Search by product name
         'description',    # Search in description
     ]
+    
+    def get_queryset(self):
+        """
+        Optimize queryset with select_related and prefetch_related
+        تحسين queryset مع select_related و prefetch_related
+        """
+        return super().get_queryset().select_related(
+            'vendor',  # Optimize vendor lookups
+            'category',  # Optimize category lookups
+        ).prefetch_related(
+            'images',  # Optimize image lookups
+            'variants',  # Optimize variant lookups
+        )
     
     # Ordering fields - allows ordering by these fields
     # حقول الترتيب - يسمح بالترتيب حسب هذه الحقول

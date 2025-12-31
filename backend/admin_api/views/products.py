@@ -76,8 +76,14 @@ class AdminProductListCreateView(APIView):
         List all products with filtering and pagination.
         عرض جميع المنتجات مع التصفية والترقيم.
         """
-        # Start with all products
-        queryset = Product.objects.select_related('vendor', 'category').prefetch_related('variants')
+        # Start with all products - Optimized queries
+        queryset = Product.objects.select_related(
+            'vendor',  # Optimize vendor lookups
+            'category',  # Optimize category lookups
+        ).prefetch_related(
+            'variants',  # Optimize variant lookups
+            'images',  # Optimize image lookups
+        )
         
         # Search filter
         # فلتر البحث
@@ -228,7 +234,10 @@ class AdminProductDetailView(APIView):
         try:
             return Product.objects.select_related(
                 'vendor', 'category'
-            ).prefetch_related('variants').get(pk=pk)
+            ).prefetch_related(
+                'variants',
+                'images',
+            ).get(pk=pk)
         except Product.DoesNotExist:
             return None
     
@@ -359,7 +368,7 @@ class AdminProductBulkActionView(APIView):
             product_ids = serializer.validated_data['product_ids']
             action = serializer.validated_data['action']
             
-            products = Product.objects.filter(pk__in=product_ids)
+            products = Product.objects.select_related('vendor', 'category').filter(pk__in=product_ids)
             count = products.count()
             
             if action == 'activate':
@@ -401,9 +410,9 @@ class AdminProductVariantListCreateView(APIView):
     parser_classes = [MultiPartParser, FormParser, JSONParser]
     
     def get_product(self, product_pk):
-        """Get product by ID"""
+        """Get product by ID - Optimized query"""
         try:
-            return Product.objects.get(pk=product_pk)
+            return Product.objects.select_related('vendor', 'category').get(pk=product_pk)
         except Product.DoesNotExist:
             return None
     
@@ -425,7 +434,7 @@ class AdminProductVariantListCreateView(APIView):
                 status_code=status.HTTP_404_NOT_FOUND
             )
         
-        variants = product.variants.all()
+        variants = product.variants.select_related('product').all()
         serializer = AdminProductVariantSerializer(
             variants,
             many=True,
@@ -490,7 +499,11 @@ class AdminProductVariantDetailView(APIView):
     def get_variant(self, product_pk, pk):
         """Get variant by product ID and variant ID"""
         try:
-            return ProductVariant.objects.select_related('product').get(
+            return ProductVariant.objects.select_related(
+                'product',
+                'product__vendor',
+                'product__category',
+            ).get(
                 product_id=product_pk,
                 pk=pk
             )
@@ -597,9 +610,9 @@ class AdminProductImageListCreateView(APIView):
     parser_classes = [MultiPartParser, FormParser, JSONParser]
     
     def get_product(self, product_pk):
-        """Get product by ID"""
+        """Get product by ID - Optimized query"""
         try:
-            return Product.objects.get(pk=product_pk)
+            return Product.objects.select_related('vendor', 'category').get(pk=product_pk)
         except Product.DoesNotExist:
             return None
     

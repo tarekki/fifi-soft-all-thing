@@ -4,6 +4,18 @@ from django.utils.translation import gettext_lazy as _
 from django.core.validators import RegexValidator
 from vendors.models import Vendor
 
+# PostgreSQL Full-Text Search (optional - only if using PostgreSQL)
+# البحث النصي الكامل لـ PostgreSQL (اختياري - فقط إذا كان يستخدم PostgreSQL)
+try:
+    from django.contrib.postgres.search import SearchVectorField
+    from django.contrib.postgres.indexes import GinIndex
+    POSTGRES_AVAILABLE = True
+except ImportError:
+    POSTGRES_AVAILABLE = False
+    # Fallback for non-PostgreSQL databases
+    SearchVectorField = models.TextField
+    GinIndex = models.Index
+
 
 # =============================================================================
 # Validators
@@ -136,9 +148,15 @@ class Category(models.Model):
         verbose_name = _('Category')
         verbose_name_plural = _('Categories')
         indexes = [
+            # Existing indexes
             models.Index(fields=['parent', 'is_active']),
             models.Index(fields=['slug']),
             models.Index(fields=['is_featured', 'is_active']),
+            # Performance optimization indexes
+            models.Index(fields=['name']),  # For category name search
+            models.Index(fields=['name_ar']),  # For Arabic name search
+            models.Index(fields=['parent', 'display_order']),  # For hierarchical ordering
+            models.Index(fields=['is_active', 'display_order']),  # For active categories ordering
         ]
     
     def save(self, *args, **kwargs):
@@ -223,10 +241,14 @@ class Product(models.Model):
         help_text=_('فئة المنتج')
     )
     
-    name = models.CharField(max_length=200)
+    name = models.CharField(max_length=200, db_index=True)  # Indexed for search
     slug = models.SlugField(max_length=200, blank=True)
     description = models.TextField(blank=True)
     base_price = models.DecimalField(max_digits=10, decimal_places=2, help_text='Price in Syrian Pounds')
+    
+    # Full-Text Search Field (PostgreSQL only)
+    # حقل البحث النصي الكامل (PostgreSQL فقط)
+    search_vector = SearchVectorField(null=True, blank=True) if POSTGRES_AVAILABLE else models.TextField(null=True, blank=True)
     
     # Product type (for filtering) - kept for backwards compatibility
     # نوع المنتج (للتصفية) - محفوظ للتوافق
@@ -251,13 +273,25 @@ class Product(models.Model):
             models.UniqueConstraint(fields=["vendor", "slug"], name="uq_product_vendor_slug"),
         ]
         indexes = [
+            # Existing indexes
             models.Index(fields=['vendor', 'is_active']),
             models.Index(fields=['category', 'is_active']),
             models.Index(fields=['is_active', 'created_at']),
+            # Performance optimization indexes
+            models.Index(fields=['name']),  # For search by name
+            models.Index(fields=['base_price']),  # For price filtering
+            models.Index(fields=['name', 'is_active']),  # For search with status filter
+            models.Index(fields=['vendor', 'category', 'is_active']),  # Composite filter
+            models.Index(fields=['is_active', 'base_price']),  # Status + price filter
+            models.Index(fields=['slug']),  # For slug lookups
+            models.Index(fields=['created_at']),  # For date sorting
+            # Full-Text Search Index (PostgreSQL only)
+            # فهرس البحث النصي الكامل (PostgreSQL فقط)
+            *([GinIndex(fields=['search_vector'])] if POSTGRES_AVAILABLE else []),
         ]
     
     def save(self, *args, **kwargs):
-        """Generate unique slug from name if not provided"""
+        """Generate unique slug from name if not provided and update search vector"""
         if not self.slug:
             base = slugify(self.name)
             slug = base
@@ -266,6 +300,14 @@ class Product(models.Model):
                 slug = f"{base}-{i}"
                 i += 1
             self.slug = slug
+        
+        # Update search vector for Full-Text Search (PostgreSQL only)
+        # تحديث search vector للبحث النصي الكامل (PostgreSQL فقط)
+        if POSTGRES_AVAILABLE:
+            from django.contrib.postgres.search import SearchVector
+            self.search_vector = SearchVector('name', weight='A', config='arabic') + \
+                               SearchVector('description', weight='B', config='arabic')
+        
         super().save(*args, **kwargs)
     
     def __str__(self):
@@ -419,7 +461,16 @@ class ProductVariant(models.Model):
         verbose_name = 'Product Variant'
         verbose_name_plural = 'Product Variants'
         indexes = [
+            # Existing indexes
             models.Index(fields=['product', 'is_available']),
+            # Performance optimization indexes
+            models.Index(fields=['color']),  # For color filtering
+            models.Index(fields=['size']),  # For size filtering
+            models.Index(fields=['stock_quantity']),  # For stock filtering
+            models.Index(fields=['sku']),  # For SKU lookups (even though unique, index helps)
+            models.Index(fields=['product', 'color', 'is_available']),  # Composite filter
+            models.Index(fields=['product', 'size', 'is_available']),  # Composite filter
+            models.Index(fields=['is_available', 'stock_quantity']),  # Availability + stock filter
         ]
     
     def save(self, *args, **kwargs):

@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.contrib.postgres",  # PostgreSQL-specific features (Full-Text Search)
     # Third party
     "rest_framework",
     "corsheaders",
@@ -144,10 +145,18 @@ if database_url:
     if DATABASES['default']['ENGINE'] == 'django.db.backends.postgresql':
         DATABASES['default']['ENGINE'] = 'dj_db_conn_pool.backends.postgresql'
         DATABASES['default']['POOL_OPTIONS'] = {
-            'POOL_SIZE': config('DB_POOL_SIZE', default=10, cast=int),
-            'MAX_OVERFLOW': config('DB_MAX_OVERFLOW', default=20, cast=int),
-            'RECYCLE': 3600,  # 1 hour
+            'POOL_SIZE': config('DB_POOL_SIZE', default=20, cast=int),  # Increased for high traffic
+            'MAX_OVERFLOW': config('DB_MAX_OVERFLOW', default=40, cast=int),  # Increased for peak loads
+            'RECYCLE': 3600,  # 1 hour - recycle connections
+            'PRE_PING': True,  # Verify connections before using
         }
+        # Performance optimizations
+        DATABASES['default']['OPTIONS'] = {
+            'connect_timeout': 10,
+            'options': '-c statement_timeout=30000 -c idle_in_transaction_session_timeout=30000',
+        }
+        # Connection age for pooling
+        DATABASES['default']['CONN_MAX_AGE'] = 600  # 10 minutes
 else:
     # Individual Database Settings (Priority 2: For Local Development)
     # إعدادات قاعدة البيانات الفردية (الأولوية الثانية: للتطوير المحلي)
@@ -161,10 +170,18 @@ else:
             "HOST": config('DB_HOST', default='localhost'),  # افتراضي: localhost
             "PORT": config('DB_PORT', default='5432'),  # افتراضي: 5432
             "POOL_OPTIONS": {
-                'POOL_SIZE': 10,
-                'MAX_OVERFLOW': 20,
-                'RECYCLE': 3600,
-            }
+                'POOL_SIZE': 20,  # Increased for better performance
+                'MAX_OVERFLOW': 40,  # Increased for peak loads
+                'RECYCLE': 3600,  # 1 hour
+                'PRE_PING': True,  # Verify connections before using
+            },
+            # Performance optimizations
+            "OPTIONS": {
+                'connect_timeout': 10,
+                'options': '-c statement_timeout=30000 -c idle_in_transaction_session_timeout=30000',
+            },
+            # Connection age for pooling
+            "CONN_MAX_AGE": 600,  # 10 minutes
         }
     }
 
@@ -675,13 +692,17 @@ else:
 # Cache Timeouts (in seconds)
 # أوقات انتهاء التخزين المؤقت (بالثواني)
 # ============================================================================
+# Cache Timeouts (in seconds) - Optimized for high-traffic systems
+# مهلات انتهاء الـ Cache (بالثواني) - محسّنة للأنظمة عالية الحركة
 CACHE_TIMEOUTS = {
-    'products_list': 60 * 15,      # 15 minutes - قائمة المنتجات
-    'product_detail': 60 * 30,     # 30 minutes - تفاصيل المنتج
-    'categories': 60 * 60,          # 1 hour - الفئات
+    'products_list': 60 * 10,      # 10 minutes - قائمة المنتجات (reduced for freshness)
+    'product_detail': 60 * 20,     # 20 minutes - تفاصيل المنتج (reduced for freshness)
+    'categories': 60 * 60,          # 1 hour - الفئات (rarely change)
     'vendors': 60 * 30,             # 30 minutes - البائعين
-    'settings': 60 * 60,            # 1 hour - الإعدادات
-    'homepage': 60 * 5,             # 5 minutes - الصفحة الرئيسية
+    'settings': 60 * 60,            # 1 hour - الإعدادات (rarely change)
+    'homepage': 60 * 5,             # 5 minutes - الصفحة الرئيسية (frequent updates)
+    'product_variants': 60 * 15,   # 15 minutes - متغيرات المنتج
+    'product_images': 60 * 30,     # 30 minutes - صور المنتج
 }
 
 # ============================================================================
