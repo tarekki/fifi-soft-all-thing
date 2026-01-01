@@ -24,7 +24,7 @@ import { useTranslation } from '@/lib/i18n/use-translation'
 import { useLanguage } from '@/lib/i18n/context'
 import { cn } from '@/lib/utils'
 import { Plus, History } from 'lucide-react'
-import { getVendorDashboardOverview, exportVendorReport, getVendorRecentOrders, type VendorRecentOrder } from '@/lib/vendor/api'
+import { getVendorDashboardOverview, exportVendorReport, getVendorRecentOrders, getVendorSalesChart, type VendorRecentOrder, type VendorSalesChartData } from '@/lib/vendor/api'
 import { useVendorAuth } from '@/lib/vendor'
 import type { VendorDashboardOverview } from '@/lib/vendor/types'
 
@@ -439,27 +439,73 @@ function SalesChart({
           {t.vendor.noData || 'لا توجد بيانات'}
         </div>
       ) : (
-        <div className="flex items-end justify-between gap-2 h-48">
-          {chartData.map((item, index) => (
-            <div key={item.label} className="flex-1 flex flex-col items-center gap-2">
-              <motion.div
-                initial={{ height: 0 }}
-                animate={{ height: `${(item.value / maxValue) * 100}%` }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="w-full bg-gradient-to-t from-historical-gold dark:from-yellow-600 to-historical-gold/50 dark:to-yellow-700/50 rounded-t-lg relative group min-h-[4px] transition-colors duration-300"
-              >
-                {/* Tooltip */}
-                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
-                  <div className="bg-historical-charcoal dark:bg-gray-700 text-white dark:text-gray-200 text-xs px-2 py-1 rounded-lg whitespace-nowrap transition-colors duration-300">
-                    {formatCurrency(item.value, language === 'ar' ? 'ar-SY' : 'en-US', t.common.currency)}
-                  </div>
+        <div className="relative">
+          {/* Scrollable chart container for month view */}
+          {/* حاوية الرسم البياني القابلة للتمرير لعرض الشهر */}
+          <div className={cn(
+            "flex items-end h-48",
+            period === 'month' && chartData.length > 15 
+              ? "overflow-x-auto pb-2 gap-1" 
+              : "justify-between gap-2"
+          )}>
+            {chartData.map((item, index) => {
+              // For month view with many items, use fixed width
+              // لعرض الشهر مع العديد من العناصر، استخدم عرض ثابت
+              const isMonthView = period === 'month' && chartData.length > 15
+              
+              return (
+                <div 
+                  key={`${item.label}-${index}`} 
+                  className={cn(
+                    "flex flex-col items-center gap-1",
+                    isMonthView ? "w-8 flex-shrink-0" : "flex-1"
+                  )}
+                >
+                  <motion.div
+                    initial={{ height: 0 }}
+                    animate={{ height: `${(item.value / maxValue) * 100}%` }}
+                    transition={{ duration: 0.5, delay: index * 0.05 }}
+                    className="w-full bg-gradient-to-t from-historical-gold dark:from-yellow-600 to-historical-gold/50 dark:to-yellow-700/50 rounded-t-lg relative group min-h-[4px] transition-colors duration-300"
+                  >
+                    {/* Tooltip */}
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                      <div className="bg-historical-charcoal dark:bg-gray-700 text-white dark:text-gray-200 text-xs px-2 py-1 rounded-lg whitespace-nowrap transition-colors duration-300">
+                        {formatCurrency(item.value, language === 'ar' ? 'ar-SY' : 'en-US', t.common.currency)}
+                      </div>
+                    </div>
+                  </motion.div>
+                  {/* Show label only for every 5th item in month view to avoid crowding */}
+                  {/* عرض التسمية فقط لكل عنصر 5 في عرض الشهر لتجنب الازدحام */}
+                  {isMonthView ? (
+                    index % 5 === 0 || index === chartData.length - 1 ? (
+                      <span 
+                        className="text-[10px] text-historical-charcoal/50 dark:text-gray-400 whitespace-nowrap transition-colors duration-300" 
+                        title={item.label}
+                        style={{ 
+                          transform: 'rotate(-45deg)',
+                          transformOrigin: 'center',
+                          display: 'inline-block',
+                          width: '40px',
+                          textAlign: 'left'
+                        }}
+                      >
+                        {item.label}
+                      </span>
+                    ) : (
+                      <span className="text-[10px] text-transparent">•</span>
+                    )
+                  ) : (
+                    <span 
+                      className="text-xs text-historical-charcoal/50 dark:text-gray-400 truncate max-w-full transition-colors duration-300" 
+                      title={item.label}
+                    >
+                      {item.label}
+                    </span>
+                  )}
                 </div>
-              </motion.div>
-              <span className="text-xs text-historical-charcoal/50 dark:text-gray-400 truncate max-w-full transition-colors duration-300">
-                {item.label.split('-').pop()}
-              </span>
-            </div>
-          ))}
+              )
+            })}
+          </div>
         </div>
       )}
     </motion.div>
@@ -613,6 +659,8 @@ export default function DashboardPage() {
   const [recentOrders, setRecentOrders] = React.useState<VendorRecentOrder[]>([])
   const [isLoadingOrders, setIsLoadingOrders] = React.useState(false)
   const [chartPeriod, setChartPeriod] = React.useState<'week' | 'month' | 'year'>('month')
+  const [salesChartData, setSalesChartData] = React.useState<VendorSalesChartData | null>(null)
+  const [isLoadingChart, setIsLoadingChart] = React.useState(false)
   const [isExporting, setIsExporting] = React.useState(false)
   
   // Fetch dashboard data from API
@@ -666,6 +714,31 @@ export default function DashboardPage() {
     
     fetchRecentOrders()
   }, [])
+  
+  // Fetch sales chart data from API
+  // جلب بيانات رسم بياني المبيعات من API
+  React.useEffect(() => {
+    async function fetchSalesChart() {
+      try {
+        setIsLoadingChart(true)
+        
+        const response = await getVendorSalesChart(chartPeriod)
+        
+        if (response.success && response.data) {
+          setSalesChartData(response.data)
+        }
+      } catch (err) {
+        console.error('Error fetching sales chart data:', err)
+        // Don't show error for chart, just use null
+        // لا تعرض خطأ للرسم البياني، استخدم null فقط
+        setSalesChartData(null)
+      } finally {
+        setIsLoadingChart(false)
+      }
+    }
+    
+    fetchSalesChart()
+  }, [chartPeriod])
   
   // Handle export report
   // معالجة تصدير التقرير
@@ -828,12 +901,18 @@ export default function DashboardPage() {
     }))
   }, [recentOrders, t, language])
 
-  // Sales chart data - TODO: Replace with API when endpoint is ready
-  // بيانات رسم المبيعات - TODO: استبدال بـ API عندما يكون endpoint جاهزاً
-  const salesChartData = {
-    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-    revenue: [120000, 190000, 300000, 250000, 220000, 350000, 280000],
-  }
+  // Transform sales chart data from API to component format
+  // تحويل بيانات رسم بياني المبيعات من API إلى تنسيق المكون
+  const chartData = React.useMemo(() => {
+    if (!salesChartData) {
+      return null
+    }
+    
+    return {
+      labels: salesChartData.labels,
+      revenue: salesChartData.revenue.map(r => Number(r)),
+    }
+  }, [salesChartData])
   
   // Show error message if API call failed
   // عرض رسالة خطأ إذا فشلت استدعاء API
@@ -913,10 +992,10 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
           <SalesChart
-            data={salesChartData}
+            data={chartData}
             period={chartPeriod}
             onPeriodChange={setChartPeriod}
-            isLoading={isLoading}
+            isLoading={isLoading || isLoadingChart}
           />
         </div>
         <div className="space-y-6">

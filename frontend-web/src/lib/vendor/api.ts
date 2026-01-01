@@ -417,6 +417,31 @@ export async function getVendorRecentOrders(
   return vendorFetch<VendorRecentOrder[]>(endpoint)
 }
 
+/**
+ * Sales chart data type
+ * نوع بيانات رسم بياني المبيعات
+ */
+export interface VendorSalesChartData {
+  labels: string[]
+  revenue: string[]
+  orders: number[]
+  period: 'week' | 'month' | 'year'
+}
+
+/**
+ * Get sales chart data for vendor dashboard
+ * الحصول على بيانات رسم بياني المبيعات للوحة تحكم البائع
+ * 
+ * @param period - Time period: 'week', 'month', or 'year' (default: 'month')
+ * @returns Promise with sales chart data
+ */
+export async function getVendorSalesChart(
+  period: 'week' | 'month' | 'year' = 'month'
+): Promise<ApiResponse<VendorSalesChartData>> {
+  const endpoint = `/dashboard/sales-chart/?period=${period}`
+  return vendorFetch<VendorSalesChartData>(endpoint)
+}
+
 // =============================================================================
 // Orders API Functions
 // دوال API الطلبات

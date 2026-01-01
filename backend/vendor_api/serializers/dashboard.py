@@ -116,3 +116,31 @@ class VendorRecentOrderSerializer(serializers.Serializer):
     created_at = serializers.DateTimeField(
         help_text=_('تاريخ الإنشاء / Created at')
     )
+
+
+# =============================================================================
+# Vendor Sales Chart Serializer
+# متسلسل رسم بياني مبيعات البائع
+# =============================================================================
+
+class VendorSalesChartSerializer(serializers.Serializer):
+    """
+    Serializer for vendor sales chart data.
+    متسلسل لبيانات رسم بياني مبيعات البائع.
+    """
+    
+    labels = serializers.ListField(
+        child=serializers.CharField(),
+        help_text=_('تواريخ/أسماء الفترات / Date/period labels')
+    )
+    revenue = serializers.ListField(
+        child=serializers.CharField(),
+        help_text=_('بيانات الإيرادات / Revenue data points (as strings for consistent formatting)')
+    )
+    orders = serializers.ListField(
+        child=serializers.IntegerField(),
+        help_text=_('بيانات عدد الطلبات / Order count data points')
+    )
+    period = serializers.CharField(
+        help_text=_('الفترة الزمنية (week, month, year) / Time period')
+    )

@@ -26,7 +26,10 @@ from django.http import HttpResponse
 
 from vendor_api.permissions import IsVendorUser, IsVendorOwner
 from vendor_api.throttling import VendorUserRateThrottle
-from vendor_api.serializers.dashboard import VendorDashboardOverviewSerializer
+from vendor_api.serializers.dashboard import (
+    VendorDashboardOverviewSerializer,
+    VendorSalesChartSerializer,
+)
 from core.utils import success_response, error_response
 from users.models import VendorUser
 
@@ -285,6 +288,277 @@ class VendorDashboardOverviewView(APIView):
                 data=serializer.validated_data,
                 message=_('تم جلب إحصائيات لوحة التحكم بنجاح / Dashboard statistics retrieved successfully')
             )
+
+
+# =============================================================================
+# Vendor Sales Chart View
+# عرض رسم بياني مبيعات البائع
+# =============================================================================
+
+class VendorSalesChartView(APIView):
+    """
+    Get sales chart data for vendor dashboard.
+    الحصول على بيانات رسم بياني المبيعات للوحة تحكم البائع.
+    
+    Returns sales data grouped by time period (day/week/month).
+    Only includes sales from this vendor's products.
+    
+    يعيد بيانات المبيعات مجمعة حسب الفترة الزمنية (يوم/أسبوع/شهر).
+    يتضمن فقط المبيعات من منتجات هذا البائع.
+    
+    Security:
+    - Only authenticated vendors can access
+    - Returns data only for the vendor's products
+    - Uses throttling to prevent abuse
+    
+    الأمان:
+    - فقط البائعون المسجلون يمكنهم الوصول
+    - يعيد البيانات فقط لمنتجات البائع
+    - يستخدم تحديد المعدل لمنع الإساءة
+    """
+    
+    permission_classes = [IsVendorUser, IsVendorOwner]
+    throttle_classes = [VendorUserRateThrottle]
+    
+    @extend_schema(
+        summary='Vendor Sales Chart Data',
+        description='Get sales chart data for vendor dashboard with different time periods',
+        parameters=[
+            OpenApiParameter(
+                name='period',
+                type=str,
+                location=OpenApiParameter.QUERY,
+                description='Time period: week, month, or year',
+                enum=['week', 'month', 'year'],
+                default='month'
+            ),
+        ],
+        tags=['Vendor Dashboard'],
+    )
+    def get(self, request):
+        """
+        Get sales chart data.
+        الحصول على بيانات رسم بياني المبيعات.
+        """
+        from orders.models import Order, OrderItem
+        
+        # Get vendor associated with the authenticated user
+        # الحصول على البائع المرتبط بالمستخدم المسجل
+        try:
+            vendor_user = VendorUser.objects.select_related('vendor').get(user=request.user)
+            vendor = vendor_user.vendor
+        except VendorUser.DoesNotExist:
+            return error_response(
+                message=_('لا يوجد بائع مرتبط بهذا المستخدم / No vendor associated with this user')
+            )
+        
+        # Get period parameter
+        # الحصول على معامل الفترة
+        period = request.query_params.get('period', 'month')
+        if period not in ['week', 'month', 'year']:
+            period = 'month'  # Default to month
+        
+        now = timezone.now()
+        
+        # Determine date range and grouping based on period
+        # تحديد نطاق التاريخ والتجميع بناءً على الفترة
+        if period == 'week':
+            # Last 7 days, grouped by day
+            # آخر 7 أيام، مجمعة حسب اليوم
+            start_date = now - timedelta(days=7)
+            trunc_func = TruncDate
+            date_format = '%Y-%m-%d'
+            label_format = '%d/%m'  # DD/MM for display
+        elif period == 'month':
+            # Last 30 days, grouped by day
+            # آخر 30 يوم، مجمعة حسب اليوم
+            start_date = now - timedelta(days=30)
+            trunc_func = TruncDate
+            date_format = '%Y-%m-%d'
+            label_format = '%d/%m'  # DD/MM for display
+        else:  # year
+            # Last 12 months, grouped by month
+            # آخر 12 شهر، مجمعة حسب الشهر
+            start_date = now - timedelta(days=365)
+            trunc_func = TruncMonth
+            date_format = '%Y-%m'
+            label_format = '%b %Y'  # Month Year for display
+        
+        # Get all order items that belong to this vendor
+        # الحصول على جميع عناصر الطلب التي تنتمي لهذا البائع
+        vendor_order_items = OrderItem.objects.filter(
+            product_variant__product__vendor=vendor,
+            order__created_at__gte=start_date,
+            order__status__in=['delivered', 'completed', 'processing', 'pending', 'confirmed']
+        ).select_related('order', 'product_variant', 'product_variant__product')
+        
+        # Group by date and calculate totals
+        # التجميع حسب التاريخ وحساب الإجماليات
+        # We need to group by order date, not item date
+        # نحتاج للتجميع حسب تاريخ الطلب، وليس تاريخ العنصر
+        
+        # Get unique orders with their dates (optimized query)
+        # الحصول على الطلبات الفريدة مع تواريخها (استعلام محسّن)
+        order_ids = vendor_order_items.values_list('order_id', flat=True).distinct()
+        
+        if not order_ids:
+            # No orders, return empty data
+            # لا توجد طلبات، إرجاع بيانات فارغة
+            labels = []
+            revenue = []
+            orders_count = []
+            
+            # Fill with empty data for the period
+            # ملء ببيانات فارغة للفترة
+            if period == 'week':
+                days = 7
+                for i in range(days):
+                    date = (now - timedelta(days=days - i - 1)).replace(hour=0, minute=0, second=0, microsecond=0)
+                    labels.append(date.strftime(label_format))
+                    revenue.append('0')
+                    orders_count.append(0)
+            elif period == 'month':
+                days = 30
+                for i in range(days):
+                    date = (now - timedelta(days=days - i - 1)).replace(hour=0, minute=0, second=0, microsecond=0)
+                    labels.append(date.strftime(label_format))
+                    revenue.append('0')
+                    orders_count.append(0)
+            else:  # year
+                months = 12
+                for i in range(months):
+                    month_date = (now - timedelta(days=30 * (months - i - 1))).replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+                    labels.append(month_date.strftime(label_format))
+                    revenue.append('0')
+                    orders_count.append(0)
+            
+            data = {
+                'labels': labels,
+                'revenue': revenue,
+                'orders': orders_count,
+                'period': period,
+            }
+            
+            return success_response(
+                data=data,
+                message=_('تم جلب بيانات الرسم البياني / Chart data retrieved')
+            )
+        
+        # Get orders with their dates (optimized)
+        # الحصول على الطلبات مع تواريخها (محسّن)
+        orders = Order.objects.filter(
+            id__in=order_ids
+        ).annotate(
+            date=trunc_func('created_at')
+        ).values('id', 'date')
+        
+        # Pre-calculate revenue per order item (more efficient)
+        # حساب الإيرادات مسبقاً لكل عنصر طلب (أكثر كفاءة)
+        items_revenue = {}
+        for item in vendor_order_items:
+            order_id = item.order_id
+            item_revenue = Decimal(str(item.price)) * Decimal(str(item.quantity))
+            
+            if order_id not in items_revenue:
+                items_revenue[order_id] = Decimal('0.00')
+            items_revenue[order_id] += item_revenue
+        
+        # Build a map of date -> aggregated data
+        # بناء خريطة من التاريخ -> البيانات المجمعة
+        date_items_map = {}
+        for order_data in orders:
+            order_date = order_data['date']
+            order_id = order_data['id']
+            
+            # Calculate total revenue for this date
+            # حساب إجمالي الإيرادات لهذا التاريخ
+            if order_date not in date_items_map:
+                date_items_map[order_date] = {
+                    'revenue': Decimal('0.00'),
+                    'orders_count': 0,
+                    'order_ids': set()
+                }
+            
+            # Add revenue from this order
+            # إضافة الإيرادات من هذا الطلب
+            order_revenue = items_revenue.get(order_id, Decimal('0.00'))
+            date_items_map[order_date]['revenue'] += order_revenue
+            
+            # Count unique orders per date
+            # عد الطلبات الفريدة لكل تاريخ
+            if order_id not in date_items_map[order_date]['order_ids']:
+                date_items_map[order_date]['order_ids'].add(order_id)
+                date_items_map[order_date]['orders_count'] += 1
+        
+        # Build labels and data arrays
+        # بناء مصفوفات التسميات والبيانات
+        labels = []
+        revenue = []
+        orders_count = []
+        
+        # Sort by date
+        # الترتيب حسب التاريخ
+        sorted_dates = sorted(date_items_map.keys())
+        
+        for date in sorted_dates:
+            # Format label for display
+            # تنسيق التسمية للعرض
+            if period == 'year':
+                # For year, use month format
+                # للسنة، استخدم تنسيق الشهر
+                label = date.strftime(label_format)
+            else:
+                # For week/month, use day format
+                # للأسبوع/الشهر، استخدم تنسيق اليوم
+                label = date.strftime(label_format)
+            
+            labels.append(label)
+            revenue.append(str(date_items_map[date]['revenue']))
+            orders_count.append(date_items_map[date]['orders_count'])
+        
+        # If no data, return empty arrays
+        # إذا لم تكن هناك بيانات، إرجاع مصفوفات فارغة
+        if not labels:
+            # Fill with empty data for the period
+            # ملء ببيانات فارغة للفترة
+            if period == 'week':
+                days = 7
+                for i in range(days):
+                    date = (now - timedelta(days=days - i - 1)).replace(hour=0, minute=0, second=0, microsecond=0)
+                    labels.append(date.strftime(label_format))
+                    revenue.append('0')
+                    orders_count.append(0)
+            elif period == 'month':
+                days = 30
+                for i in range(days):
+                    date = (now - timedelta(days=days - i - 1)).replace(hour=0, minute=0, second=0, microsecond=0)
+                    labels.append(date.strftime(label_format))
+                    revenue.append('0')
+                    orders_count.append(0)
+            else:  # year
+                months = 12
+                for i in range(months):
+                    # Calculate month date
+                    month_date = (now - timedelta(days=30 * (months - i - 1))).replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+                    labels.append(month_date.strftime(label_format))
+                    revenue.append('0')
+                    orders_count.append(0)
+        
+        # Build response data
+        # بناء بيانات الاستجابة
+        data = {
+            'labels': labels,
+            'revenue': revenue,
+            'orders': orders_count,
+            'period': period,
+        }
+        
+        # Return data directly (already validated and formatted)
+        # إرجاع البيانات مباشرة (محققة ومنسقة بالفعل)
+        return success_response(
+            data=data,
+            message=_('تم جلب بيانات الرسم البياني / Chart data retrieved')
+        )
 
 
 # =============================================================================
