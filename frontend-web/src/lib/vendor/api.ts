@@ -472,6 +472,170 @@ export async function getVendorDashboardTip(): Promise<ApiResponse<VendorDashboa
 }
 
 // =============================================================================
+// Notifications API Functions
+// دوال API الإشعارات
+// =============================================================================
+
+/**
+ * Vendor notification filters
+ * فلاتر إشعارات البائع
+ */
+export interface VendorNotificationFilters {
+  is_read?: boolean
+  type?: 'order' | 'product' | 'system'
+  limit?: number
+  offset?: number
+}
+
+/**
+ * Vendor notification
+ * إشعار البائع
+ */
+export interface VendorNotification {
+  id: string | number
+  type: 'order' | 'product' | 'system'
+  message: string
+  message_ar?: string
+  timestamp: string
+  is_read: boolean
+  target_id?: string | number
+  target_type?: string
+  action?: string
+  metadata?: Record<string, any>
+}
+
+/**
+ * Vendor notification response
+ * استجابة إشعارات البائع
+ */
+export interface VendorNotificationResponse {
+  notifications: VendorNotification[]
+  unread_count: number
+  total_count: number
+}
+
+/**
+ * Vendor notification stats
+ * إحصائيات إشعارات البائع
+ */
+export interface VendorNotificationStats {
+  total: number
+  unread: number
+  by_type: {
+    order: number
+    product: number
+    system: number
+    user: number
+    vendor: number
+    category: number
+  }
+}
+
+/**
+ * Get vendor notifications list
+ * الحصول على قائمة إشعارات البائع
+ * 
+ * @param filters - Optional filters (is_read, type, limit, offset)
+ * @returns Promise with notifications list
+ */
+export async function getVendorNotifications(
+  filters?: VendorNotificationFilters
+): Promise<ApiResponse<VendorNotificationResponse>> {
+  // Build query string
+  const params = new URLSearchParams()
+  
+  if (filters?.is_read !== undefined) {
+    params.append('is_read', filters.is_read.toString())
+  }
+  if (filters?.type) {
+    params.append('type', filters.type)
+  }
+  if (filters?.limit) {
+    params.append('limit', filters.limit.toString())
+  }
+  if (filters?.offset) {
+    params.append('offset', filters.offset.toString())
+  }
+  
+  const queryString = params.toString()
+  const endpoint = `/notifications/${queryString ? `?${queryString}` : ''}`
+  
+  return vendorFetch<VendorNotificationResponse>(endpoint)
+}
+
+/**
+ * Get vendor unread notifications count
+ * الحصول على عدد الإشعارات غير المقروءة للبائع
+ * 
+ * @returns Promise with unread count
+ */
+export async function getVendorUnreadCount(): Promise<ApiResponse<{ unread_count: number }>> {
+  return vendorFetch<{ unread_count: number }>('/notifications/unread-count/')
+}
+
+/**
+ * Mark vendor notification as read
+ * تحديد إشعار البائع كمقروء
+ * 
+ * @param notificationId - Notification ID
+ * @returns Promise with success status
+ */
+export async function markVendorNotificationAsRead(
+  notificationId: string | number
+): Promise<ApiResponse<{ success: boolean }>> {
+  return vendorFetch<{ success: boolean }>(
+    `/notifications/${notificationId}/mark-as-read/`,
+    {
+      method: 'POST',
+    }
+  )
+}
+
+/**
+ * Mark multiple vendor notifications as read
+ * تحديد عدة إشعارات للبائع كمقروءة
+ * 
+ * @param notificationIds - Array of notification IDs
+ * @returns Promise with success status and marked count
+ */
+export async function markMultipleVendorNotificationsAsRead(
+  notificationIds: (string | number)[]
+): Promise<ApiResponse<{ success: boolean; marked_count: number }>> {
+  return vendorFetch<{ success: boolean; marked_count: number }>(
+    '/notifications/mark-as-read/',
+    {
+      method: 'POST',
+      body: JSON.stringify({ notification_ids: notificationIds }),
+    }
+  )
+}
+
+/**
+ * Mark all vendor notifications as read
+ * تحديد جميع إشعارات البائع كمقروءة
+ * 
+ * @returns Promise with success status and marked count
+ */
+export async function markAllVendorNotificationsAsRead(): Promise<ApiResponse<{ success: boolean; marked_count: number }>> {
+  return vendorFetch<{ success: boolean; marked_count: number }>(
+    '/notifications/mark-all-as-read/',
+    {
+      method: 'POST',
+    }
+  )
+}
+
+/**
+ * Get vendor notification statistics
+ * الحصول على إحصائيات إشعارات البائع
+ * 
+ * @returns Promise with notification stats
+ */
+export async function getVendorNotificationStats(): Promise<ApiResponse<VendorNotificationStats>> {
+  return vendorFetch<VendorNotificationStats>('/notifications/stats/')
+}
+
+// =============================================================================
 // Orders API Functions
 // دوال API الطلبات
 // =============================================================================

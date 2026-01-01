@@ -9,4 +9,5 @@
 export * from './api'
 export * from './types'
 export * from './context'
+export { useVendorNotifications } from './hooks/useVendorNotifications'
 

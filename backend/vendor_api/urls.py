@@ -21,6 +21,14 @@ from vendor_api.views.application import VendorApplicationView
 from vendor_api.views.products import VendorProductListCreateView, VendorProductDetailView
 from vendor_api.views.categories import VendorCategoryListView
 from vendor_api.views.orders import VendorOrderListView, VendorOrderDetailView
+from vendor_api.views.notifications import (
+    VendorNotificationListView,
+    VendorUnreadCountView,
+    VendorMarkAsReadView,
+    VendorMarkMultipleAsReadView,
+    VendorMarkAllAsReadView,
+    VendorNotificationStatsView,
+)
 
 
 # =============================================================================
@@ -160,6 +168,62 @@ orders_urlpatterns = [
 
 
 # =============================================================================
+# Notifications URL Patterns
+# أنماط URLs للإشعارات
+# =============================================================================
+
+notifications_urlpatterns = [
+    # GET /api/v1/vendor/notifications/
+    # عرض قائمة الإشعارات
+    path(
+        '',
+        VendorNotificationListView.as_view(),
+        name='vendor-notifications-list'
+    ),
+    
+    # GET /api/v1/vendor/notifications/unread-count/
+    # عدد الإشعارات غير المقروءة
+    path(
+        'unread-count/',
+        VendorUnreadCountView.as_view(),
+        name='vendor-notifications-unread-count'
+    ),
+    
+    # POST /api/v1/vendor/notifications/{id}/mark-as-read/
+    # تحديد إشعار كمقروء
+    path(
+        '<int:pk>/mark-as-read/',
+        VendorMarkAsReadView.as_view(),
+        name='vendor-notifications-mark-as-read'
+    ),
+    
+    # POST /api/v1/vendor/notifications/mark-as-read/
+    # تحديد عدة إشعارات كمقروءة
+    path(
+        'mark-as-read/',
+        VendorMarkMultipleAsReadView.as_view(),
+        name='vendor-notifications-mark-multiple-as-read'
+    ),
+    
+    # POST /api/v1/vendor/notifications/mark-all-as-read/
+    # تحديد جميع الإشعارات كمقروءة
+    path(
+        'mark-all-as-read/',
+        VendorMarkAllAsReadView.as_view(),
+        name='vendor-notifications-mark-all-as-read'
+    ),
+    
+    # GET /api/v1/vendor/notifications/stats/
+    # إحصائيات الإشعارات
+    path(
+        'stats/',
+        VendorNotificationStatsView.as_view(),
+        name='vendor-notifications-stats'
+    ),
+]
+
+
+# =============================================================================
 # Main URL Patterns
 # أنماط URLs الرئيسية
 # =============================================================================
@@ -192,5 +256,9 @@ urlpatterns = [
     # Orders endpoints
     # نقاط نهاية الطلبات
     path('orders/', include((orders_urlpatterns, 'orders'))),
+    
+    # Notifications endpoints
+    # نقاط نهاية الإشعارات
+    path('notifications/', include((notifications_urlpatterns, 'notifications'))),
 ]
 
