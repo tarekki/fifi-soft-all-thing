@@ -316,16 +316,18 @@ class AdminVendorDetailView(APIView):
     )
     def delete(self, request, pk):
         """
-        Delete vendor.
-        حذف البائع.
+        Delete vendor and all related data (except orders).
+        حذف البائع وجميع البيانات المرتبطة (ما عدا الطلبات).
         
-        Security:
-        - Cannot delete vendor with products
-        - Use deactivate instead for vendors with products
+        Security & Business Rules:
+        - Cannot delete vendor if it has orders (to preserve financial records)
+        - Deletes: VendorApplication, VendorUser, Products (and related data)
+        - Preserves: Orders and OrderItems (for accounting)
         
-        الأمان:
-        - لا يمكن حذف بائع لديه منتجات
-        - استخدم التعطيل بدلاً من الحذف للبائعين الذين لديهم منتجات
+        الأمان والقواعد التجارية:
+        - لا يمكن حذف بائع لديه طلبات (للحفاظ على السجلات المالية)
+        - يحذف: طلبات الانضمام، VendorUser، المنتجات (والبيانات المرتبطة)
+        - يحافظ على: الطلبات و OrderItems (للمحاسبة)
         """
         vendor = self.get_object(pk)
         
@@ -335,39 +337,121 @@ class AdminVendorDetailView(APIView):
                 status_code=status.HTTP_404_NOT_FOUND
             )
         
-        # Check if vendor has products
-        # التحقق من وجود منتجات للبائع
-        products_count = vendor.products.count()
-        if products_count > 0:
+        # Import models here to avoid circular imports
+        # استيراد النماذج هنا لتجنب الاستيراد الدائري
+        from users.models import VendorUser
+        from orders.models import OrderItem
+        from vendors.models import VendorApplication
+        
+        vendor_name = vendor.name
+        
+        # =================================================================
+        # Step 1: Check for Orders (CRITICAL - must preserve financial records)
+        # الخطوة 1: التحقق من وجود الطلبات (حرج - يجب الحفاظ على السجلات المالية)
+        # =================================================================
+        
+        # Check if vendor has products with OrderItems
+        # التحقق من وجود منتجات للبائع مع OrderItems
+        order_items_count = OrderItem.objects.filter(
+            product_variant__product__vendor=vendor
+        ).count()
+        
+        if order_items_count > 0:
+            # Get unique order count for better error message
+            # الحصول على عدد الطلبات الفريدة لرسالة خطأ أفضل
+            orders_count = OrderItem.objects.filter(
+                product_variant__product__vendor=vendor
+            ).values('order').distinct().count()
+            
             return error_response(
                 message=_(
-                    f'لا يمكن حذف البائع لأنه يملك {products_count} منتج. قم بتعطيله بدلاً من ذلك. / '
-                    f'Cannot delete vendor with {products_count} products. Deactivate instead.'
+                    f'لا يمكن حذف البائع لأنه لديه {orders_count} طلب مرتبط. '
+                    f'يجب الحفاظ على السجلات المالية. قم بتعطيل البائع بدلاً من ذلك. / '
+                    f'Cannot delete vendor with {orders_count} related orders. '
+                    f'Financial records must be preserved. Deactivate the vendor instead.'
                 ),
                 status_code=status.HTTP_400_BAD_REQUEST
             )
         
-        # Import VendorUser here to avoid circular imports
-        # استيراد VendorUser هنا لتجنب الاستيراد الدائري
-        from users.models import VendorUser
+        # =================================================================
+        # Step 2: Delete in transaction (atomic operation)
+        # الخطوة 2: الحذف في transaction (عملية ذرية)
+        # =================================================================
         
-        # Check if vendor has associated VendorUser records
-        # التحقق من وجود سجلات VendorUser مرتبطة بالبائع
-        vendor_users_count = VendorUser.objects.filter(vendor=vendor).count()
+        try:
+            with transaction.atomic():
+                # Step 2.1: Delete VendorApplication records linked to this vendor
+                # الخطوة 2.1: حذف سجلات VendorApplication المرتبطة بهذا البائع
+                applications_count = VendorApplication.objects.filter(
+                    created_vendor=vendor
+                ).count()
+                
+                if applications_count > 0:
+                    VendorApplication.objects.filter(
+                        created_vendor=vendor
+                    ).delete()
+                
+                # Step 2.2: Get all VendorUser records for this vendor
+                # الخطوة 2.2: الحصول على جميع سجلات VendorUser لهذا البائع
+                vendor_users = VendorUser.objects.filter(vendor=vendor).select_related('user')
+                vendor_users_list = list(vendor_users)  # Convert to list to avoid query issues
+                
+                # Step 2.3: Delete Users that are ONLY associated with this vendor
+                # الخطوة 2.3: حذف المستخدمين المرتبطين فقط بهذا البائع
+                users_to_delete = []
+                for vendor_user in vendor_users_list:
+                    user = vendor_user.user
+                    # Check if user is associated with other vendors
+                    # التحقق من أن المستخدم مرتبط ببائعين آخرين
+                    other_vendor_users = VendorUser.objects.filter(
+                        user=user
+                    ).exclude(vendor=vendor)
+                    
+                    if not other_vendor_users.exists():
+                        # User is only associated with this vendor - safe to delete
+                        # المستخدم مرتبط فقط بهذا البائع - آمن للحذف
+                        users_to_delete.append(user)
+                
+                # Delete users (if any)
+                # حذف المستخدمين (إن وجدوا)
+                if users_to_delete:
+                    for user in users_to_delete:
+                        user.delete()
+                
+                # Step 2.4: Delete VendorUser records (due to PROTECT constraint)
+                # الخطوة 2.4: حذف سجلات VendorUser (بسبب قيد PROTECT)
+                if vendor_users_list:
+                    VendorUser.objects.filter(vendor=vendor).delete()
+                
+                # Step 2.5: Delete Vendor (this will cascade delete Products, ProductImages, ProductVariants)
+                # الخطوة 2.5: حذف البائع (سيؤدي هذا إلى حذف المنتجات، صور المنتجات، متغيرات المنتجات تلقائياً)
+                vendor.delete()
+                
+        except Exception as e:
+            # Log error for debugging
+            # تسجيل الخطأ للتشخيص
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f'Error deleting vendor {vendor_name}: {str(e)}', exc_info=True)
+            
+            return error_response(
+                message=_(
+                    f'حدث خطأ أثناء حذف البائع. يرجى المحاولة مرة أخرى. / '
+                    f'An error occurred while deleting the vendor. Please try again.'
+                ),
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
         
-        vendor_name = vendor.name
-        
-        # Delete VendorUser records first (due to PROTECT constraint)
-        # حذف سجلات VendorUser أولاً (بسبب قيد PROTECT)
-        if vendor_users_count > 0:
-            VendorUser.objects.filter(vendor=vendor).delete()
-        
-        # Now delete the vendor
-        # الآن حذف البائع
-        vendor.delete()
+        # =================================================================
+        # Step 3: Success response
+        # الخطوة 3: استجابة النجاح
+        # =================================================================
         
         return success_response(
-            message=_(f'تم حذف البائع "{vendor_name}" بنجاح / Vendor "{vendor_name}" deleted successfully')
+            message=_(
+                f'تم حذف البائع "{vendor_name}" وجميع البيانات المرتبطة بنجاح. / '
+                f'Vendor "{vendor_name}" and all related data deleted successfully.'
+            )
         )
 
 

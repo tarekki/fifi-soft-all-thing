@@ -143,6 +143,109 @@ const formatDate = (dateStr: string) => {
 
 
 // =============================================================================
+// Temporary Password Modal Component
+// مكون Modal عرض كلمة المرور المؤقتة
+// =============================================================================
+
+interface TempPasswordModalProps {
+  password: string
+  email?: string
+  onClose: () => void
+}
+
+function TempPasswordModal({ password, email, onClose }: TempPasswordModalProps) {
+  const [copied, setCopied] = useState(false)
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(password)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+        className="w-full max-w-md bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden transition-colors duration-300"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-historical-gold/10 dark:border-gray-700 bg-gradient-to-l from-historical-gold/10 dark:from-yellow-900/20 to-transparent transition-colors duration-300">
+          <h2 className="text-lg font-bold text-historical-charcoal dark:text-gray-100 transition-colors duration-300">
+            كلمة المرور المؤقتة / Temporary Password
+          </h2>
+          <button
+            onClick={onClose}
+            className="p-2 rounded-lg text-historical-charcoal/50 dark:text-gray-400 hover:text-historical-charcoal dark:hover:text-gray-200 hover:bg-historical-gold/10 dark:hover:bg-gray-700 transition-colors"
+          >
+            {Icons.close}
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="p-6 space-y-4">
+          <p className="text-sm text-historical-charcoal/70 dark:text-gray-300 transition-colors duration-300">
+            تم إنشاء المستخدم بنجاح. يرجى حفظ كلمة المرور المؤقتة التالية:
+            <br />
+            <span className="text-xs">User created successfully. Please save the following temporary password:</span>
+          </p>
+
+          <div className="relative">
+            <input
+              type="text"
+              value={password}
+              readOnly
+              className="w-full px-4 py-3 rounded-xl border-2 border-historical-gold/30 dark:border-yellow-600/30 bg-historical-gold/5 dark:bg-yellow-900/10 text-historical-charcoal dark:text-gray-200 font-mono text-center text-lg font-bold transition-colors duration-300"
+            />
+            <button
+              onClick={handleCopy}
+              className="absolute left-2 top-1/2 -translate-y-1/2 px-3 py-1.5 rounded-lg bg-historical-gold/10 dark:bg-yellow-900/20 text-historical-gold dark:text-yellow-400 hover:bg-historical-gold/20 dark:hover:bg-yellow-900/30 transition-colors text-sm font-medium"
+            >
+              {copied ? 'تم النسخ! / Copied!' : 'نسخ / Copy'}
+            </button>
+          </div>
+
+          <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl p-4">
+            <p className="text-sm text-yellow-800 dark:text-yellow-200 transition-colors duration-300">
+              ⚠️ <strong>تحذير / Warning:</strong> هذه كلمة المرور المؤقتة. يرجى إرسالها للبائع بشكل آمن. يجب على البائع تغييرها عند أول تسجيل دخول.
+              <br />
+              <span className="text-xs">This is a temporary password. Please send it to the vendor securely. The vendor must change it on first login.</span>
+            </p>
+          </div>
+
+          {email && (
+            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4">
+              <p className="text-sm text-blue-800 dark:text-blue-200 transition-colors duration-300">
+                📧 <strong>معلومات تسجيل الدخول / Login Info:</strong>
+                <br />
+                البريد الإلكتروني: {email}
+                <br />
+                <span className="text-xs">Email: {email}</span>
+              </p>
+            </div>
+          )}
+
+          <button
+            onClick={onClose}
+            className="w-full px-4 py-2.5 rounded-xl bg-gradient-to-l from-historical-gold to-historical-red text-white font-medium hover:shadow-lg transition-shadow"
+          >
+            تم / Done
+          </button>
+        </div>
+      </motion.div>
+    </motion.div>
+  )
+}
+
+// =============================================================================
 // Application Detail Modal
 // =============================================================================
 
@@ -440,11 +543,30 @@ export default function VendorApplicationsPage() {
     setIsModalOpen(true)
   }, [fetchApplicationDetails])
 
+  const [tempPassword, setTempPassword] = useState<string | null>(null)
+
   const handleApprove = useCallback(async (id: number, commissionRate: number) => {
-    const success = await approve(id, { commission_rate: commissionRate })
-    if (success) {
+    console.log('handleApprove called with id:', id, 'commissionRate:', commissionRate)
+    const result = await approve(id, { commission_rate: commissionRate })
+    console.log('Approve result:', result)
+    console.log('Result type:', typeof result)
+    console.log('Is object?', typeof result === 'object')
+    console.log('Has temp_password?', result && typeof result === 'object' && 'temp_password' in result)
+    
+    if (result && typeof result === 'object' && 'temp_password' in result) {
+      // If approve returns temp_password, show modal
+      // إذا كان approve يرجع temp_password، عرض modal
+      console.log('Setting temp password:', result.temp_password)
+      setTempPassword(result.temp_password as string)
+    } else if (result) {
+      // Success but no temp_password (user already existed)
+      // نجاح لكن لا يوجد temp_password (المستخدم موجود مسبقاً)
+      console.log('No temp_password - closing modal')
+      console.log('Note: User already exists, so no temporary password was generated')
       setIsModalOpen(false)
       clearSelectedApplication()
+    } else {
+      console.log('Approve failed - result is false')
     }
   }, [approve, clearSelectedApplication])
 
@@ -680,6 +802,21 @@ export default function VendorApplicationsPage() {
         onApprove={handleApprove}
         onReject={handleReject}
       />
+
+      {/* Temporary Password Modal */}
+      <AnimatePresence>
+        {tempPassword && (
+          <TempPasswordModal
+            password={tempPassword}
+            email={selectedApplication?.applicant_email}
+            onClose={() => {
+              setTempPassword(null)
+              setIsModalOpen(false)
+              clearSelectedApplication()
+            }}
+          />
+        )}
+      </AnimatePresence>
     </motion.div>
   )
 }

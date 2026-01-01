@@ -106,6 +106,10 @@ class AdminVendorApplicationDetailSerializer(serializers.ModelSerializer):
     created_vendor_info = serializers.SerializerMethodField()
     user_info = serializers.SerializerMethodField()
     
+    # Temporary password (only returned after approval if user was created)
+    # كلمة المرور المؤقتة (تُعاد فقط بعد الموافقة إذا تم إنشاء مستخدم جديد)
+    temp_password = serializers.SerializerMethodField()
+    
     class Meta:
         model = VendorApplication
         fields = [
@@ -127,6 +131,8 @@ class AdminVendorApplicationDetailSerializer(serializers.ModelSerializer):
             'business_address',
             'business_license',
             'business_license_url',
+            # Temporary password
+            'temp_password',
             # Status
             'status',
             'status_display',
@@ -188,6 +194,12 @@ class AdminVendorApplicationDetailSerializer(serializers.ModelSerializer):
                 'full_name': obj.user.full_name,
             }
         return None
+    
+    def get_temp_password(self, obj) -> str | None:
+        """Get temporary password from context (only available after approval if user was created)"""
+        # Get temp_password from context (passed from view)
+        # الحصول على temp_password من context (يتم تمريره من view)
+        return self.context.get('temp_password')
 
 
 # =============================================================================

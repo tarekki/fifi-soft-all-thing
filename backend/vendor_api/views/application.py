@@ -17,6 +17,9 @@ from vendor_api.serializers.application import VendorApplicationSerializer
 from vendor_api.throttling import VendorUserRateThrottle
 from core.utils import success_response, error_response
 from vendors.models import VendorApplication
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 # =============================================================================

@@ -92,6 +92,8 @@ export interface VendorApplicationDetail extends VendorApplication {
   } | null
   /** تاريخ التحديث */
   updated_at: string
+  /** كلمة المرور المؤقتة (فقط بعد الموافقة إذا تم إنشاء مستخدم جديد) */
+  temp_password?: string | null
 }
 
 

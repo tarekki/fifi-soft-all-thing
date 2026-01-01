@@ -435,6 +435,7 @@ class VendorApplication(models.Model):
         # معالجة إنشاء/ربط المستخدم
         user = self.user
         vendor_user = None
+        temp_password = None
         
         if user:
             # User exists - link to vendor
@@ -462,43 +463,69 @@ class VendorApplication(models.Model):
                 vendor_user.save(update_fields=['is_owner'])
         
         else:
-            # User doesn't exist - create new user
-            # المستخدم غير موجود - إنشاء مستخدم جديد
+            # User doesn't exist - check if user with same email or phone exists
+            # المستخدم غير موجود - التحقق من وجود مستخدم بنفس البريد أو الهاتف
             
-            # Generate temporary password
-            # إنشاء كلمة مرور مؤقتة
-            alphabet = string.ascii_letters + string.digits + string.punctuation
-            temp_password = ''.join(secrets.choice(alphabet) for i in range(16))
+            # Check by email first
+            # التحقق من البريد أولاً
+            try:
+                user = User.objects.get(email=self.applicant_email)
+                # User exists with same email - link to vendor
+                # المستخدم موجود بنفس البريد - ربطه بالبائع
+                if user.role != User.Role.VENDOR:
+                    user.role = User.Role.VENDOR
+                    user.save(update_fields=['role'])
+            except User.DoesNotExist:
+                # Check by phone
+                # التحقق من الهاتف
+                try:
+                    user = User.objects.get(phone=self.applicant_phone)
+                    # User exists with same phone - link to vendor
+                    # المستخدم موجود بنفس الهاتف - ربطه بالبائع
+                    if user.role != User.Role.VENDOR:
+                        user.role = User.Role.VENDOR
+                        user.save(update_fields=['role'])
+                except User.DoesNotExist:
+                    # User doesn't exist - create new user
+                    # المستخدم غير موجود - إنشاء مستخدم جديد
+                    
+                    # Generate temporary password
+                    # إنشاء كلمة مرور مؤقتة
+                    alphabet = string.ascii_letters + string.digits + string.punctuation
+                    temp_password = ''.join(secrets.choice(alphabet) for i in range(16))
+                    
+                    # Create user
+                    # إنشاء المستخدم
+                    user = User.objects.create_user(
+                        email=self.applicant_email,
+                        password=temp_password,
+                        phone=self.applicant_phone,
+                        full_name=self.applicant_name,
+                        role=User.Role.VENDOR,
+                        is_active=True,
+                    )
             
-            # Create user
-            # إنشاء المستخدم
-            user = User.objects.create_user(
-                email=self.applicant_email,
-                password=temp_password,
-                phone=self.applicant_phone,
-                full_name=self.applicant_name,
-                role=User.Role.VENDOR,
-                is_active=True,
-            )
-            
-            # Create UserProfile
-            # إنشاء ملف المستخدم الشخصي
+            # Create UserProfile if doesn't exist
+            # إنشاء ملف المستخدم الشخصي إذا لم يكن موجوداً
             from users.models import UserProfile
             UserProfile.objects.get_or_create(
-                user=user,
-                defaults={
-                    'phone': self.applicant_phone,
-                }
+                user=user
             )
             
-            # Create VendorUser
-            # إنشاء VendorUser
+            # Create VendorUser if doesn't exist
+            # إنشاء VendorUser إذا لم يكن موجوداً
             from users.models import VendorUser as VendorUserModel
-            vendor_user = VendorUserModel.objects.create(
+            vendor_user, created = VendorUserModel.objects.get_or_create(
                 user=user,
                 vendor=vendor,
-                is_owner=True,
+                defaults={'is_owner': True}
             )
+            
+            if not created and not vendor_user.is_owner:
+                # If VendorUser exists but not owner, make them owner
+                # إذا كان VendorUser موجود لكن ليس owner، جعله owner
+                vendor_user.is_owner = True
+                vendor_user.save(update_fields=['is_owner'])
             
             # TODO: Send email with temporary password
             # TODO: إرسال بريد إلكتروني بكلمة المرور المؤقتة
@@ -515,9 +542,9 @@ class VendorApplication(models.Model):
             self.user = user  # Link user to application if exists
         self.save()
         
-        # Return vendor for backward compatibility
-        # إرجاع vendor للتوافق مع الكود الحالي
-        return vendor
+        # Return vendor and temp_password (if user was created)
+        # إرجاع vendor و temp_password (إذا تم إنشاء مستخدم جديد)
+        return vendor, temp_password
     
     @transaction.atomic
     def reject(self, admin_user, reason=''):

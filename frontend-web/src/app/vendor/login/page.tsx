@@ -472,16 +472,29 @@ export default function VendorLoginPage() {
             </motion.button>
             
             {/* Footer */}
-            <motion.p
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.8 }}
-              className="text-center text-xs text-historical-charcoal/50 dark:text-gray-400 pt-4 border-t border-historical-gold/10 dark:border-gray-700/50"
+              className="space-y-3 pt-4 border-t border-historical-gold/10 dark:border-gray-700/50"
             >
-              هذه الصفحة للبائعين فقط
-              <br />
-              <span dir="ltr" className="font-medium">© 2024 Yalla Buy - All rights reserved</span>
-            </motion.p>
+              <p className="text-center text-xs text-historical-charcoal/50 dark:text-gray-400">
+                هذه الصفحة للبائعين فقط
+                <br />
+                <span dir="ltr" className="font-medium">© 2024 Yalla Buy - All rights reserved</span>
+              </p>
+              
+              {/* Apply Link */}
+              <div className="text-center">
+                <button
+                  type="button"
+                  onClick={() => router.push('/vendor/apply')}
+                  className="text-sm font-medium text-historical-gold dark:text-yellow-400 hover:text-historical-red dark:hover:text-yellow-300 transition-colors underline underline-offset-2"
+                >
+                  ليس لديك حساب؟ قدم طلب انضمام / Don't have an account? Apply to become a vendor
+                </button>
+              </div>
+            </motion.div>
           </form>
         </motion.div>
         

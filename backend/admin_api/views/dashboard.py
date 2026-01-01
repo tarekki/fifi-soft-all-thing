@@ -627,18 +627,27 @@ class DashboardRecentActivityView(APIView):
         # طلبات الانضمام الجديدة كنشاطات
         recent_applications = VendorApplication.objects.select_related('user').order_by('-created_at')[:items_per_type]
         for application in recent_applications:
-            user_name = application.user.full_name or f"{application.user.first_name} {application.user.last_name}".strip()
-            if not user_name:
-                user_name = application.user.email.split('@')[0]
+            # Handle both authenticated and guest applications
+            # معالجة الطلبات المسجلة وغير المسجلة
+            if application.user:
+                user_name = application.user.full_name or f"{application.user.first_name} {application.user.last_name}".strip()
+                if not user_name:
+                    user_name = application.user.email.split('@')[0]
+                user_email = application.user.email
+            else:
+                # Guest application - use applicant info
+                # طلب ضيف - استخدام معلومات المتقدم
+                user_name = application.applicant_name or _('ضيف / Guest')
+                user_email = application.applicant_email
             
             activities.append(build_activity(
                 activity_id=application.id + 50000,  # Offset to avoid ID conflicts
                 user_name=user_name,
-                user_email=application.user.email,
+                user_email=user_email,
                 action='vendor_application_created',
                 action_display=_('تم تقديم طلب انضمام جديد / New vendor application submitted'),
                 target_ref={'type': 'vendor_application', 'id': application.id, 'action': 'vendor_application_created'},
-                target_name=application.brand_name or application.user.email,
+                target_name=application.store_name or user_email,
                 timestamp=application.created_at,
             ))
         

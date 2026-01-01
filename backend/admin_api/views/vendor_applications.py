@@ -254,23 +254,44 @@ class AdminVendorApplicationApproveView(APIView):
                 commission_rate = serializer.validated_data.get('commission_rate', Decimal("10.00"))
                 admin_notes = serializer.validated_data.get('admin_notes', '')
                 
-                vendor = application.approve(
+                result = application.approve(
                     admin_user=request.user,
                     commission_rate=commission_rate
                 )
+                
+                # Handle both old and new return format (backward compatibility)
+                # معالجة كلا التنسيقين القديم والجديد (للتوافق مع الكود القديم)
+                if isinstance(result, tuple):
+                    vendor, temp_password = result
+                else:
+                    vendor = result
+                    temp_password = None
+                
+                # Debug logging
+                # تسجيل للتشخيص
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.info(f'Vendor application approved: vendor_id={vendor.id}, temp_password={"***" if temp_password else None}')
                 
                 if admin_notes:
                     application.admin_notes = admin_notes
                     application.save(update_fields=['admin_notes'])
                 
-                # Return updated application
+                # Return updated application with temp_password if available
+                # إرجاع الطلب المحدث مع temp_password إذا كان متاحاً
                 detail_serializer = AdminVendorApplicationDetailSerializer(
                     application,
-                    context={'request': request}
+                    context={
+                        'request': request,
+                        'temp_password': temp_password  # Pass temp_password via context
+                    }
                 )
                 
+                response_data = detail_serializer.data
+                logger.info(f'Response data temp_password: {response_data.get("temp_password")}')
+                
                 return success_response(
-                    data=detail_serializer.data,
+                    data=response_data,
                     message=_(f'تمت الموافقة على الطلب وإنشاء البائع "{vendor.name}" / Application approved')
                 )
                 

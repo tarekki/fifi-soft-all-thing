@@ -166,7 +166,7 @@ export function useVendorApplications(
   const approve = useCallback(async (
     id: number,
     data?: VendorApplicationApprovePayload
-  ): Promise<boolean> => {
+  ): Promise<boolean | { temp_password: string }> => {
     setIsProcessing(true)
     setError(null)
     
@@ -183,6 +183,19 @@ export function useVendorApplications(
           setSelectedApplication(response.data || null)
         }
         
+        // Debug: Log response data
+        // تسجيل بيانات الاستجابة للتشخيص
+        console.log('Approve response data:', response.data)
+        console.log('Temp password in response:', response.data?.temp_password)
+        
+        // Return temp_password if available
+        // إرجاع temp_password إذا كان متاحاً
+        if (response.data?.temp_password) {
+          console.log('Returning temp_password:', response.data.temp_password)
+          return { temp_password: response.data.temp_password }
+        }
+        
+        console.log('No temp_password in response (user probably already existed)')
         return true
       } else {
         console.error('Failed to approve application:', response.message)

@@ -52,15 +52,15 @@ export default function VendorLayout({
 }) {
   const pathname = usePathname();
   
-  // Check if current page is login page
-  // التحقق إذا كانت الصفحة الحالية هي صفحة الدخول
-  const isLoginPage = pathname === '/vendor/login';
+  // Check if current page is login or apply page (public pages)
+  // التحقق إذا كانت الصفحة الحالية هي صفحة الدخول أو طلب الانضمام (صفحات عامة)
+  const isPublicPage = pathname === '/vendor/login' || pathname === '/vendor/apply';
 
   return (
     <VendorAuthProvider>
-      {isLoginPage ? (
-        // Login page doesn't need layout or protection
-        // صفحة الدخول لا تحتاج تخطيط أو حماية
+      {isPublicPage ? (
+        // Login and apply pages don't need layout or protection
+        // صفحات الدخول وطلب الانضمام لا تحتاج تخطيط أو حماية
         children
       ) : (
         // All other pages are protected and use the layout
