@@ -24,7 +24,7 @@ import { useTranslation } from '@/lib/i18n/use-translation'
 import { useLanguage } from '@/lib/i18n/context'
 import { cn } from '@/lib/utils'
 import { Plus, History } from 'lucide-react'
-import { getVendorDashboardOverview } from '@/lib/vendor/api'
+import { getVendorDashboardOverview, exportVendorReport } from '@/lib/vendor/api'
 import { useVendorAuth } from '@/lib/vendor'
 import type { VendorDashboardOverview } from '@/lib/vendor/types'
 
@@ -181,6 +181,64 @@ function formatRelativeDate(dateStr: string, t: any): string {
   if (diffDays < 7) return (t.vendor.time?.daysAgo || 'منذ {n} أيام').replace('{n}', diffDays.toString())
   
   return date.toLocaleDateString(t.vendor.time?.locale || 'ar-SA')
+}
+
+/**
+ * Generate simple text report from dashboard data
+ * إنشاء تقرير نصي بسيط من بيانات لوحة التحكم
+ */
+function generateSimpleReport(
+  data: VendorDashboardOverview,
+  t: any,
+  language: string
+): string {
+  const currency = t.common?.currency || 'ل.س'
+  const date = new Date().toLocaleDateString(language === 'ar' ? 'ar-SY' : 'en-US')
+  
+  const report = [
+    '='.repeat(50),
+    language === 'ar' ? 'تقرير البائع' : 'Vendor Report',
+    '='.repeat(50),
+    '',
+    `${language === 'ar' ? 'تاريخ التقرير:' : 'Report Date:'} ${date}`,
+    '',
+    '-'.repeat(50),
+    language === 'ar' ? 'إحصائيات المبيعات' : 'Sales Statistics',
+    '-'.repeat(50),
+    `${language === 'ar' ? 'إجمالي المبيعات:' : 'Total Sales:'} ${formatCurrency(data.total_sales, language === 'ar' ? 'ar-SY' : 'en-US', currency)}`,
+    `${language === 'ar' ? 'التغيير من الشهر الماضي:' : 'Change from Last Month:'} ${data.total_sales_change > 0 ? '+' : ''}${data.total_sales_change.toFixed(2)}%`,
+    `${language === 'ar' ? 'مبيعات اليوم:' : 'Today Sales:'} ${formatCurrency(data.today_sales, language === 'ar' ? 'ar-SY' : 'en-US', currency)}`,
+    '',
+    '-'.repeat(50),
+    language === 'ar' ? 'إحصائيات الطلبات' : 'Orders Statistics',
+    '-'.repeat(50),
+    `${language === 'ar' ? 'إجمالي الطلبات:' : 'Total Orders:'} ${data.total_orders}`,
+    `${language === 'ar' ? 'التغيير من الشهر الماضي:' : 'Change from Last Month:'} ${data.total_orders_change > 0 ? '+' : ''}${data.total_orders_change.toFixed(2)}%`,
+    `${language === 'ar' ? 'طلبات اليوم:' : 'Today Orders:'} ${data.today_orders}`,
+    `${language === 'ar' ? 'طلبات قيد الانتظار:' : 'Pending Orders:'} ${data.pending_orders}`,
+    `${language === 'ar' ? 'طلبات قيد المعالجة:' : 'Processing Orders:'} ${data.processing_orders}`,
+    '',
+    '-'.repeat(50),
+    language === 'ar' ? 'إحصائيات المنتجات' : 'Products Statistics',
+    '-'.repeat(50),
+    `${language === 'ar' ? 'إجمالي المنتجات:' : 'Total Products:'} ${data.total_products}`,
+    `${language === 'ar' ? 'المنتجات النشطة:' : 'Active Products:'} ${data.active_products}`,
+    `${language === 'ar' ? 'منتجات قليلة المخزون:' : 'Low Stock Products:'} ${data.low_stock_products}`,
+    `${language === 'ar' ? 'منتجات نفد المخزون:' : 'Out of Stock Products:'} ${data.out_of_stock_products}`,
+    '',
+    '-'.repeat(50),
+    language === 'ar' ? 'إحصائيات الزيارات' : 'Visits Statistics',
+    '-'.repeat(50),
+    `${language === 'ar' ? 'إجمالي الزيارات:' : 'Total Visits:'} ${data.total_visits}`,
+    `${language === 'ar' ? 'التغيير من الأسبوع الماضي:' : 'Change from Last Week:'} ${data.total_visits_change > 0 ? '+' : ''}${data.total_visits_change.toFixed(2)}%`,
+    `${language === 'ar' ? 'زيارات اليوم:' : 'Today Visits:'} ${data.today_visits}`,
+    '',
+    '='.repeat(50),
+    language === 'ar' ? 'نهاية التقرير' : 'End of Report',
+    '='.repeat(50),
+  ]
+  
+  return report.join('\n')
 }
 
 /**
@@ -548,6 +606,7 @@ export default function DashboardPage() {
   const [error, setError] = React.useState<string | null>(null)
   const [dashboardData, setDashboardData] = React.useState<VendorDashboardOverview | null>(null)
   const [chartPeriod, setChartPeriod] = React.useState<'week' | 'month' | 'year'>('month')
+  const [isExporting, setIsExporting] = React.useState(false)
   
   // Fetch dashboard data from API
   // جلب بيانات لوحة التحكم من API
@@ -575,6 +634,60 @@ export default function DashboardPage() {
     
     fetchDashboardData()
   }, [])
+  
+  // Handle export report
+  // معالجة تصدير التقرير
+  const handleExportReport = React.useCallback(async () => {
+    try {
+      setIsExporting(true)
+      
+      // Try to export from backend first
+      // محاولة التصدير من الـ backend أولاً
+      try {
+        const blob = await exportVendorReport('30days')
+        
+        // Create download link
+        // إنشاء رابط التحميل
+        const url = window.URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `vendor-report-${new Date().toISOString().split('T')[0]}.docx`
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+        window.URL.revokeObjectURL(url)
+        
+        return
+      } catch (backendError) {
+        // If backend export fails, create a simple client-side report
+        // إذا فشل تصدير الـ backend، إنشاء تقرير بسيط من جانب العميل
+        console.warn('Backend export failed, creating client-side report:', backendError)
+      }
+      
+      // Fallback: Create a simple text report from dashboard data
+      // البديل: إنشاء تقرير نصي بسيط من بيانات لوحة التحكم
+      if (dashboardData) {
+        const reportContent = generateSimpleReport(dashboardData, t, language)
+        const blob = new Blob([reportContent], { type: 'text/plain;charset=utf-8' })
+        const url = window.URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `vendor-report-${new Date().toISOString().split('T')[0]}.txt`
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+        window.URL.revokeObjectURL(url)
+      } else {
+        throw new Error(t.vendor.noDataToExport || 'لا توجد بيانات للتصدير')
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to export report'
+      setError(errorMessage)
+      console.error('Error exporting report:', err)
+    } finally {
+      setIsExporting(false)
+    }
+  }, [dashboardData, t, language])
   
   // Build STATS from API data
   // بناء STATS من بيانات API
@@ -753,10 +866,17 @@ export default function DashboardPage() {
             <span className="text-sm font-medium">{t.vendor.addProduct || 'إضافة منتج'}</span>
           </button>
           <button
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/80 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+            onClick={handleExportReport}
+            disabled={isExporting || isLoading}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/80 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <History className="w-5 h-5" />
-            <span className="text-sm font-medium">{t.vendor.exportReport || 'تصدير تقرير'}</span>
+            <History className={`w-5 h-5 ${isExporting ? 'animate-spin' : ''}`} />
+            <span className="text-sm font-medium">
+              {isExporting 
+                ? (t.vendor.exporting || 'جاري التصدير...') 
+                : (t.vendor.exportReport || 'تصدير تقرير')
+              }
+            </span>
           </button>
         </div>
       </motion.div>

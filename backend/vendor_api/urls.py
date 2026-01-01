@@ -15,7 +15,7 @@ API Structure:
 """
 
 from django.urls import path, include
-from vendor_api.views.dashboard import VendorDashboardOverviewView
+from vendor_api.views.dashboard import VendorDashboardOverviewView, VendorReportExportView
 from vendor_api.views.auth import VendorLoginView, VendorMeView, VendorPasswordChangeView
 from vendor_api.views.application import VendorApplicationView
 from vendor_api.views.products import VendorProductListCreateView, VendorProductDetailView
@@ -64,6 +64,13 @@ dashboard_urlpatterns = [
         'overview/',
         VendorDashboardOverviewView.as_view(),
         name='vendor-dashboard-overview'
+    ),
+    # GET /api/v1/vendor/dashboard/reports/export/
+    # تصدير تقرير البائع كملف Word
+    path(
+        'reports/export/',
+        VendorReportExportView.as_view(),
+        name='vendor-report-export'
     ),
 ]
 

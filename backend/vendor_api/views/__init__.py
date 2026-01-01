@@ -8,6 +8,7 @@ This package contains all views for vendor API endpoints.
 
 from .dashboard import (
     VendorDashboardOverviewView,
+    VendorReportExportView,
 )
 from .auth import (
     VendorLoginView,
@@ -26,6 +27,7 @@ from .categories import (
 
 __all__ = [
     'VendorDashboardOverviewView',
+    'VendorReportExportView',
     'VendorLoginView',
     'VendorMeView',
     'VendorApplicationView',

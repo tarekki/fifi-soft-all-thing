@@ -406,6 +406,115 @@ export async function changeVendorPassword(
 }
 
 // =============================================================================
+// Reports API Functions
+// دوال API التقارير
+// =============================================================================
+
+/**
+ * Date range type for vendor reports
+ * نوع الفترة الزمنية لتقارير البائع
+ */
+export type VendorDateRange = '7days' | '30days' | '90days' | 'year'
+
+/**
+ * Export vendor report as Word document
+ * تصدير تقرير البائع كملف Word
+ * 
+ * @param dateRange - Date range: '7days', '30days', '90days', 'year'
+ * @returns Promise with Blob (Word document)
+ */
+export async function exportVendorReport(
+  dateRange: VendorDateRange = '30days'
+): Promise<Blob> {
+  const url = `${VENDOR_API_URL}/dashboard/reports/export/?date_range=${dateRange}`
+
+  // Get access token
+  // الحصول على access token
+  let accessToken = getAccessToken()
+
+  // Check if token is expired and try to refresh
+  // التحقق من انتهاء التوكن ومحاولة التجديد
+  if (accessToken && isTokenExpired(accessToken)) {
+    const refreshToken = getRefreshToken()
+    if (refreshToken) {
+      try {
+        const refreshed = await refreshAccessToken(refreshToken)
+        if (refreshed) {
+          accessToken = refreshed
+        } else {
+          clearTokens()
+          throw new Error('Session expired. Please login again.')
+        }
+      } catch (err) {
+        clearTokens()
+        throw new Error('Session expired. Please login again.')
+      }
+    }
+  }
+
+  if (!accessToken) {
+    throw new Error('Authentication required. Please login again.')
+  }
+
+  // Build headers
+  // بناء الهيدرز
+  const headers: HeadersInit = {
+    'Authorization': `Bearer ${accessToken}`,
+  }
+
+  try {
+    const response = await fetch(url, {
+      method: 'GET',
+      headers,
+    })
+
+    // Handle 401 Unauthorized - try to refresh token once more
+    // معالجة 401 غير مصرح - محاولة تجديد التوكن مرة أخرى
+    if (response.status === 401) {
+      const refreshToken = getRefreshToken()
+      if (refreshToken) {
+        const refreshed = await refreshAccessToken(refreshToken)
+        if (refreshed) {
+          // Retry the request with new token
+          // إعادة المحاولة بالتوكن الجديد
+          const retryResponse = await fetch(url, {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${refreshed}`,
+            },
+          })
+
+          if (!retryResponse.ok) {
+            const errorText = await retryResponse.text().catch(() => 'Unknown error')
+            throw new Error(`Failed to export report: ${retryResponse.status} ${retryResponse.statusText}. ${errorText}`)
+          }
+
+          return retryResponse.blob()
+        } else {
+          clearTokens()
+          throw new Error('Session expired. Please login again.')
+        }
+      } else {
+        clearTokens()
+        throw new Error('Authentication required. Please login again.')
+      }
+    }
+
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => 'Unknown error')
+      throw new Error(`Failed to export report: ${response.status} ${response.statusText}. ${errorText}`)
+    }
+
+    return response.blob()
+  } catch (error) {
+    if (error instanceof Error) {
+      throw error
+    }
+    throw new Error('Network error. Please check your connection.')
+  }
+}
+
+// =============================================================================
 // Products API Functions
 // دوال API المنتجات
 // =============================================================================

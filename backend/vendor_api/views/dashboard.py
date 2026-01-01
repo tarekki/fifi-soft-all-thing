@@ -7,6 +7,7 @@ This file contains all Vendor Dashboard views.
 
 Endpoints:
 - GET /api/v1/vendor/dashboard/overview/        - KPIs and statistics
+- GET /api/v1/vendor/dashboard/reports/export/ - Export report as Word
 """
 
 from rest_framework.views import APIView
@@ -14,14 +15,19 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django.db.models import Sum, Count, Q
 from django.db.models.functions import TruncDate, TruncMonth
-from datetime import timedelta
+from datetime import timedelta, datetime
 from decimal import Decimal
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiResponse
+from io import BytesIO
+from docx import Document
+from docx.shared import Inches, Pt, RGBColor
+from docx.enum.text import WD_ALIGN_PARAGRAPH
+from django.http import HttpResponse
 
 from vendor_api.permissions import IsVendorUser, IsVendorOwner
 from vendor_api.throttling import VendorUserRateThrottle
 from vendor_api.serializers.dashboard import VendorDashboardOverviewSerializer
-from core.utils import success_response
+from core.utils import success_response, error_response
 from users.models import VendorUser
 
 
@@ -279,4 +285,217 @@ class VendorDashboardOverviewView(APIView):
                 data=serializer.validated_data,
                 message=_('تم جلب إحصائيات لوحة التحكم بنجاح / Dashboard statistics retrieved successfully')
             )
+
+
+# =============================================================================
+# Vendor Report Export View
+# عرض تصدير تقرير البائع
+# =============================================================================
+
+class VendorReportExportView(APIView):
+    """
+    Export vendor report as Word document.
+    تصدير تقرير البائع كملف Word.
+    
+    This view exports the vendor dashboard statistics as a Word document.
+    يعرض هذا العرض إحصائيات لوحة تحكم البائع كمستند Word.
+    
+    Security:
+    - Only authenticated vendors can access
+    - Returns data only for the vendor associated with the authenticated user
+    
+    الأمان:
+    - فقط البائعون المسجلون يمكنهم الوصول
+    - يعيد البيانات فقط للبائع المرتبط بالمستخدم المسجل
+    """
+    
+    permission_classes = [IsVendorUser, IsVendorOwner]
+    throttle_classes = [VendorUserRateThrottle]
+    
+    @extend_schema(
+        summary='Export Vendor Report',
+        description='Export vendor dashboard report as Word document (.docx)',
+        parameters=[
+            OpenApiParameter(
+                name='date_range',
+                type=str,
+                location=OpenApiParameter.QUERY,
+                description='Date range: 7days, 30days, 90days, year',
+                enum=['7days', '30days', '90days', 'year'],
+                default='30days'
+            ),
+        ],
+        responses={
+            200: OpenApiResponse(
+                description='Word document file',
+                response={'application/vnd.openxmlformats-officedocument.wordprocessingml.document': bytes}
+            ),
+        },
+        tags=['Vendor Dashboard'],
+    )
+    def get(self, request):
+        """
+        Export vendor report as Word.
+        تصدير تقرير البائع كملف Word.
+        """
+        date_range = request.query_params.get('date_range', '30days')
+        
+        # Get vendor associated with the authenticated user
+        # الحصول على البائع المرتبط بالمستخدم المسجل
+        try:
+            vendor_user = VendorUser.objects.select_related('vendor').get(user=request.user)
+            vendor = vendor_user.vendor
+        except VendorUser.DoesNotExist:
+            return error_response(
+                message=_('لا يوجد بائع مرتبط بهذا المستخدم / No vendor associated with this user')
+            )
+        
+        # Get dashboard overview data
+        # الحصول على بيانات نظرة عامة على لوحة التحكم
+        overview_view = VendorDashboardOverviewView()
+        overview_view.request = request
+        overview_response = overview_view.get(request)
+        
+        if not overview_response.data.get('success'):
+            return error_response(
+                message=_('فشل في جلب بيانات التقرير / Failed to retrieve report data')
+            )
+        
+        dashboard_data = overview_response.data['data']
+        
+        # Create Word document
+        # إنشاء مستند Word
+        doc = self._create_vendor_word_document(dashboard_data, vendor, date_range)
+        
+        # Save document to BytesIO
+        buffer = BytesIO()
+        doc.save(buffer)
+        buffer.seek(0)
+        
+        # Create response
+        filename = f'vendor_report_{date_range}_{datetime.now().strftime("%Y%m%d")}.docx'
+        
+        response = HttpResponse(
+            buffer.getvalue(),
+            content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        )
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        
+        return response
+    
+    def _create_vendor_word_document(self, data, vendor, date_range):
+        """Create Word document for vendor report"""
+        doc = Document()
+        
+        # Title
+        title = doc.add_heading('تقرير البائع', 0)
+        title.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+        
+        # Vendor name
+        vendor_para = doc.add_paragraph(f'اسم المتجر: {vendor.name}')
+        vendor_para.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+        
+        # Date
+        date_para = doc.add_paragraph(f'تاريخ التقرير: {datetime.now().strftime("%Y-%m-%d %H:%M")}')
+        date_para.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+        
+        # Period
+        period_labels = {
+            '7days': 'آخر 7 أيام',
+            '30days': 'آخر 30 يوم',
+            '90days': 'آخر 90 يوم',
+            'year': 'آخر سنة'
+        }
+        period_para = doc.add_paragraph(f'الفترة: {period_labels.get(date_range, date_range)}')
+        period_para.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+        
+        doc.add_paragraph()  # Empty line
+        
+        # Sales Summary
+        doc.add_heading('ملخص المبيعات', 1).alignment = WD_ALIGN_PARAGRAPH.RIGHT
+        
+        sales_data = [
+            ('إجمالي المبيعات', f'{float(data.get("total_sales", 0)):,.2f} ل.س'),
+            ('التغيير من الشهر الماضي', f'{data.get("total_sales_change", 0):.1f}%'),
+            ('مبيعات اليوم', f'{float(data.get("today_sales", 0)):,.2f} ل.س'),
+        ]
+        
+        sales_table = doc.add_table(rows=len(sales_data), cols=2)
+        sales_table.style = 'Light Grid Accent 1'
+        
+        for i, (label, value) in enumerate(sales_data):
+            sales_table.rows[i].cells[0].text = label
+            sales_table.rows[i].cells[1].text = str(value)
+            sales_table.rows[i].cells[0].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.RIGHT
+            sales_table.rows[i].cells[1].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.RIGHT
+        
+        doc.add_paragraph()  # Empty line
+        
+        # Orders Summary
+        doc.add_heading('ملخص الطلبات', 1).alignment = WD_ALIGN_PARAGRAPH.RIGHT
+        
+        orders_data = [
+            ('إجمالي الطلبات', str(data.get('total_orders', 0))),
+            ('التغيير من الشهر الماضي', f'{data.get("total_orders_change", 0):.1f}%'),
+            ('طلبات اليوم', str(data.get('today_orders', 0))),
+            ('طلبات قيد الانتظار', str(data.get('pending_orders', 0))),
+            ('طلبات قيد المعالجة', str(data.get('processing_orders', 0))),
+        ]
+        
+        orders_table = doc.add_table(rows=len(orders_data), cols=2)
+        orders_table.style = 'Light Grid Accent 1'
+        
+        for i, (label, value) in enumerate(orders_data):
+            orders_table.rows[i].cells[0].text = label
+            orders_table.rows[i].cells[1].text = str(value)
+            orders_table.rows[i].cells[0].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.RIGHT
+            orders_table.rows[i].cells[1].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.RIGHT
+        
+        doc.add_paragraph()  # Empty line
+        
+        # Products Summary
+        doc.add_heading('ملخص المنتجات', 1).alignment = WD_ALIGN_PARAGRAPH.RIGHT
+        
+        products_data = [
+            ('إجمالي المنتجات', str(data.get('total_products', 0))),
+            ('المنتجات النشطة', str(data.get('active_products', 0))),
+            ('منتجات قليلة المخزون', str(data.get('low_stock_products', 0))),
+            ('منتجات نفد المخزون', str(data.get('out_of_stock_products', 0))),
+        ]
+        
+        products_table = doc.add_table(rows=len(products_data), cols=2)
+        products_table.style = 'Light Grid Accent 1'
+        
+        for i, (label, value) in enumerate(products_data):
+            products_table.rows[i].cells[0].text = label
+            products_table.rows[i].cells[1].text = str(value)
+            products_table.rows[i].cells[0].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.RIGHT
+            products_table.rows[i].cells[1].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.RIGHT
+        
+        doc.add_paragraph()  # Empty line
+        
+        # Visits Summary
+        doc.add_heading('ملخص الزيارات', 1).alignment = WD_ALIGN_PARAGRAPH.RIGHT
+        
+        visits_data = [
+            ('إجمالي الزيارات', str(data.get('total_visits', 0))),
+            ('التغيير من الأسبوع الماضي', f'{data.get("total_visits_change", 0):.1f}%'),
+            ('زيارات اليوم', str(data.get('today_visits', 0))),
+        ]
+        
+        visits_table = doc.add_table(rows=len(visits_data), cols=2)
+        visits_table.style = 'Light Grid Accent 1'
+        
+        for i, (label, value) in enumerate(visits_data):
+            visits_table.rows[i].cells[0].text = label
+            visits_table.rows[i].cells[1].text = str(value)
+            visits_table.rows[i].cells[0].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.RIGHT
+            visits_table.rows[i].cells[1].paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.RIGHT
+        
+        # Footer
+        doc.add_paragraph()  # Empty line
+        footer = doc.add_paragraph('تم إنشاء هذا التقرير تلقائياً من نظام إدارة المتجر')
+        footer.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        
+        return doc
 
