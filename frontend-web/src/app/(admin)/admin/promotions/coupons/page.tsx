@@ -654,13 +654,13 @@ function CouponModal({
   }
 
   const filteredCategories = categories.filter(cat =>
-    cat.name_ar.toLowerCase().includes(searchCategory.toLowerCase()) ||
-    cat.name.toLowerCase().includes(searchCategory.toLowerCase())
+    (cat.name_ar && cat.name_ar.toLowerCase().includes(searchCategory.toLowerCase())) ||
+    (cat.name && cat.name.toLowerCase().includes(searchCategory.toLowerCase()))
   )
 
   const filteredProducts = products.filter(prod =>
-    prod.name_ar.toLowerCase().includes(searchProduct.toLowerCase()) ||
-    prod.name.toLowerCase().includes(searchProduct.toLowerCase())
+    (prod.name_ar && prod.name_ar.toLowerCase().includes(searchProduct.toLowerCase())) ||
+    (prod.name && prod.name.toLowerCase().includes(searchProduct.toLowerCase()))
   )
 
   const filteredUsers = users.filter(user =>
