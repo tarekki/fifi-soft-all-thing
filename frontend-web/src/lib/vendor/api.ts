@@ -104,6 +104,19 @@ async function refreshAccessToken(refreshToken: string): Promise<string | null> 
     })
 
     if (!response.ok) {
+      // Log error for debugging (only in development)
+      // تسجيل الخطأ للتشخيص (فقط في التطوير)
+      if (process.env.NODE_ENV === 'development') {
+        try {
+          const errorData = await response.json()
+          console.warn('[Vendor API] Token refresh failed:', {
+            status: response.status,
+            message: errorData.message || response.statusText,
+          })
+        } catch {
+          console.warn('[Vendor API] Token refresh failed:', response.status, response.statusText)
+        }
+      }
       return null
     }
 
@@ -136,7 +149,12 @@ async function refreshAccessToken(refreshToken: string): Promise<string | null> 
     }
 
     return null
-  } catch {
+  } catch (error) {
+    // Log error for debugging (only in development)
+    // تسجيل الخطأ للتشخيص (فقط في التطوير)
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('[Vendor API] Token refresh error:', error)
+    }
     return null
   }
 }
@@ -169,13 +187,21 @@ export async function vendorFetch<T>(
         if (refreshed) {
           accessToken = refreshed
         } else {
+          // Refresh failed - clear tokens but don't throw here
+          // فشل التجديد - مسح التوكنات لكن لا ترمي خطأ هنا
+          // Let the request proceed and handle 401 response
+          // دع الطلب يستمر وتعامل مع استجابة 401
           clearTokens()
-          throw new Error('Session expired. Please login again.')
         }
-      } catch {
+      } catch (error) {
+        // Refresh error - clear tokens but don't throw here
+        // خطأ التجديد - مسح التوكنات لكن لا ترمي خطأ هنا
         clearTokens()
-        throw new Error('Session expired. Please login again.')
       }
+    } else {
+      // No refresh token - clear access token
+      // لا يوجد refresh token - مسح access token
+      clearTokens()
     }
   }
 
@@ -240,9 +266,39 @@ export async function vendorFetch<T>(
       } as ApiResponse<T>
     }
 
-    // Handle 401 Unauthorized
-    // معالجة 401 غير مصرح
+    // Handle 401 Unauthorized - try to refresh token one more time
+    // معالجة 401 غير مصرح - محاولة تجديد التوكن مرة أخرى
     if (response.status === 401) {
+      // Try to refresh token one more time (in case token expired during request)
+      // محاولة تجديد التوكن مرة أخرى (في حالة انتهاء التوكن أثناء الطلب)
+      const refreshToken = getRefreshToken()
+      if (refreshToken && accessToken) {
+        try {
+          const refreshed = await refreshAccessToken(refreshToken)
+          if (refreshed) {
+            // Retry the request with new token
+            // إعادة محاولة الطلب بالتوكن الجديد
+            const retryResponse = await fetch(url, {
+              ...options,
+              headers: {
+                ...headers,
+                'Authorization': `Bearer ${refreshed}`,
+              },
+            })
+            
+            if (retryResponse.ok) {
+              const retryData = await retryResponse.json()
+              return retryData as ApiResponse<T>
+            }
+          }
+        } catch {
+          // Refresh failed - continue to clear tokens
+          // فشل التجديد - المتابعة لمسح التوكنات
+        }
+      }
+      
+      // Clear tokens and return error
+      // مسح التوكنات وإرجاع الخطأ
       clearTokens()
       return {
         success: false,
@@ -842,13 +898,19 @@ export async function exportVendorReport(
         if (refreshed) {
           accessToken = refreshed
         } else {
+          // Refresh failed - clear tokens but let request proceed
+          // فشل التجديد - مسح التوكنات لكن دع الطلب يستمر
           clearTokens()
-          throw new Error('Session expired. Please login again.')
         }
-      } catch (err) {
+      } catch (error) {
+        // Refresh error - clear tokens but let request proceed
+        // خطأ التجديد - مسح التوكنات لكن دع الطلب يستمر
         clearTokens()
-        throw new Error('Session expired. Please login again.')
       }
+    } else {
+      // No refresh token - clear access token
+      // لا يوجد refresh token - مسح access token
+      clearTokens()
     }
   }
 
@@ -891,10 +953,14 @@ export async function exportVendorReport(
 
           return retryResponse.blob()
         } else {
+          // Refresh failed - clear tokens and throw error
+          // فشل التجديد - مسح التوكنات ورمي خطأ
           clearTokens()
           throw new Error('Session expired. Please login again.')
         }
       } else {
+        // No refresh token - clear tokens and throw error
+        // لا يوجد refresh token - مسح التوكنات ورمي خطأ
         clearTokens()
         throw new Error('Authentication required. Please login again.')
       }
