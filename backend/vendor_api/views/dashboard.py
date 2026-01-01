@@ -250,6 +250,65 @@ class VendorDashboardOverviewView(APIView):
         visits_change = 0.0
         
         # =================================================================
+        # Response Rate Statistics
+        # إحصائيات معدل الاستجابة
+        # =================================================================
+        
+        # Calculate response rate based on completed/delivered orders
+        # حساب معدل الاستجابة بناءً على الطلبات المكتملة/المسلمة
+        # Response rate = (completed + delivered orders) / total orders * 100
+        # معدل الاستجابة = (الطلبات المكتملة + المسلمة) / إجمالي الطلبات * 100
+        
+        # Strategy: Try to use last 30 days, if no data, use all orders
+        # الاستراتيجية: محاولة استخدام آخر 30 يوم، إذا لم تكن هناك بيانات، استخدم جميع الطلبات
+        
+        # First, try last 30 days (more relevant for current performance)
+        # أولاً، محاولة آخر 30 يوم (أكثر صلة بالأداء الحالي)
+        thirty_days_ago = now - timedelta(days=30)
+        recent_orders = vendor_orders.filter(created_at__gte=thirty_days_ago)
+        total_recent_orders = recent_orders.count()
+        
+        # If we have recent orders, use them for calculation
+        # إذا كانت لدينا طلبات حديثة، استخدمها للحساب
+        if total_recent_orders > 0:
+            # Count completed/delivered orders from recent period
+            # عد الطلبات المكتملة/المسلمة من الفترة الحديثة
+            completed_recent_orders = recent_orders.filter(
+                status__in=['delivered', 'completed']
+            ).count()
+            
+            # Calculate response rate percentage
+            # حساب نسبة معدل الاستجابة
+            response_rate = round((completed_recent_orders / total_recent_orders) * 100, 1)
+            
+            # Ensure response rate is between 0 and 100
+            # التأكد من أن معدل الاستجابة بين 0 و 100
+            response_rate = max(0.0, min(100.0, response_rate))
+        else:
+            # No recent orders, try to use all orders (fallback)
+            # لا توجد طلبات حديثة، محاولة استخدام جميع الطلبات (بديل)
+            total_all_orders = vendor_orders.count()
+            
+            if total_all_orders > 0:
+                # Count completed/delivered orders from all time
+                # عد الطلبات المكتملة/المسلمة من كل الأوقات
+                completed_all_orders = vendor_orders.filter(
+                    status__in=['delivered', 'completed']
+                ).count()
+                
+                # Calculate response rate from all orders
+                # حساب معدل الاستجابة من جميع الطلبات
+                response_rate = round((completed_all_orders / total_all_orders) * 100, 1)
+                
+                # Ensure response rate is between 0 and 100
+                # التأكد من أن معدل الاستجابة بين 0 و 100
+                response_rate = max(0.0, min(100.0, response_rate))
+            else:
+                # No orders at all - return None (no data available)
+                # لا توجد طلبات على الإطلاق - إرجاع None (لا توجد بيانات متاحة)
+                response_rate = None
+        
+        # =================================================================
         # Build Response
         # بناء الاستجابة
         # =================================================================
@@ -277,6 +336,9 @@ class VendorDashboardOverviewView(APIView):
             'total_visits': total_visits,
             'total_visits_change': round(visits_change, 1),
             'today_visits': today_visits,
+            
+            # Response Rate
+            'response_rate': response_rate,
         }
         
         # Validate and serialize the data

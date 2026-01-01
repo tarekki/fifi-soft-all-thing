@@ -50,6 +50,7 @@ export interface VendorDashboardOverview {
   total_visits: number
   total_visits_change: number
   today_visits: number
+  response_rate: number | null
 }
 
 /**

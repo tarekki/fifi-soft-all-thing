@@ -1088,18 +1088,73 @@ export default function DashboardPage() {
             <h4 className="text-gray-400 dark:text-gray-500 font-bold uppercase tracking-widest text-xs mb-6 transition-colors duration-300">
               {t.vendor.responseSpeed || 'سرعة الاستجابة'}
             </h4>
-            <div className="flex items-center justify-between mb-2">
-              <span className="font-bold text-historical-charcoal dark:text-gray-100 transition-colors duration-300">
-                {t.vendor.responseRate || 'معدل الاستجابة'}
-              </span>
-              <span className="font-bold text-green-500 dark:text-green-400 transition-colors duration-300">98%</span>
-            </div>
-            <div className="w-full h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden transition-colors duration-300">
-              <div className="w-[98%] h-full bg-green-500 dark:bg-green-600 rounded-full transition-colors duration-300" />
-            </div>
-            <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-4 italic font-medium transition-colors duration-300">
-              {t.vendor.keepItUp || 'استمر في الأداء الممتاز!'}
-            </p>
+            {isLoading ? (
+              <div className="space-y-3 animate-pulse">
+                <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-3/4" />
+                <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded w-full" />
+                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-2/3" />
+              </div>
+            ) : dashboardData?.response_rate !== null && dashboardData?.response_rate !== undefined ? (
+              <>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-bold text-historical-charcoal dark:text-gray-100 transition-colors duration-300">
+                    {t.vendor.responseRate || 'معدل الاستجابة'}
+                  </span>
+                  <span className={cn(
+                    "font-bold transition-colors duration-300",
+                    dashboardData.response_rate >= 90 
+                      ? "text-green-500 dark:text-green-400"
+                      : dashboardData.response_rate >= 70
+                      ? "text-yellow-500 dark:text-yellow-400"
+                      : "text-red-500 dark:text-red-400"
+                  )}>
+                    {dashboardData.response_rate.toFixed(1)}%
+                  </span>
+                </div>
+                <div className="w-full h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden transition-colors duration-300">
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ 
+                      width: `${dashboardData.response_rate}%` 
+                    }}
+                    transition={{ duration: 0.8, ease: "easeOut" }}
+                    className={cn(
+                      "h-full rounded-full transition-colors duration-300",
+                      dashboardData.response_rate >= 90 
+                        ? "bg-green-500 dark:bg-green-600"
+                        : dashboardData.response_rate >= 70
+                        ? "bg-yellow-500 dark:bg-yellow-600"
+                        : "bg-red-500 dark:bg-red-600"
+                    )}
+                  />
+                </div>
+                <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-4 italic font-medium transition-colors duration-300">
+                  {dashboardData.response_rate >= 90
+                    ? (t.vendor.keepItUp || 'استمر في الأداء الممتاز!')
+                    : dashboardData.response_rate >= 70
+                    ? (t.vendor.goodJob || 'أداء جيد، يمكنك التحسين!')
+                    : (t.vendor.needsImprovement || 'يحتاج إلى تحسين')
+                  }
+                </p>
+              </>
+            ) : (
+              <>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-bold text-historical-charcoal dark:text-gray-100 transition-colors duration-300">
+                    {t.vendor.responseRate || 'معدل الاستجابة'}
+                  </span>
+                  <span className="font-bold text-gray-400 dark:text-gray-500 transition-colors duration-300">
+                    {t.vendor.notAvailable || 'غير متاح'}
+                  </span>
+                </div>
+                <div className="w-full h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden transition-colors duration-300">
+                  <div className="w-0 h-full bg-gray-300 dark:bg-gray-600 rounded-full transition-colors duration-300" />
+                </div>
+                <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-4 italic font-medium transition-colors duration-300">
+                  {t.vendor.noDataAvailable || 'لا توجد بيانات كافية لحساب معدل الاستجابة'}
+                </p>
+              </>
+            )}
           </motion.div>
         </div>
       </div>

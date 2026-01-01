@@ -80,6 +80,13 @@ class VendorDashboardOverviewSerializer(serializers.Serializer):
     today_visits = serializers.IntegerField(
         help_text=_('زيارات اليوم / Today\'s visits')
     )
+    
+    # Response Rate Statistics - إحصائيات معدل الاستجابة
+    response_rate = serializers.FloatField(
+        allow_null=True,
+        required=False,
+        help_text=_('معدل الاستجابة (نسبة الطلبات المكتملة) / Response rate (completed orders percentage). Null if no orders available.')
+    )
 
 
 # =============================================================================
