@@ -390,6 +390,167 @@ export async function getVendorDashboardOverview(): Promise<ApiResponse<VendorDa
 }
 
 /**
+ * Recent order type for vendor dashboard
+ * نوع الطلب الأخير للوحة تحكم البائع
+ */
+export interface VendorRecentOrder {
+  id: number
+  order_number: string
+  customer_name: string
+  total: string
+  status: string
+  status_display: string
+  created_at: string
+}
+
+/**
+ * Get recent orders for vendor dashboard
+ * الحصول على الطلبات الأخيرة للوحة تحكم البائع
+ * 
+ * @param limit - Number of orders to return (default: 10, max: 50)
+ * @returns Promise with recent orders list
+ */
+export async function getVendorRecentOrders(
+  limit: number = 10
+): Promise<ApiResponse<VendorRecentOrder[]>> {
+  const endpoint = `/dashboard/recent-orders/?limit=${Math.min(limit, 50)}`
+  return vendorFetch<VendorRecentOrder[]>(endpoint)
+}
+
+// =============================================================================
+// Orders API Functions
+// دوال API الطلبات
+// =============================================================================
+
+/**
+ * Vendor order filters
+ * فلاتر طلبات البائع
+ */
+export interface VendorOrderFilters {
+  search?: string
+  status?: string
+  date_from?: string
+  date_to?: string
+  sort_by?: 'created_at' | 'total' | 'status'
+  sort_dir?: 'asc' | 'desc'
+  page?: number
+  page_size?: number
+}
+
+/**
+ * Vendor order list item
+ * عنصر قائمة طلبات البائع
+ */
+export interface VendorOrder {
+  id: number
+  order_number: string
+  customer_name: string
+  total: string
+  status: string
+  status_display: string
+  items_count: number
+  created_at: string
+}
+
+/**
+ * Vendor order detail
+ * تفاصيل طلب البائع
+ */
+export interface VendorOrderDetail {
+  id: number
+  order_number: string
+  status: string
+  status_display: string
+  order_type: string
+  customer_name: string
+  customer_email: string | null
+  customer_phone: string | null
+  customer_address: string
+  subtotal: string
+  items: Array<{
+    id: number
+    product_name: string
+    variant_name: string
+    quantity: number
+    price: string
+    subtotal: string
+    product_image: string | null
+  }>
+  items_count: number
+  created_at: string
+  updated_at: string
+  notes: string | null
+}
+
+/**
+ * Paginated response
+ * استجابة مقسمة
+ */
+export interface PaginatedResponse<T> {
+  count: number
+  next: string | null
+  previous: string | null
+  results: T[]
+}
+
+/**
+ * Get vendor orders list
+ * الحصول على قائمة طلبات البائع
+ * 
+ * @param filters - Optional filters (search, status, date range, pagination)
+ * @returns Promise with paginated orders list
+ */
+export async function getVendorOrders(
+  filters?: VendorOrderFilters
+): Promise<ApiResponse<PaginatedResponse<VendorOrder>>> {
+  // Build query string
+  const params = new URLSearchParams()
+  
+  if (filters?.search) {
+    params.append('search', filters.search)
+  }
+  if (filters?.status) {
+    params.append('status', filters.status)
+  }
+  if (filters?.date_from) {
+    params.append('date_from', filters.date_from)
+  }
+  if (filters?.date_to) {
+    params.append('date_to', filters.date_to)
+  }
+  if (filters?.sort_by) {
+    params.append('sort_by', filters.sort_by)
+  }
+  if (filters?.sort_dir) {
+    params.append('sort_dir', filters.sort_dir)
+  }
+  if (filters?.page) {
+    params.append('page', filters.page.toString())
+  }
+  if (filters?.page_size) {
+    params.append('page_size', filters.page_size.toString())
+  }
+  
+  const queryString = params.toString()
+  const endpoint = `/orders/${queryString ? `?${queryString}` : ''}`
+  
+  return vendorFetch<PaginatedResponse<VendorOrder>>(endpoint)
+}
+
+/**
+ * Get vendor order details
+ * الحصول على تفاصيل طلب البائع
+ * 
+ * @param id - Order ID
+ * @returns Promise with order details
+ */
+export async function getVendorOrder(
+  id: number
+): Promise<ApiResponse<VendorOrderDetail>> {
+  return vendorFetch<VendorOrderDetail>(`/orders/${id}/`)
+}
+
+/**
  * Change vendor password
  * تغيير كلمة مرور البائع
  * 

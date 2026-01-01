@@ -8,6 +8,7 @@ This package contains all serializers for vendor API endpoints.
 
 from .dashboard import (
     VendorDashboardOverviewSerializer,
+    VendorRecentOrderSerializer,
 )
 from .auth import (
     VendorLoginSerializer,

@@ -288,6 +288,131 @@ class VendorDashboardOverviewView(APIView):
 
 
 # =============================================================================
+# Vendor Recent Orders View
+# عرض الطلبات الأخيرة للبائع
+# =============================================================================
+
+class VendorRecentOrdersView(APIView):
+    """
+    Get recent orders for vendor dashboard.
+    الحصول على الطلبات الأخيرة للوحة تحكم البائع.
+    
+    Returns the most recent orders that contain products from this vendor.
+    يعيد آخر الطلبات التي تحتوي على منتجات من هذا البائع.
+    
+    Security:
+    - Only authenticated vendors can access
+    - Returns orders only for the vendor's products
+    
+    الأمان:
+    - فقط البائعون المسجلون يمكنهم الوصول
+    - يعيد الطلبات فقط لمنتجات البائع
+    """
+    
+    permission_classes = [IsVendorUser, IsVendorOwner]
+    throttle_classes = [VendorUserRateThrottle]
+    
+    @extend_schema(
+        summary='Vendor Recent Orders',
+        description='Get the most recent orders for this vendor',
+        parameters=[
+            OpenApiParameter(
+                name='limit',
+                type=int,
+                location=OpenApiParameter.QUERY,
+                description='Number of orders to return (default: 10, max: 50)',
+                default=10
+            ),
+        ],
+        tags=['Vendor Dashboard'],
+    )
+    def get(self, request):
+        """
+        Get recent orders.
+        الحصول على الطلبات الأخيرة.
+        """
+        from orders.models import Order, OrderItem
+        
+        # Get vendor associated with the authenticated user
+        # الحصول على البائع المرتبط بالمستخدم المسجل
+        try:
+            vendor_user = VendorUser.objects.select_related('vendor').get(user=request.user)
+            vendor = vendor_user.vendor
+        except VendorUser.DoesNotExist:
+            return error_response(
+                message=_('لا يوجد بائع مرتبط بهذا المستخدم / No vendor associated with this user')
+            )
+        
+        limit = int(request.query_params.get('limit', 10))
+        limit = min(limit, 50)  # Max 50 orders
+        
+        # Get all order items that belong to this vendor
+        # الحصول على جميع عناصر الطلب التي تنتمي لهذا البائع
+        vendor_order_items = OrderItem.objects.filter(
+            product_variant__product__vendor=vendor
+        ).select_related('order', 'order__user')
+        
+        # Get unique orders
+        # الحصول على الطلبات الفريدة
+        order_ids = vendor_order_items.values_list('order_id', flat=True).distinct()
+        orders = (
+            Order.objects.filter(id__in=order_ids)
+            .select_related('user')
+            .prefetch_related('items')
+            .order_by('-created_at')[:limit]
+        )
+        
+        # Status display mapping
+        # ربط حالة العرض
+        status_display_map = {
+            'pending': _('قيد الانتظار / Pending'),
+            'confirmed': _('مؤكد / Confirmed'),
+            'shipped': _('تم الشحن / Shipped'),
+            'delivered': _('تم التسليم / Delivered'),
+            'cancelled': _('ملغي / Cancelled'),
+        }
+        
+        # Build response data
+        # بناء بيانات الاستجابة
+        data = []
+        
+        for order in orders:
+            # Get customer name
+            # الحصول على اسم العميل
+            if order.user:
+                customer_name = f"{order.user.first_name} {order.user.last_name}".strip()
+                if not customer_name:
+                    customer_name = order.user.email.split('@')[0] if order.user.email else _('مستخدم / User')
+            else:
+                customer_name = order.customer_name or _('ضيف / Guest')
+            
+            # Calculate total for this vendor's items only
+            # حساب الإجمالي لعناصر هذا البائع فقط
+            vendor_items = vendor_order_items.filter(order=order)
+            vendor_total = sum(
+                Decimal(str(item.price)) * Decimal(str(item.quantity))
+                for item in vendor_items
+            ) or Decimal('0.00')
+            
+            data.append({
+                'id': order.id,
+                'order_number': order.order_number or f"ORD-{order.id:06d}",
+                'customer_name': customer_name,
+                'total': str(vendor_total),
+                'status': order.status,
+                'status_display': status_display_map.get(order.status, order.status),
+                'created_at': order.created_at,
+            })
+        
+        # Return data directly (already validated and formatted)
+        # إرجاع البيانات مباشرة (محققة ومنسقة بالفعل)
+        return success_response(
+            data=data,
+            message=_('تم جلب الطلبات الأخيرة / Recent orders retrieved')
+        )
+
+
+# =============================================================================
 # Vendor Report Export View
 # عرض تصدير تقرير البائع
 # =============================================================================

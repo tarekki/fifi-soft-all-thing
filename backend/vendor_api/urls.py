@@ -15,11 +15,12 @@ API Structure:
 """
 
 from django.urls import path, include
-from vendor_api.views.dashboard import VendorDashboardOverviewView, VendorReportExportView
+from vendor_api.views.dashboard import VendorDashboardOverviewView, VendorRecentOrdersView, VendorReportExportView
 from vendor_api.views.auth import VendorLoginView, VendorMeView, VendorPasswordChangeView
 from vendor_api.views.application import VendorApplicationView
 from vendor_api.views.products import VendorProductListCreateView, VendorProductDetailView
 from vendor_api.views.categories import VendorCategoryListView
+from vendor_api.views.orders import VendorOrderListView, VendorOrderDetailView
 
 
 # =============================================================================
@@ -64,6 +65,13 @@ dashboard_urlpatterns = [
         'overview/',
         VendorDashboardOverviewView.as_view(),
         name='vendor-dashboard-overview'
+    ),
+    # GET /api/v1/vendor/dashboard/recent-orders/
+    # الطلبات الأخيرة
+    path(
+        'recent-orders/',
+        VendorRecentOrdersView.as_view(),
+        name='vendor-dashboard-recent-orders'
     ),
     # GET /api/v1/vendor/dashboard/reports/export/
     # تصدير تقرير البائع كملف Word
@@ -115,6 +123,29 @@ products_urlpatterns = [
 
 
 # =============================================================================
+# Orders URL Patterns
+# أنماط URLs للطلبات
+# =============================================================================
+
+orders_urlpatterns = [
+    # GET /api/v1/vendor/orders/
+    # قائمة الطلبات
+    path(
+        '',
+        VendorOrderListView.as_view(),
+        name='vendor-orders-list'
+    ),
+    # GET /api/v1/vendor/orders/{id}/
+    # تفاصيل الطلب
+    path(
+        '<int:pk>/',
+        VendorOrderDetailView.as_view(),
+        name='vendor-orders-detail'
+    ),
+]
+
+
+# =============================================================================
 # Main URL Patterns
 # أنماط URLs الرئيسية
 # =============================================================================
@@ -143,5 +174,9 @@ urlpatterns = [
     # Products endpoints
     # نقاط نهاية المنتجات
     path('products/', include((products_urlpatterns, 'products'))),
+    
+    # Orders endpoints
+    # نقاط نهاية الطلبات
+    path('orders/', include((orders_urlpatterns, 'orders'))),
 ]
 

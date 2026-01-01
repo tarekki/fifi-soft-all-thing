@@ -81,3 +81,38 @@ class VendorDashboardOverviewSerializer(serializers.Serializer):
         help_text=_('زيارات اليوم / Today\'s visits')
     )
 
+
+# =============================================================================
+# Vendor Recent Order Serializer
+# متسلسل الطلبات الأخيرة للبائع
+# =============================================================================
+
+class VendorRecentOrderSerializer(serializers.Serializer):
+    """
+    Serializer for recent orders in vendor dashboard.
+    متسلسل للطلبات الأخيرة في لوحة تحكم البائع.
+    """
+    
+    id = serializers.IntegerField(
+        help_text=_('معرف الطلب / Order ID')
+    )
+    order_number = serializers.CharField(
+        help_text=_('رقم الطلب / Order number')
+    )
+    customer_name = serializers.CharField(
+        help_text=_('اسم العميل / Customer name')
+    )
+    total = serializers.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        help_text=_('إجمالي الطلب / Order total')
+    )
+    status = serializers.CharField(
+        help_text=_('حالة الطلب / Order status')
+    )
+    status_display = serializers.CharField(
+        help_text=_('عرض حالة الطلب / Order status display')
+    )
+    created_at = serializers.DateTimeField(
+        help_text=_('تاريخ الإنشاء / Created at')
+    )

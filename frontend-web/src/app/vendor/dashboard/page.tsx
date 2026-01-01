@@ -24,7 +24,7 @@ import { useTranslation } from '@/lib/i18n/use-translation'
 import { useLanguage } from '@/lib/i18n/context'
 import { cn } from '@/lib/utils'
 import { Plus, History } from 'lucide-react'
-import { getVendorDashboardOverview, exportVendorReport } from '@/lib/vendor/api'
+import { getVendorDashboardOverview, exportVendorReport, getVendorRecentOrders, type VendorRecentOrder } from '@/lib/vendor/api'
 import { useVendorAuth } from '@/lib/vendor'
 import type { VendorDashboardOverview } from '@/lib/vendor/types'
 
@@ -481,6 +481,7 @@ function RecentOrdersTable({
     total: string
     status: string
     statusAr?: string
+    orderId?: number
   }>
   isLoading?: boolean 
 }) {
@@ -557,7 +558,11 @@ function RecentOrdersTable({
                     {order.date}
                   </td>
                   <td className="px-6 py-4">
-                    <button className="p-2 rounded-lg text-historical-charcoal/40 dark:text-gray-500 hover:text-historical-charcoal dark:hover:text-gray-200 hover:bg-historical-gold/10 dark:hover:bg-gray-700/50 transition-colors">
+                    <button 
+                      onClick={() => router.push(`/vendor/orders/${order.orderId || order.id.replace('#', '')}`)}
+                      className="p-2 rounded-lg text-historical-charcoal/40 dark:text-gray-500 hover:text-historical-charcoal dark:hover:text-gray-200 hover:bg-historical-gold/10 dark:hover:bg-gray-700/50 transition-colors"
+                      title={t.vendor.viewOrder || 'عرض الطلب'}
+                    >
                       {Icons.eye}
                     </button>
                   </td>
@@ -605,6 +610,8 @@ export default function DashboardPage() {
   const [isLoading, setIsLoading] = React.useState(true)
   const [error, setError] = React.useState<string | null>(null)
   const [dashboardData, setDashboardData] = React.useState<VendorDashboardOverview | null>(null)
+  const [recentOrders, setRecentOrders] = React.useState<VendorRecentOrder[]>([])
+  const [isLoadingOrders, setIsLoadingOrders] = React.useState(false)
   const [chartPeriod, setChartPeriod] = React.useState<'week' | 'month' | 'year'>('month')
   const [isExporting, setIsExporting] = React.useState(false)
   
@@ -633,6 +640,31 @@ export default function DashboardPage() {
     }
     
     fetchDashboardData()
+  }, [])
+  
+  // Fetch recent orders from API
+  // جلب الطلبات الأخيرة من API
+  React.useEffect(() => {
+    async function fetchRecentOrders() {
+      try {
+        setIsLoadingOrders(true)
+        
+        const response = await getVendorRecentOrders(10)
+        
+        if (response.success && response.data) {
+          setRecentOrders(response.data)
+        }
+      } catch (err) {
+        console.error('Error fetching recent orders:', err)
+        // Don't show error for orders, just use empty array
+        // لا تعرض خطأ للطلبات، استخدم مصفوفة فارغة فقط
+        setRecentOrders([])
+      } finally {
+        setIsLoadingOrders(false)
+      }
+    }
+    
+    fetchRecentOrders()
   }, [])
   
   // Handle export report
@@ -778,34 +810,23 @@ export default function DashboardPage() {
     ]
   }, [dashboardData, t, language])
 
-  // Recent orders - TODO: Replace with API when endpoint is ready
-  // الطلبات الأخيرة - TODO: استبدال بـ API عندما يكون endpoint جاهزاً
-  const RECENT_ORDERS = [
-    { 
-      id: '#ORD-7281', 
-      customer: dir === 'rtl' ? 'أحمد المحمد' : 'Ahmad Al-Mohammad', 
-      date: dir === 'rtl' ? 'منذ ساعتين' : '2 hours ago', 
-      total: formatCurrency(450000, language === 'ar' ? 'ar-SY' : 'en-US', t.common.currency), 
-      status: 'pending',
-      statusAr: 'قيد الانتظار'
-    },
-    { 
-      id: '#ORD-7275', 
-      customer: dir === 'rtl' ? 'سارة العلي' : 'Sara Al-Ali', 
-      date: dir === 'rtl' ? 'منذ 5 ساعات' : '5 hours ago', 
-      total: formatCurrency(120000, language === 'ar' ? 'ar-SY' : 'en-US', t.common.currency), 
-      status: 'shipping',
-      statusAr: 'قيد الشحن'
-    },
-    { 
-      id: '#ORD-7260', 
-      customer: dir === 'rtl' ? 'ياسين خليل' : 'Yassin Khalil', 
-      date: dir === 'rtl' ? 'أمس' : 'Yesterday', 
-      total: formatCurrency(890000, language === 'ar' ? 'ar-SY' : 'en-US', t.common.currency), 
-      status: 'completed',
-      statusAr: 'مكتمل'
-    },
-  ]
+  // Transform recent orders from API to component format
+  // تحويل الطلبات الأخيرة من API إلى تنسيق المكون
+  const RECENT_ORDERS = React.useMemo(() => {
+    return recentOrders.map((order) => ({
+      id: order.order_number,
+      customer: order.customer_name,
+      date: formatRelativeDate(order.created_at, t),
+      total: formatCurrency(
+        Number(order.total),
+        language === 'ar' ? 'ar-SY' : 'en-US',
+        t.common.currency
+      ),
+      status: order.status,
+      statusAr: order.status_display,
+      orderId: order.id, // Store actual order ID for navigation
+    }))
+  }, [recentOrders, t, language])
 
   // Sales chart data - TODO: Replace with API when endpoint is ready
   // بيانات رسم المبيعات - TODO: استبدال بـ API عندما يكون endpoint جاهزاً
@@ -944,7 +965,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Recent Orders */}
-      <RecentOrdersTable orders={RECENT_ORDERS} isLoading={isLoading} />
+      <RecentOrdersTable orders={RECENT_ORDERS} isLoading={isLoading || isLoadingOrders} />
     </motion.div>
   )
 }
