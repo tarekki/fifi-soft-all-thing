@@ -25,6 +25,7 @@ import { useLanguage } from '@/lib/i18n/context'
 import { cn } from '@/lib/utils'
 import { Plus, History } from 'lucide-react'
 import { getVendorDashboardOverview } from '@/lib/vendor/api'
+import { useVendorAuth } from '@/lib/vendor'
 import type { VendorDashboardOverview } from '@/lib/vendor/types'
 
 // =============================================================================
@@ -520,6 +521,26 @@ export default function DashboardPage() {
   const { t, language } = useLanguage()
   const { dir } = useTranslation()
   const router = useRouter()
+  const { user } = useVendorAuth()
+  
+  // Get user name for greeting
+  // الحصول على اسم المستخدم للترحيب
+  const userName = React.useMemo(() => {
+    if (user?.full_name) {
+      // Extract first name if full name exists
+      // استخراج الاسم الأول إذا كان الاسم الكامل موجوداً
+      const firstName = user.full_name.split(' ')[0]
+      return firstName
+    }
+    if (user?.email) {
+      // Use email username as fallback
+      // استخدام اسم المستخدم من البريد الإلكتروني كبديل
+      return user.email.split('@')[0]
+    }
+    // Default fallback
+    // البديل الافتراضي
+    return language === 'ar' ? 'البائع' : 'Vendor'
+  }, [user, language])
   
   // State management
   // إدارة الحالة
@@ -716,7 +737,7 @@ export default function DashboardPage() {
       <motion.div variants={itemVariants} className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-historical-charcoal dark:text-gray-100 transition-colors duration-300">
-            {t.vendor.welcomeBack?.replace('{name}', 'Tarek') || 'مرحباً بك، Tarek'}
+            {t.vendor.welcomeBack?.replace('{name}', userName) || (language === 'ar' ? `مرحباً بك، ${userName}` : `Welcome Back, ${userName}`)}
           </h1>
           <p className="text-historical-charcoal/50 dark:text-gray-400 mt-1 transition-colors duration-300">
             {t.vendor.performanceToday || 'أداءك اليوم'}

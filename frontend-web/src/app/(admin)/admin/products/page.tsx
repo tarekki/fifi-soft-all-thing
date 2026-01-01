@@ -748,9 +748,11 @@ interface ViewProductModalProps {
   isOpen: boolean
   onClose: () => void
   product: Product | null
+  showAlert: (title: string, message: string, type?: 'error' | 'warning' | 'info' | 'success') => void
+  showConfirm: (title: string, message: string, onConfirm: () => void) => void
 }
 
-function ViewProductModal({ isOpen, onClose, product }: ViewProductModalProps) {
+function ViewProductModal({ isOpen, onClose, product, showAlert, showConfirm }: ViewProductModalProps) {
   const { t } = useLanguage()
   const [productDetail, setProductDetail] = useState<ProductDetail | null>(null)
   const [isLoadingDetail, setIsLoadingDetail] = useState(false)
@@ -2404,6 +2406,8 @@ export default function ProductsPage() {
           setViewingProduct(null)
         }}
         product={viewingProduct}
+        showAlert={showAlert}
+        showConfirm={showConfirm}
       />
 
       {/* Alert Modal */}

@@ -18,6 +18,8 @@ from django.urls import path, include
 from vendor_api.views.dashboard import VendorDashboardOverviewView
 from vendor_api.views.auth import VendorLoginView, VendorMeView, VendorPasswordChangeView
 from vendor_api.views.application import VendorApplicationView
+from vendor_api.views.products import VendorProductListCreateView, VendorProductDetailView
+from vendor_api.views.categories import VendorCategoryListView
 
 
 # =============================================================================
@@ -67,6 +69,45 @@ dashboard_urlpatterns = [
 
 
 # =============================================================================
+# Categories URL Patterns
+# أنماط URLs للفئات
+# =============================================================================
+
+categories_urlpatterns = [
+    # GET /api/v1/vendor/categories/
+    # قائمة الفئات (قراءة فقط)
+    path(
+        '',
+        VendorCategoryListView.as_view(),
+        name='vendor-categories-list'
+    ),
+]
+
+
+# =============================================================================
+# Products URL Patterns
+# أنماط URLs للمنتجات
+# =============================================================================
+
+products_urlpatterns = [
+    # GET, POST /api/v1/vendor/products/
+    # قائمة المنتجات وإنشاء منتج جديد
+    path(
+        '',
+        VendorProductListCreateView.as_view(),
+        name='vendor-products-list-create'
+    ),
+    # GET, PUT, DELETE /api/v1/vendor/products/{id}/
+    # تفاصيل المنتج، تحديث، حذف
+    path(
+        '<int:pk>/',
+        VendorProductDetailView.as_view(),
+        name='vendor-products-detail'
+    ),
+]
+
+
+# =============================================================================
 # Main URL Patterns
 # أنماط URLs الرئيسية
 # =============================================================================
@@ -87,5 +128,13 @@ urlpatterns = [
     # Dashboard endpoints
     # نقاط نهاية لوحة التحكم
     path('dashboard/', include((dashboard_urlpatterns, 'dashboard'))),
+    
+    # Categories endpoints (read-only)
+    # نقاط نهاية الفئات (قراءة فقط)
+    path('categories/', include((categories_urlpatterns, 'categories'))),
+    
+    # Products endpoints
+    # نقاط نهاية المنتجات
+    path('products/', include((products_urlpatterns, 'products'))),
 ]
 

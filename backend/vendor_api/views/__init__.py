@@ -16,11 +16,21 @@ from .auth import (
 from .application import (
     VendorApplicationView,
 )
+from .products import (
+    VendorProductListCreateView,
+    VendorProductDetailView,
+)
+from .categories import (
+    VendorCategoryListView,
+)
 
 __all__ = [
     'VendorDashboardOverviewView',
     'VendorLoginView',
     'VendorMeView',
     'VendorApplicationView',
+    'VendorProductListCreateView',
+    'VendorProductDetailView',
+    'VendorCategoryListView',
 ]
 

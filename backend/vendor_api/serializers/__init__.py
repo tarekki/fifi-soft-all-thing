@@ -15,10 +15,28 @@ from .auth import (
 from .application import (
     VendorApplicationSerializer,
 )
+from .products import (
+    VendorProductListSerializer,
+    VendorProductDetailSerializer,
+    VendorProductCreateSerializer,
+    VendorProductUpdateSerializer,
+    VendorProductImageSerializer,
+    VendorProductImageCreateSerializer,
+    VendorProductVariantSerializer,
+    VendorProductVariantCreateSerializer,
+)
 
 __all__ = [
     'VendorDashboardOverviewSerializer',
     'VendorLoginSerializer',
     'VendorApplicationSerializer',
+    'VendorProductListSerializer',
+    'VendorProductDetailSerializer',
+    'VendorProductCreateSerializer',
+    'VendorProductUpdateSerializer',
+    'VendorProductImageSerializer',
+    'VendorProductImageCreateSerializer',
+    'VendorProductVariantSerializer',
+    'VendorProductVariantCreateSerializer',
 ]
 

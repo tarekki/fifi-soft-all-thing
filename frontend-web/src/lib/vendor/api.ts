@@ -405,3 +405,322 @@ export async function changeVendorPassword(
   })
 }
 
+// =============================================================================
+// Products API Functions
+// دوال API المنتجات
+// =============================================================================
+
+/**
+ * Product types for vendor API
+ * أنواع المنتجات لـ API البائع
+ */
+export interface VendorProduct {
+  id: number
+  name: string
+  slug: string
+  description: string | null
+  base_price: string
+  product_type: string | null
+  category: number | null
+  category_name: string | null
+  category_name_ar: string | null
+  variants_count: number
+  total_stock: number
+  main_image: string | null
+  status: 'active' | 'draft' | 'out_of_stock'
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface VendorProductDetail extends VendorProduct {
+  images: Array<{
+    id: number
+    image: string | null
+    image_url: string | null
+    display_order: number
+    is_primary: boolean
+    alt_text: string | null
+    created_at: string
+    updated_at: string
+  }>
+  variants: Array<{
+    id: number
+    color: string
+    color_hex: string | null
+    size: string | null
+    model: string | null
+    sku: string | null
+    stock_quantity: number
+    price_override: string | null
+    final_price: string
+    image: string | null
+    image_url: string | null
+    is_available: boolean
+    created_at: string
+    updated_at: string
+  }>
+}
+
+export interface VendorProductCreatePayload {
+  name: string
+  description?: string
+  base_price: number
+  product_type?: string
+  category_id?: number | null
+  is_active?: boolean
+  variants?: Array<{
+    color: string
+    color_hex?: string
+    size?: string
+    model?: string
+    sku?: string
+    stock_quantity?: number
+    price_override?: number
+    image?: File
+    is_available?: boolean
+  }>
+}
+
+export interface VendorProductUpdatePayload {
+  name?: string
+  description?: string
+  base_price?: number
+  product_type?: string
+  category_id?: number | null
+  is_active?: boolean
+}
+
+export interface VendorProductFilters {
+  search?: string
+  category?: number
+  status?: 'active' | 'draft' | 'out_of_stock'
+  is_active?: boolean
+  sort_by?: 'name' | 'price' | 'created_at'
+  sort_dir?: 'asc' | 'desc'
+  page?: number
+  page_size?: number
+}
+
+export interface VendorProductPagination {
+  count: number
+  next: string | null
+  previous: string | null
+  page: number
+  page_size: number
+  total_pages: number
+}
+
+export interface VendorProductListResponse {
+  results: VendorProduct[]
+  pagination: VendorProductPagination
+}
+
+/**
+ * Get vendor products list
+ * الحصول على قائمة منتجات البائع
+ * 
+ * @param filters - Optional filters (search, category, status, etc.)
+ * @returns Promise with paginated products list
+ */
+export async function getVendorProducts(
+  filters?: VendorProductFilters
+): Promise<ApiResponse<VendorProductListResponse>> {
+  // Build query string
+  const params = new URLSearchParams()
+  
+  if (filters?.search) {
+    params.append('search', filters.search)
+  }
+  if (filters?.category) {
+    params.append('category', filters.category.toString())
+  }
+  if (filters?.status) {
+    params.append('status', filters.status)
+  }
+  if (filters?.is_active !== undefined) {
+    params.append('is_active', filters.is_active.toString())
+  }
+  if (filters?.sort_by) {
+    params.append('sort_by', filters.sort_by)
+  }
+  if (filters?.sort_dir) {
+    params.append('sort_dir', filters.sort_dir)
+  }
+  if (filters?.page) {
+    params.append('page', filters.page.toString())
+  }
+  if (filters?.page_size) {
+    params.append('page_size', filters.page_size.toString())
+  }
+  
+  const queryString = params.toString()
+  const endpoint = `/products/${queryString ? `?${queryString}` : ''}`
+  
+  return vendorFetch<VendorProductListResponse>(endpoint)
+}
+
+/**
+ * Get vendor product details
+ * الحصول على تفاصيل منتج البائع
+ * 
+ * @param id - Product ID
+ * @returns Promise with product details
+ */
+export async function getVendorProduct(
+  id: number
+): Promise<ApiResponse<VendorProductDetail>> {
+  return vendorFetch<VendorProductDetail>(`/products/${id}/`)
+}
+
+/**
+ * Create vendor product
+ * إنشاء منتج للبائع
+ * 
+ * @param data - Product data (vendor_id set automatically from session)
+ * @returns Promise with created product
+ */
+export async function createVendorProduct(
+  data: VendorProductCreatePayload
+): Promise<ApiResponse<VendorProductDetail>> {
+  // Create FormData if there are images or files
+  // إنشاء FormData إذا كانت هناك صور أو ملفات
+  const hasFiles = data.variants?.some(v => v.image instanceof File)
+  
+  if (hasFiles) {
+    const formData = new FormData()
+    
+    // Add basic fields
+    formData.append('name', data.name)
+    if (data.description) {
+      formData.append('description', data.description)
+    }
+    formData.append('base_price', data.base_price.toString())
+    if (data.product_type) {
+      formData.append('product_type', data.product_type)
+    }
+    if (data.category_id !== undefined) {
+      formData.append('category_id', data.category_id?.toString() || '')
+    }
+    if (data.is_active !== undefined) {
+      formData.append('is_active', data.is_active.toString())
+    }
+    
+    // Add variants if provided
+    if (data.variants && data.variants.length > 0) {
+      formData.append('variants', JSON.stringify(data.variants.map(v => ({
+        ...v,
+        image: undefined, // Remove File from JSON
+      }))))
+      
+      // Handle variant images separately if needed
+      // (This is a simplified version - you might need to adjust based on backend)
+    }
+    
+    return vendorFetch<VendorProductDetail>('/products/', {
+      method: 'POST',
+      body: formData,
+    })
+  }
+  
+  // Use JSON for simple requests
+  return vendorFetch<VendorProductDetail>('/products/', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  })
+}
+
+/**
+ * Update vendor product
+ * تحديث منتج البائع
+ * 
+ * @param id - Product ID
+ * @param data - Product update data
+ * @returns Promise with updated product
+ */
+export async function updateVendorProduct(
+  id: number,
+  data: VendorProductUpdatePayload
+): Promise<ApiResponse<VendorProductDetail>> {
+  return vendorFetch<VendorProductDetail>(`/products/${id}/`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  })
+}
+
+/**
+ * Delete vendor product
+ * حذف منتج البائع
+ * 
+ * @param id - Product ID
+ * @returns Promise with success response
+ */
+export async function deleteVendorProduct(
+  id: number
+): Promise<ApiResponse<null>> {
+  return vendorFetch<null>(`/products/${id}/`, {
+    method: 'DELETE',
+  })
+}
+
+// =============================================================================
+// Categories API Functions
+// دوال API الفئات
+// =============================================================================
+
+/**
+ * Category type for vendor API
+ * نوع الفئة لـ API البائع
+ */
+export interface VendorCategory {
+  id: number
+  name: string
+  name_ar: string
+  slug: string
+  description: string | null
+  description_ar: string | null
+  is_active: boolean
+}
+
+export interface VendorCategoryListResponse {
+  results: VendorCategory[]
+  pagination: VendorProductPagination
+}
+
+/**
+ * Get vendor categories list (read-only)
+ * الحصول على قائمة فئات البائع (قراءة فقط)
+ * 
+ * @param filters - Optional filters (search, is_active)
+ * @returns Promise with paginated categories list
+ */
+export async function getVendorCategories(
+  filters?: {
+    search?: string
+    is_active?: boolean
+    page?: number
+    page_size?: number
+  }
+): Promise<ApiResponse<VendorCategoryListResponse>> {
+  // Build query string
+  const params = new URLSearchParams()
+  
+  if (filters?.search) {
+    params.append('search', filters.search)
+  }
+  if (filters?.is_active !== undefined) {
+    params.append('is_active', filters.is_active.toString())
+  }
+  if (filters?.page) {
+    params.append('page', filters.page.toString())
+  }
+  if (filters?.page_size) {
+    params.append('page_size', filters.page_size.toString())
+  }
+  
+  const queryString = params.toString()
+  const endpoint = `/categories/${queryString ? `?${queryString}` : ''}`
+  
+  return vendorFetch<VendorCategoryListResponse>(endpoint)
+}
+

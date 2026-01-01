@@ -301,14 +301,27 @@ class Product(models.Model):
                 i += 1
             self.slug = slug
         
+        # Save first (for insert) or update (for existing)
+        # حفظ أولاً (للإدراج) أو تحديث (للموجود)
+        is_new = self.pk is None
+        super().save(*args, **kwargs)
+        
         # Update search vector for Full-Text Search (PostgreSQL only)
         # تحديث search vector للبحث النصي الكامل (PostgreSQL فقط)
+        # Must use update() after save because SearchVector is an F() expression
+        # يجب استخدام update() بعد الحفظ لأن SearchVector هو F() expression
         if POSTGRES_AVAILABLE:
             from django.contrib.postgres.search import SearchVector
-            self.search_vector = SearchVector('name', weight='A', config='arabic') + \
-                               SearchVector('description', weight='B', config='arabic')
-        
-        super().save(*args, **kwargs)
+            from django.db.models import F
+            # Use update() to set SearchVector (F() expressions can only be used in update, not insert)
+            # استخدام update() لتعيين SearchVector (F() expressions يمكن استخدامها فقط في update، وليس insert)
+            Product.objects.filter(pk=self.pk).update(
+                search_vector=SearchVector('name', weight='A', config='arabic') + 
+                             SearchVector('description', weight='B', config='arabic')
+            )
+            # Refresh from database to get updated search_vector
+            # تحديث من قاعدة البيانات للحصول على search_vector المحدث
+            self.refresh_from_db()
     
     def __str__(self):
         return f"{self.vendor.name} - {self.name}"
