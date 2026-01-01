@@ -10,6 +10,7 @@ from .dashboard import (
     VendorDashboardOverviewSerializer,
     VendorRecentOrderSerializer,
     VendorSalesChartSerializer,
+    VendorDashboardTipSerializer,
 )
 from .auth import (
     VendorLoginSerializer,

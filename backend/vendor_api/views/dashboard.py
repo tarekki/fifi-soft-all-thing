@@ -558,6 +558,209 @@ class VendorSalesChartView(APIView):
         return success_response(
             data=data,
             message=_('تم جلب بيانات الرسم البياني / Chart data retrieved')
+            )
+
+
+# =============================================================================
+# Vendor Dashboard Tips View
+# عرض نصائح لوحة تحكم البائع
+# =============================================================================
+
+class VendorDashboardTipsView(APIView):
+    """
+    Get dynamic tips for vendor dashboard.
+    الحصول على نصائح ديناميكية للوحة تحكم البائع.
+    
+    Returns actionable tips based on vendor's current status:
+    - Low stock products
+    - Out of stock products
+    - Inactive products
+    - Other relevant suggestions
+    
+    يعيد نصائح قابلة للتنفيذ بناءً على حالة البائع الحالية:
+    - منتجات قليلة المخزون
+    - منتجات نفد المخزون
+    - منتجات غير نشطة
+    - اقتراحات أخرى ذات صلة
+    
+    Security:
+    - Only authenticated vendors can access
+    - Returns tips only for the vendor's products
+    - Uses throttling to prevent abuse
+    
+    الأمان:
+    - فقط البائعون المسجلون يمكنهم الوصول
+    - يعيد النصائح فقط لمنتجات البائع
+    - يستخدم تحديد المعدل لمنع الإساءة
+    """
+    
+    permission_classes = [IsVendorUser, IsVendorOwner]
+    throttle_classes = [VendorUserRateThrottle]
+    
+    @extend_schema(
+        summary='Vendor Dashboard Tips',
+        description='Get dynamic tips for vendor dashboard based on current status',
+        tags=['Vendor Dashboard'],
+    )
+    def get(self, request):
+        """
+        Get dashboard tips.
+        الحصول على نصائح لوحة التحكم.
+        """
+        from products.models import Product, ProductVariant
+        
+        # Get vendor associated with the authenticated user
+        # الحصول على البائع المرتبط بالمستخدم المسجل
+        try:
+            vendor_user = VendorUser.objects.select_related('vendor').get(user=request.user)
+            vendor = vendor_user.vendor
+        except VendorUser.DoesNotExist:
+            return error_response(
+                message=_('لا يوجد بائع مرتبط بهذا المستخدم / No vendor associated with this user')
+            )
+        
+        # Get out of stock products (all variants have stock_quantity = 0)
+        # الحصول على المنتجات التي نفد مخزونها (جميع المتغيرات لديها stock_quantity = 0)
+        out_of_stock_products = Product.objects.filter(
+            vendor=vendor,
+            is_active=True
+        ).annotate(
+            total_stock=Sum('variants__stock_quantity')
+        ).filter(
+            total_stock=0
+        ).prefetch_related('variants')[:5]  # Limit to 5 products
+        
+        # Get low stock products (has variants with stock_quantity < 10 and > 0)
+        # الحصول على المنتجات قليلة المخزون (لديها متغيرات بمخزون < 10 و > 0)
+        low_stock_products = Product.objects.filter(
+            vendor=vendor,
+            is_active=True,
+            variants__stock_quantity__lt=10,
+            variants__stock_quantity__gt=0
+        ).distinct().prefetch_related('variants')[:5]  # Limit to 5 products
+        
+        # Get inactive products
+        # الحصول على المنتجات غير النشطة
+        inactive_products = Product.objects.filter(
+            vendor=vendor,
+            is_active=False
+        )[:5]  # Limit to 5 products
+        
+        # Build tips based on priority
+        # بناء النصائح بناءً على الأولوية
+        tips = []
+        
+        # Priority 1: Out of stock products
+        # الأولوية 1: المنتجات التي نفد مخزونها
+        if out_of_stock_products.exists():
+            product = out_of_stock_products.first()
+            tip = {
+                'type': 'out_of_stock',
+                'priority': 1,
+                'title_ar': 'منتج نفد مخزونه',
+                'title_en': 'Out of Stock Product',
+                'message_ar': f'لقد نفذت كمية <b>"{product.name}"</b>. قم بتحديث المخزون الآن لضمان عدم ضياع أي طلبات محتملة.',
+                'message_en': f'The stock for <b>"{product.name}"</b> is out. Update inventory now to avoid losing potential orders.',
+                'action_text_ar': 'تحديث المخزون',
+                'action_text_en': 'Update Stock',
+                'action_url': f'/vendor/products/{product.id}',
+                'product_id': product.id,
+                'product_name': product.name,
+            }
+            tips.append(tip)
+        
+        # Priority 2: Low stock products
+        # الأولوية 2: المنتجات قليلة المخزون
+        elif low_stock_products.exists():
+            product = low_stock_products.first()
+            # Get the variant with lowest stock
+            # الحصول على المتغير بأقل مخزون
+            variant = product.variants.filter(
+                stock_quantity__lt=10,
+                stock_quantity__gt=0
+            ).order_by('stock_quantity').first()
+            
+            variant_name = f"{variant.color}"
+            if variant.size:
+                variant_name += f" - {variant.size}"
+            
+            tip = {
+                'type': 'low_stock',
+                'priority': 2,
+                'title_ar': 'منتج قليل المخزون',
+                'title_en': 'Low Stock Product',
+                'message_ar': f'المخزون لـ <b>"{product.name} - {variant_name}"</b> منخفض ({variant.stock_quantity} قطع متبقية). قم بتحديث المخزون قريباً.',
+                'message_en': f'Stock for <b>"{product.name} - {variant_name}"</b> is low ({variant.stock_quantity} items remaining). Update inventory soon.',
+                'action_text_ar': 'تحديث المخزون',
+                'action_text_en': 'Update Stock',
+                'action_url': f'/vendor/products/{product.id}',
+                'product_id': product.id,
+                'product_name': product.name,
+            }
+            tips.append(tip)
+        
+        # Priority 3: Inactive products
+        # الأولوية 3: المنتجات غير النشطة
+        elif inactive_products.exists():
+            product = inactive_products.first()
+            tip = {
+                'type': 'inactive',
+                'priority': 3,
+                'title_ar': 'منتج غير نشط',
+                'title_en': 'Inactive Product',
+                'message_ar': f'المنتج <b>"{product.name}"</b> غير نشط حالياً. قم بتفعيله لزيادة المبيعات.',
+                'message_en': f'Product <b>"{product.name}"</b> is currently inactive. Activate it to increase sales.',
+                'action_text_ar': 'تفعيل المنتج',
+                'action_text_en': 'Activate Product',
+                'action_url': f'/vendor/products/{product.id}',
+                'product_id': product.id,
+                'product_name': product.name,
+            }
+            tips.append(tip)
+        
+        # Default tip if no issues found
+        # نصيحة افتراضية إذا لم توجد مشاكل
+        if not tips:
+            tip = {
+                'type': 'general',
+                'priority': 4,
+                'title_ar': 'نصيحة عامة',
+                'title_en': 'General Tip',
+                'message_ar': 'أداؤك ممتاز! استمر في تحديث المخزون بانتظام للحفاظ على المبيعات.',
+                'message_en': 'Your performance is excellent! Keep updating inventory regularly to maintain sales.',
+                'action_text_ar': 'عرض المنتجات',
+                'action_text_en': 'View Products',
+                'action_url': '/vendor/products',
+                'product_id': None,
+                'product_name': None,
+            }
+            tips.append(tip)
+        
+        # Return the highest priority tip
+        # إرجاع النصيحة ذات الأولوية الأعلى
+        tip = tips[0]  # Already sorted by priority
+        
+        # Build response data
+        # بناء بيانات الاستجابة
+        data = {
+            'type': tip['type'],
+            'priority': tip['priority'],
+            'title_ar': tip['title_ar'],
+            'title_en': tip['title_en'],
+            'message_ar': tip['message_ar'],
+            'message_en': tip['message_en'],
+            'action_text_ar': tip['action_text_ar'],
+            'action_text_en': tip['action_text_en'],
+            'action_url': tip['action_url'],
+            'product_id': tip['product_id'],
+            'product_name': tip['product_name'],
+        }
+        
+        # Return data directly (already validated and formatted)
+        # إرجاع البيانات مباشرة (محققة ومنسقة بالفعل)
+        return success_response(
+            data=data,
+            message=_('تم جلب النصيحة / Tip retrieved')
         )
 
 

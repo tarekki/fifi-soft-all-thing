@@ -23,8 +23,8 @@ import { useRouter } from 'next/navigation'
 import { useTranslation } from '@/lib/i18n/use-translation'
 import { useLanguage } from '@/lib/i18n/context'
 import { cn } from '@/lib/utils'
-import { Plus, History } from 'lucide-react'
-import { getVendorDashboardOverview, exportVendorReport, getVendorRecentOrders, getVendorSalesChart, type VendorRecentOrder, type VendorSalesChartData } from '@/lib/vendor/api'
+import { Plus, History, Loader2 } from 'lucide-react'
+import { getVendorDashboardOverview, exportVendorReport, getVendorRecentOrders, getVendorSalesChart, getVendorDashboardTip, type VendorRecentOrder, type VendorSalesChartData, type VendorDashboardTip } from '@/lib/vendor/api'
 import { useVendorAuth } from '@/lib/vendor'
 import type { VendorDashboardOverview } from '@/lib/vendor/types'
 
@@ -661,6 +661,8 @@ export default function DashboardPage() {
   const [chartPeriod, setChartPeriod] = React.useState<'week' | 'month' | 'year'>('month')
   const [salesChartData, setSalesChartData] = React.useState<VendorSalesChartData | null>(null)
   const [isLoadingChart, setIsLoadingChart] = React.useState(false)
+  const [dashboardTip, setDashboardTip] = React.useState<VendorDashboardTip | null>(null)
+  const [isLoadingTip, setIsLoadingTip] = React.useState(false)
   const [isExporting, setIsExporting] = React.useState(false)
   
   // Fetch dashboard data from API
@@ -739,6 +741,31 @@ export default function DashboardPage() {
     
     fetchSalesChart()
   }, [chartPeriod])
+  
+  // Fetch dashboard tip from API
+  // جلب نصيحة لوحة التحكم من API
+  React.useEffect(() => {
+    async function fetchTip() {
+      try {
+        setIsLoadingTip(true)
+        
+        const response = await getVendorDashboardTip()
+        
+        if (response.success && response.data) {
+          setDashboardTip(response.data)
+        }
+      } catch (err) {
+        console.error('Error fetching dashboard tip:', err)
+        // Don't show error for tip, just use null
+        // لا تعرض خطأ للنصيحة، استخدم null فقط
+        setDashboardTip(null)
+      } finally {
+        setIsLoadingTip(false)
+      }
+    }
+    
+    fetchTip()
+  }, [])
   
   // Handle export report
   // معالجة تصدير التقرير
@@ -1006,17 +1033,51 @@ export default function DashboardPage() {
           >
             <div className="absolute top-0 right-0 w-40 h-40 bg-historical-gold opacity-10 dark:opacity-20 rounded-full blur-3xl -mr-20 -mt-20 group-hover:opacity-20 dark:group-hover:opacity-30 transition-opacity" />
             <h4 className="text-historical-gold dark:text-yellow-400 font-black uppercase tracking-widest text-xs mb-4 transition-colors duration-300">
-              {t.vendor.tipOfDay || 'نصيحة اليوم'}
+              {isLoadingTip ? (
+                <Loader2 className="w-4 h-4 animate-spin inline" />
+              ) : (
+                dashboardTip 
+                  ? (language === 'ar' ? dashboardTip.title_ar : dashboardTip.title_en)
+                  : (t.vendor.tipOfDay || 'نصيحة اليوم')
+              )}
             </h4>
-            <p className="font-medium text-historical-charcoal dark:text-gray-200 leading-relaxed transition-colors duration-300">
-              {dir === 'rtl'
-                ? <>لقد نفذت كمية <b className="text-historical-charcoal dark:text-gray-100">"حذاء فيفي أطفال - أحمر"</b>. قم بتحديث المخزون الآن لضمان عدم ضياع أي طلبات محتملة.</>
-                : <>The stock for <b className="text-historical-charcoal dark:text-gray-100">"Fifi Kids Shoes - Red"</b> is out. Update inventory now to avoid losing potential orders.</>
-              }
-            </p>
-            <button className="mt-6 w-full py-3 bg-historical-gold dark:bg-yellow-600 text-white dark:text-white font-black rounded-xl hover:scale-105 transition-all text-sm">
-              {t.vendor.updateStock || 'تحديث المخزون'}
-            </button>
+            {isLoadingTip ? (
+              <div className="space-y-2 animate-pulse">
+                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4" />
+                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full" />
+                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-5/6" />
+              </div>
+            ) : dashboardTip ? (
+              <>
+                <p 
+                  className="font-medium text-historical-charcoal dark:text-gray-200 leading-relaxed transition-colors duration-300"
+                  dangerouslySetInnerHTML={{
+                    __html: language === 'ar' ? dashboardTip.message_ar : dashboardTip.message_en
+                  }}
+                />
+                <button 
+                  onClick={() => router.push(dashboardTip.action_url)}
+                  className="mt-6 w-full py-3 bg-historical-gold dark:bg-yellow-600 text-white dark:text-white font-black rounded-xl hover:scale-105 transition-all text-sm"
+                >
+                  {language === 'ar' ? dashboardTip.action_text_ar : dashboardTip.action_text_en}
+                </button>
+              </>
+            ) : (
+              <>
+                <p className="font-medium text-historical-charcoal dark:text-gray-200 leading-relaxed transition-colors duration-300">
+                  {dir === 'rtl'
+                    ? <>لا توجد نصائح متاحة حالياً.</>
+                    : <>No tips available at the moment.</>
+                  }
+                </p>
+                <button 
+                  onClick={() => router.push('/vendor/products')}
+                  className="mt-6 w-full py-3 bg-historical-gold dark:bg-yellow-600 text-white dark:text-white font-black rounded-xl hover:scale-105 transition-all text-sm"
+                >
+                  {t.vendor.viewProducts || 'عرض المنتجات'}
+                </button>
+              </>
+            )}
           </motion.div>
 
           {/* Response Rate Card */}

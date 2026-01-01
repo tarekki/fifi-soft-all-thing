@@ -144,3 +144,52 @@ class VendorSalesChartSerializer(serializers.Serializer):
     period = serializers.CharField(
         help_text=_('الفترة الزمنية (week, month, year) / Time period')
     )
+
+
+# =============================================================================
+# Vendor Dashboard Tip Serializer
+# متسلسل نصيحة لوحة تحكم البائع
+# =============================================================================
+
+class VendorDashboardTipSerializer(serializers.Serializer):
+    """
+    Serializer for vendor dashboard tip.
+    متسلسل لنصيحة لوحة تحكم البائع.
+    """
+    
+    type = serializers.CharField(
+        help_text=_('نوع النصيحة (out_of_stock, low_stock, inactive, general) / Tip type')
+    )
+    priority = serializers.IntegerField(
+        help_text=_('أولوية النصيحة (1 = أعلى) / Tip priority (1 = highest)')
+    )
+    title_ar = serializers.CharField(
+        help_text=_('عنوان النصيحة بالعربية / Tip title in Arabic')
+    )
+    title_en = serializers.CharField(
+        help_text=_('عنوان النصيحة بالإنجليزية / Tip title in English')
+    )
+    message_ar = serializers.CharField(
+        help_text=_('رسالة النصيحة بالعربية / Tip message in Arabic')
+    )
+    message_en = serializers.CharField(
+        help_text=_('رسالة النصيحة بالإنجليزية / Tip message in English')
+    )
+    action_text_ar = serializers.CharField(
+        help_text=_('نص الزر بالعربية / Button text in Arabic')
+    )
+    action_text_en = serializers.CharField(
+        help_text=_('نص الزر بالإنجليزية / Button text in English')
+    )
+    action_url = serializers.CharField(
+        help_text=_('رابط الإجراء / Action URL')
+    )
+    product_id = serializers.IntegerField(
+        allow_null=True,
+        help_text=_('معرف المنتج (إن وجد) / Product ID (if applicable)')
+    )
+    product_name = serializers.CharField(
+        allow_null=True,
+        allow_blank=True,
+        help_text=_('اسم المنتج (إن وجد) / Product name (if applicable)')
+    )

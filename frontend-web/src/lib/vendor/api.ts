@@ -442,6 +442,35 @@ export async function getVendorSalesChart(
   return vendorFetch<VendorSalesChartData>(endpoint)
 }
 
+/**
+ * Vendor dashboard tip data type
+ * نوع بيانات نصيحة لوحة تحكم البائع
+ */
+export interface VendorDashboardTip {
+  type: 'out_of_stock' | 'low_stock' | 'inactive' | 'general'
+  priority: number
+  title_ar: string
+  title_en: string
+  message_ar: string
+  message_en: string
+  action_text_ar: string
+  action_text_en: string
+  action_url: string
+  product_id: number | null
+  product_name: string | null
+}
+
+/**
+ * Get dashboard tip for vendor
+ * الحصول على نصيحة لوحة التحكم للبائع
+ * 
+ * @returns Promise with dashboard tip
+ */
+export async function getVendorDashboardTip(): Promise<ApiResponse<VendorDashboardTip>> {
+  const endpoint = `/dashboard/tips/`
+  return vendorFetch<VendorDashboardTip>(endpoint)
+}
+
 // =============================================================================
 // Orders API Functions
 // دوال API الطلبات
