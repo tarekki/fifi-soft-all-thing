@@ -24,6 +24,7 @@ from vendors.urls import urlpatterns as vendors_urls
 from products.urls import urlpatterns as products_urls
 from cart.urls import urlpatterns as cart_urls
 from orders.urls import urlpatterns as orders_urls
+from vendor_api.urls import urlpatterns as vendor_api_urls
 from .views import api_v1_home
 
 # ============================================================================
@@ -65,5 +66,10 @@ urlpatterns = [
     # نقاط نهاية الطلبات
     # /api/v1/orders/, /api/v1/orders/{id}/
     path("orders/", include(orders_urls), name="api-v1-orders"),
+    
+    # Vendor API endpoints
+    # نقاط نهاية API البائعين
+    # /api/v1/vendor/dashboard/overview/, etc.
+    path("vendor/", include(vendor_api_urls), name="api-v1-vendor"),
 ]
 

@@ -98,6 +98,46 @@ export interface VendorCreatePayload {
 }
 
 /**
+ * Payload for creating vendor with user account
+ * بيانات إنشاء بائع مع حساب مستخدم
+ */
+export interface VendorWithUserCreatePayload {
+  // Vendor fields
+  vendor_name: string
+  vendor_description?: string
+  vendor_logo?: File | null
+  vendor_primary_color?: string
+  commission_rate?: number
+  is_active?: boolean
+  
+  // User fields
+  user_email: string
+  user_full_name: string
+  user_phone: string
+  
+  // User creation options
+  use_existing_user?: boolean
+  user_id?: number | null
+}
+
+/**
+ * Response for creating vendor with user
+ * استجابة إنشاء بائع مع مستخدم
+ */
+export interface VendorWithUserCreateResponse {
+  vendor: VendorDetail
+  user: {
+    id: number
+    email: string
+    full_name: string
+    phone: string
+    role: string
+    is_active: boolean
+  }
+  temp_password?: string
+}
+
+/**
  * Payload for updating an existing vendor
  * بيانات تعديل بائع موجود
  */

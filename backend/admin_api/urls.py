@@ -57,6 +57,7 @@ from admin_api.views import (
     AdminVendorCommissionUpdateView,
     AdminVendorBulkActionView,
     AdminVendorStatsView,
+    AdminVendorWithUserCreateView,
     # Vendor Applications
     AdminVendorApplicationListView,
     AdminVendorApplicationDetailView,
@@ -378,6 +379,14 @@ vendors_urlpatterns = [
         '',
         AdminVendorListCreateView.as_view(),
         name='list-create'
+    ),
+    
+    # POST /api/v1/admin/vendors/create-with-user/
+    # إنشاء بائع مع مستخدم (إنشاء كامل)
+    path(
+        'create-with-user/',
+        AdminVendorWithUserCreateView.as_view(),
+        name='create-with-user'
     ),
     
     # GET /api/v1/admin/vendors/stats/

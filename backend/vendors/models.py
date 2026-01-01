@@ -383,14 +383,35 @@ class VendorApplication(models.Model):
         Approve the application and create a vendor
         الموافقة على الطلب وإنشاء بائع
         
+        This method:
+        1. Creates the Vendor
+        2. If user exists: Changes role to 'vendor' and creates VendorUser
+        3. If user doesn't exist: Creates new user with temporary password
+        4. Updates application status
+        
+        هذه الطريقة:
+        1. تنشئ البائع
+        2. إذا كان المستخدم موجود: تغير role إلى 'vendor' وتنشئ VendorUser
+        3. إذا لم يكن المستخدم موجود: تنشئ مستخدم جديد بكلمة مرور مؤقتة
+        4. تحدث حالة الطلب
+        
         Args:
             admin_user: الأدمن الذي يوافق
             commission_rate: نسبة العمولة للبائع الجديد
         
         Returns:
-            Vendor: البائع المُنشأ
+            Vendor: البائع المُنشأ (للتوافق مع الكود الحالي)
+            
+        Note: This method also creates/updates User and VendorUser internally.
+        ملاحظة: هذه الطريقة أيضاً تنشئ/تحدث User و VendorUser داخلياً.
         """
         from django.utils import timezone
+        from django.contrib.auth import get_user_model
+        from django.contrib.auth.hashers import make_password
+        import secrets
+        import string
+        
+        User = get_user_model()
         
         if self.status != self.Status.PENDING:
             raise ValueError("يمكن الموافقة فقط على الطلبات المعلقة / Can only approve pending applications")
@@ -398,7 +419,7 @@ class VendorApplication(models.Model):
         # Check if vendor name already exists
         # التحقق من وجود اسم المتجر مسبقاً
         if Vendor.objects.filter(name=self.store_name).exists():
-            raise ValueError("اسم المتجر مستخدم مسبقًا")
+            raise ValueError("اسم المتجر مستخدم مسبقًا / Store name already exists")
         
         # Create the vendor
         # إنشاء البائع
@@ -410,14 +431,92 @@ class VendorApplication(models.Model):
             is_active=True,
         )
         
+        # Handle user creation/linking
+        # معالجة إنشاء/ربط المستخدم
+        user = self.user
+        vendor_user = None
+        
+        if user:
+            # User exists - link to vendor
+            # المستخدم موجود - ربطه بالبائع
+            
+            # Change role to vendor if not already
+            # تغيير role إلى vendor إذا لم يكن كذلك
+            if user.role != User.Role.VENDOR:
+                user.role = User.Role.VENDOR
+                user.save(update_fields=['role'])
+            
+            # Check if VendorUser already exists (shouldn't happen, but safety check)
+            # التحقق من وجود VendorUser مسبقاً (لا يجب أن يحدث، لكن فحص أمان)
+            from users.models import VendorUser as VendorUserModel
+            vendor_user, created = VendorUserModel.objects.get_or_create(
+                user=user,
+                vendor=vendor,
+                defaults={'is_owner': True}
+            )
+            
+            if not created and not vendor_user.is_owner:
+                # If VendorUser exists but not owner, make them owner
+                # إذا كان VendorUser موجود لكن ليس owner، جعله owner
+                vendor_user.is_owner = True
+                vendor_user.save(update_fields=['is_owner'])
+        
+        else:
+            # User doesn't exist - create new user
+            # المستخدم غير موجود - إنشاء مستخدم جديد
+            
+            # Generate temporary password
+            # إنشاء كلمة مرور مؤقتة
+            alphabet = string.ascii_letters + string.digits + string.punctuation
+            temp_password = ''.join(secrets.choice(alphabet) for i in range(16))
+            
+            # Create user
+            # إنشاء المستخدم
+            user = User.objects.create_user(
+                email=self.applicant_email,
+                password=temp_password,
+                phone=self.applicant_phone,
+                full_name=self.applicant_name,
+                role=User.Role.VENDOR,
+                is_active=True,
+            )
+            
+            # Create UserProfile
+            # إنشاء ملف المستخدم الشخصي
+            from users.models import UserProfile
+            UserProfile.objects.get_or_create(
+                user=user,
+                defaults={
+                    'phone': self.applicant_phone,
+                }
+            )
+            
+            # Create VendorUser
+            # إنشاء VendorUser
+            from users.models import VendorUser as VendorUserModel
+            vendor_user = VendorUserModel.objects.create(
+                user=user,
+                vendor=vendor,
+                is_owner=True,
+            )
+            
+            # TODO: Send email with temporary password
+            # TODO: إرسال بريد إلكتروني بكلمة المرور المؤقتة
+            # Note: temp_password is available here for email sending
+            # ملاحظة: temp_password متاح هنا لإرسال البريد الإلكتروني
+        
         # Update application
         # تحديث الطلب
         self.status = self.Status.APPROVED
         self.created_vendor = vendor
         self.reviewed_by = admin_user
         self.reviewed_at = timezone.now()
+        if user:
+            self.user = user  # Link user to application if exists
         self.save()
         
+        # Return vendor for backward compatibility
+        # إرجاع vendor للتوافق مع الكود الحالي
         return vendor
     
     @transaction.atomic

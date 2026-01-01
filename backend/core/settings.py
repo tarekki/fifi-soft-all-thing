@@ -73,6 +73,7 @@ INSTALLED_APPS = [
     "settings_app",   # Site settings and configuration
     "notifications",  # Notifications for admin users
     "admin_api",      # Admin Dashboard API - إدارة لوحة التحكم
+    "vendor_api",     # Vendor Dashboard API - لوحة تحكم البائعين
 ]
 
 MIDDLEWARE = [

@@ -36,13 +36,14 @@ from django.utils.translation import gettext_lazy as _
 from django.db.models import Q, Sum, Count
 from django.db import transaction
 from django.utils import timezone
-from drf_spectacular.utils import extend_schema, OpenApiParameter
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiResponse
 
 from admin_api.permissions import IsAdminUser
 from admin_api.serializers.vendors import (
     AdminVendorListSerializer,
     AdminVendorDetailSerializer,
     AdminVendorCreateSerializer,
+    AdminVendorWithUserCreateSerializer,
     AdminVendorUpdateSerializer,
     AdminVendorStatusUpdateSerializer,
     AdminVendorCommissionUpdateSerializer,
@@ -346,7 +347,23 @@ class AdminVendorDetailView(APIView):
                 status_code=status.HTTP_400_BAD_REQUEST
             )
         
+        # Import VendorUser here to avoid circular imports
+        # استيراد VendorUser هنا لتجنب الاستيراد الدائري
+        from users.models import VendorUser
+        
+        # Check if vendor has associated VendorUser records
+        # التحقق من وجود سجلات VendorUser مرتبطة بالبائع
+        vendor_users_count = VendorUser.objects.filter(vendor=vendor).count()
+        
         vendor_name = vendor.name
+        
+        # Delete VendorUser records first (due to PROTECT constraint)
+        # حذف سجلات VendorUser أولاً (بسبب قيد PROTECT)
+        if vendor_users_count > 0:
+            VendorUser.objects.filter(vendor=vendor).delete()
+        
+        # Now delete the vendor
+        # الآن حذف البائع
         vendor.delete()
         
         return success_response(
@@ -606,4 +623,158 @@ class AdminVendorStatsView(APIView):
         }
         
         return success_response(data=stats)
+
+
+# =============================================================================
+# Vendor with User Create View (Complete Vendor Creation)
+# عرض إنشاء البائع مع المستخدم (إنشاء بائع كامل)
+# =============================================================================
+
+class AdminVendorWithUserCreateView(APIView):
+    """
+    Create vendor with user account.
+    إنشاء بائع مع حساب مستخدم.
+    
+    This endpoint creates:
+    1. Vendor
+    2. User (if not exists) or links to existing user
+    3. VendorUser (links User to Vendor)
+    
+    Security:
+    - Admin authentication required
+    - Validates all inputs
+    - Transaction-safe (all or nothing)
+    - Generates secure temporary password if creating new user
+    - Returns temporary password in response (only once)
+    
+    هذه النقطة تنشئ:
+    1. البائع
+    2. المستخدم (إذا لم يكن موجوداً) أو تربط بمستخدم موجود
+    3. VendorUser (يربط المستخدم بالبائع)
+    
+    الأمان:
+    - يتطلب مصادقة الأدمن
+    - يتحقق من جميع المدخلات
+    - آمن للعمليات (كل شيء أو لا شيء)
+    - ينشئ كلمة مرور مؤقتة آمنة عند إنشاء مستخدم جديد
+    - يُرجع كلمة المرور المؤقتة في الاستجابة (مرة واحدة فقط)
+    """
+    
+    permission_classes = [IsAdminUser]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
+    
+    @extend_schema(
+        summary='Create Vendor with User',
+        description='Create a complete vendor account with user (creates User, Vendor, and VendorUser)',
+        request=AdminVendorWithUserCreateSerializer,
+        responses={
+            201: OpenApiResponse(
+                description='Vendor created successfully',
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'vendor': {'type': 'object'},
+                        'user': {'type': 'object'},
+                        'temp_password': {'type': 'string', 'description': 'Temporary password (only if new user created)'},
+                    }
+                }
+            ),
+            400: OpenApiResponse(description='Validation error'),
+        },
+        tags=['Admin Vendors'],
+    )
+    def post(self, request):
+        """
+        Create vendor with user account.
+        إنشاء بائع مع حساب مستخدم.
+        
+        Request Body:
+            - vendor_name: Vendor name (required)
+            - vendor_description: Vendor description (optional)
+            - vendor_logo: Vendor logo image (optional)
+            - vendor_primary_color: Primary color hex (optional, default: #000000)
+            - commission_rate: Commission rate 0-100 (optional, default: 10.00)
+            - is_active: Vendor is active (optional, default: true)
+            - user_email: User email (required)
+            - user_full_name: User full name (required)
+            - user_phone: User phone (required)
+            - use_existing_user: Use existing user (optional, default: false)
+            - user_id: Existing user ID (required if use_existing_user=true)
+        
+        Returns:
+            - vendor: Created vendor data
+            - user: Created/linked user data
+            - temp_password: Temporary password (only if new user created)
+        """
+        serializer = AdminVendorWithUserCreateSerializer(
+            data=request.data,
+            context={'request': request}
+        )
+        
+        if not serializer.is_valid():
+            return error_response(
+                message=_('بيانات غير صالحة / Invalid data'),
+                errors=serializer.errors,
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            # Create vendor with user
+            # إنشاء بائع مع مستخدم
+            result = serializer.save()
+            
+            vendor = result['vendor']
+            user = result['user']
+            temp_password = result.get('temp_password')
+            
+            # Prepare response data
+            # إعداد بيانات الاستجابة
+            vendor_serializer = AdminVendorDetailSerializer(
+                vendor,
+                context={'request': request}
+            )
+            
+            response_data = {
+                'vendor': vendor_serializer.data,
+                'user': {
+                    'id': user.id,
+                    'email': user.email,
+                    'full_name': user.full_name,
+                    'phone': user.phone,
+                    'role': user.role,
+                    'is_active': user.is_active,
+                },
+            }
+            
+            # Include temporary password only if new user was created
+            # تضمين كلمة المرور المؤقتة فقط إذا تم إنشاء مستخدم جديد
+            if temp_password:
+                response_data['temp_password'] = temp_password
+                message = _(
+                    f'تم إنشاء البائع "{vendor.name}" والمستخدم بنجاح. '
+                    f'كلمة المرور المؤقتة: {temp_password} '
+                    f'/ Vendor "{vendor.name}" and user created successfully. '
+                    f'Temporary password: {temp_password}'
+                )
+            else:
+                message = _(
+                    f'تم إنشاء البائع "{vendor.name}" وربطه بالمستخدم بنجاح. '
+                    f'/ Vendor "{vendor.name}" created and linked to user successfully.'
+                )
+            
+            return success_response(
+                data=response_data,
+                message=message,
+                status_code=status.HTTP_201_CREATED
+            )
+            
+        except Exception as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f'Error creating vendor with user: {str(e)}', exc_info=True)
+            
+            return error_response(
+                message=_('حدث خطأ أثناء إنشاء البائع. يرجى المحاولة مرة أخرى / An error occurred while creating vendor. Please try again'),
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 

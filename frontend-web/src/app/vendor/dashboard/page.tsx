@@ -24,6 +24,8 @@ import { useTranslation } from '@/lib/i18n/use-translation'
 import { useLanguage } from '@/lib/i18n/context'
 import { cn } from '@/lib/utils'
 import { Plus, History } from 'lucide-react'
+import { getVendorDashboardOverview } from '@/lib/vendor/api'
+import type { VendorDashboardOverview } from '@/lib/vendor/types'
 
 // =============================================================================
 // Types
@@ -358,15 +360,20 @@ function SalesChart({
       {/* Chart */}
       {isLoading ? (
         <div className="flex items-end justify-between gap-2 h-48 animate-pulse">
-          {Array.from({ length: 7 }).map((_, i) => (
-            <div key={i} className="flex-1 flex flex-col items-center gap-2">
+          {Array.from({ length: 7 }).map((_, i) => {
+            // Use fixed heights based on index to avoid hydration mismatch
+            // استخدام ارتفاعات ثابتة بناءً على الفهرس لتجنب عدم تطابق الـ hydration
+            const heights = [60, 75, 90, 45, 55, 80, 70] // Fixed percentages
+            return (
+              <div key={i} className="flex-1 flex flex-col items-center gap-2">
                 <div 
-                className="w-full bg-gray-200 dark:bg-gray-700 rounded-t-lg"
-                style={{ height: `${Math.random() * 80 + 20}%` }}
-              />
-              <div className="w-8 h-3 bg-gray-200 dark:bg-gray-700 rounded" />
-            </div>
-          ))}
+                  className="w-full bg-gray-200 dark:bg-gray-700 rounded-t-lg"
+                  style={{ height: `${heights[i] || 50}%` }}
+                />
+                <div className="w-8 h-3 bg-gray-200 dark:bg-gray-700 rounded" />
+              </div>
+            )
+          })}
         </div>
       ) : chartData.length === 0 ? (
         <div className="flex items-center justify-center h-48 text-historical-charcoal/40 dark:text-gray-500 transition-colors duration-300">
@@ -514,52 +521,131 @@ export default function DashboardPage() {
   const { dir } = useTranslation()
   const router = useRouter()
   
-  // TODO: Replace with real API data
-  // سيتم استبدالها ببيانات API حقيقية
-  const isLoading = false
+  // State management
+  // إدارة الحالة
+  const [isLoading, setIsLoading] = React.useState(true)
+  const [error, setError] = React.useState<string | null>(null)
+  const [dashboardData, setDashboardData] = React.useState<VendorDashboardOverview | null>(null)
   const [chartPeriod, setChartPeriod] = React.useState<'week' | 'month' | 'year'>('month')
   
-  // Mock data - will be replaced with API
-  // بيانات وهمية - سيتم استبدالها بـ API
-  const STATS = [
-    {
-      id: 'sales',
-      title: t.vendor.totalSales || 'إجمالي المبيعات',
-      value: formatCurrency(12450000, language === 'ar' ? 'ar-SY' : 'en-US', t.common.currency),
-      change: 12.5,
-      changeLabel: t.vendor.fromLastMonth || 'من الشهر الماضي',
-      icon: Icons.revenue,
-      color: 'gold' as const,
-    },
-    {
-      id: 'orders',
-      title: t.vendor.totalOrders || 'إجمالي الطلبات',
-      value: formatNumber(154),
-      change: 8.2,
-      changeLabel: t.vendor.fromLastMonth || 'من الشهر الماضي',
-      icon: Icons.orders,
-      color: 'blue' as const,
-    },
-    {
-      id: 'products',
-      title: t.vendor.activeProducts || 'المنتجات النشطة',
-      value: formatNumber(42),
-      change: 0,
-      changeLabel: t.vendor.stable || 'مستقر',
-      icon: Icons.products,
-      color: 'green' as const,
-    },
-    {
-      id: 'visits',
-      title: t.vendor.shopVisits || 'زيارات المتجر',
-      value: formatNumber(3842),
-      change: -2.4,
-      changeLabel: t.vendor.fromLastWeek || 'من الأسبوع الماضي',
-      icon: Icons.visits,
-      color: 'purple' as const,
-    },
-  ]
+  // Fetch dashboard data from API
+  // جلب بيانات لوحة التحكم من API
+  React.useEffect(() => {
+    async function fetchDashboardData() {
+      try {
+        setIsLoading(true)
+        setError(null)
+        
+        const response = await getVendorDashboardOverview()
+        
+        if (response.success && response.data) {
+          setDashboardData(response.data)
+        } else {
+          setError(response.message || 'فشل جلب بيانات لوحة التحكم / Failed to fetch dashboard data')
+        }
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'Unknown error'
+        setError(errorMessage)
+        console.error('Error fetching vendor dashboard data:', err)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    
+    fetchDashboardData()
+  }, [])
+  
+  // Build STATS from API data
+  // بناء STATS من بيانات API
+  const STATS = React.useMemo(() => {
+    if (!dashboardData) {
+      // Return empty stats while loading
+      return [
+        {
+          id: 'sales',
+          title: t.vendor.totalSales || 'إجمالي المبيعات',
+          value: '0',
+          change: 0,
+          changeLabel: t.vendor.fromLastMonth || 'من الشهر الماضي',
+          icon: Icons.revenue,
+          color: 'gold' as const,
+        },
+        {
+          id: 'orders',
+          title: t.vendor.totalOrders || 'إجمالي الطلبات',
+          value: '0',
+          change: 0,
+          changeLabel: t.vendor.fromLastMonth || 'من الشهر الماضي',
+          icon: Icons.orders,
+          color: 'blue' as const,
+        },
+        {
+          id: 'products',
+          title: t.vendor.activeProducts || 'المنتجات النشطة',
+          value: '0',
+          change: 0,
+          changeLabel: t.vendor.stable || 'مستقر',
+          icon: Icons.products,
+          color: 'green' as const,
+        },
+        {
+          id: 'visits',
+          title: t.vendor.shopVisits || 'زيارات المتجر',
+          value: '0',
+          change: 0,
+          changeLabel: t.vendor.fromLastWeek || 'من الأسبوع الماضي',
+          icon: Icons.visits,
+          color: 'purple' as const,
+        },
+      ]
+    }
+    
+    return [
+      {
+        id: 'sales',
+        title: t.vendor.totalSales || 'إجمالي المبيعات',
+        value: formatCurrency(
+          Number(dashboardData.total_sales),
+          language === 'ar' ? 'ar-SY' : 'en-US',
+          t.common.currency
+        ),
+        change: dashboardData.total_sales_change,
+        changeLabel: t.vendor.fromLastMonth || 'من الشهر الماضي',
+        icon: Icons.revenue,
+        color: 'gold' as const,
+      },
+      {
+        id: 'orders',
+        title: t.vendor.totalOrders || 'إجمالي الطلبات',
+        value: formatNumber(dashboardData.total_orders),
+        change: dashboardData.total_orders_change,
+        changeLabel: t.vendor.fromLastMonth || 'من الشهر الماضي',
+        icon: Icons.orders,
+        color: 'blue' as const,
+      },
+      {
+        id: 'products',
+        title: t.vendor.activeProducts || 'المنتجات النشطة',
+        value: formatNumber(dashboardData.active_products),
+        change: 0, // Products don't have change percentage from API
+        changeLabel: t.vendor.stable || 'مستقر',
+        icon: Icons.products,
+        color: 'green' as const,
+      },
+      {
+        id: 'visits',
+        title: t.vendor.shopVisits || 'زيارات المتجر',
+        value: formatNumber(dashboardData.total_visits),
+        change: dashboardData.total_visits_change,
+        changeLabel: t.vendor.fromLastWeek || 'من الأسبوع الماضي',
+        icon: Icons.visits,
+        color: 'purple' as const,
+      },
+    ]
+  }, [dashboardData, t, language])
 
+  // Recent orders - TODO: Replace with API when endpoint is ready
+  // الطلبات الأخيرة - TODO: استبدال بـ API عندما يكون endpoint جاهزاً
   const RECENT_ORDERS = [
     { 
       id: '#ORD-7281', 
@@ -587,9 +673,36 @@ export default function DashboardPage() {
     },
   ]
 
+  // Sales chart data - TODO: Replace with API when endpoint is ready
+  // بيانات رسم المبيعات - TODO: استبدال بـ API عندما يكون endpoint جاهزاً
   const salesChartData = {
     labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
     revenue: [120000, 190000, 300000, 250000, 220000, 350000, 280000],
+  }
+  
+  // Show error message if API call failed
+  // عرض رسالة خطأ إذا فشلت استدعاء API
+  if (error && !isLoading) {
+    return (
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="space-y-6"
+      >
+        <motion.div
+          variants={itemVariants}
+          className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl p-6"
+        >
+          <h3 className="text-red-800 dark:text-red-400 font-bold mb-2">
+            {t.vendor.error || 'خطأ'}
+          </h3>
+          <p className="text-red-600 dark:text-red-300">
+            {error}
+          </p>
+        </motion.div>
+      </motion.div>
+    )
   }
 
   return (

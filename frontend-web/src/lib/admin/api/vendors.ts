@@ -36,6 +36,8 @@ import type {
   VendorDetail,
   VendorFilters,
   VendorCreatePayload,
+  VendorWithUserCreatePayload,
+  VendorWithUserCreateResponse,
   VendorUpdatePayload,
   VendorStatusUpdatePayload,
   VendorCommissionUpdatePayload,
@@ -254,6 +256,71 @@ export async function createVendor(
   return adminFetch<VendorDetail>('/vendors/', {
     method: 'POST',
     body: JSON.stringify(data),
+  })
+}
+
+
+/**
+ * Create vendor with user account
+ * إنشاء بائع مع حساب مستخدم
+ * 
+ * This function creates:
+ * 1. Vendor
+ * 2. User (if not exists) or links to existing user
+ * 3. VendorUser (links User to Vendor)
+ * 
+ * هذه الدالة تنشئ:
+ * 1. البائع
+ * 2. المستخدم (إذا لم يكن موجوداً) أو تربط بمستخدم موجود
+ * 3. VendorUser (يربط المستخدم بالبائع)
+ * 
+ * @param data - Vendor and user creation data
+ * @returns Created vendor, user, and temporary password (if new user created)
+ */
+export async function createVendorWithUser(
+  data: VendorWithUserCreatePayload
+): Promise<ApiResponse<VendorWithUserCreateResponse>> {
+  // Always use FormData to support file uploads
+  // دائماً استخدام FormData لدعم رفع الملفات
+  const formData = new FormData()
+  
+  // Vendor fields
+  // حقول البائع
+  formData.append('vendor_name', data.vendor_name)
+  if (data.vendor_description) {
+    formData.append('vendor_description', data.vendor_description)
+  }
+  if (data.vendor_logo) {
+    formData.append('vendor_logo', data.vendor_logo)
+  }
+  if (data.vendor_primary_color) {
+    formData.append('vendor_primary_color', data.vendor_primary_color)
+  }
+  if (data.commission_rate !== undefined) {
+    formData.append('commission_rate', String(data.commission_rate))
+  }
+  if (data.is_active !== undefined) {
+    formData.append('is_active', data.is_active ? 'true' : 'false')
+  }
+  
+  // User fields
+  // حقول المستخدم
+  formData.append('user_email', data.user_email)
+  formData.append('user_full_name', data.user_full_name)
+  formData.append('user_phone', data.user_phone)
+  
+  // User creation options
+  // خيارات إنشاء المستخدم
+  if (data.use_existing_user !== undefined) {
+    formData.append('use_existing_user', data.use_existing_user ? 'true' : 'false')
+  }
+  if (data.user_id !== undefined && data.user_id !== null) {
+    formData.append('user_id', String(data.user_id))
+  }
+  
+  return adminFetch<VendorWithUserCreateResponse>('/vendors/create-with-user/', {
+    method: 'POST',
+    body: formData,
   })
 }
 

@@ -1,17 +1,15 @@
 'use client';
 
 import type { ReactNode } from 'react';
+import { usePathname } from 'next/navigation';
 import { VendorSidebar } from '@/components/vendor/VendorSidebar';
 import { VendorTopBar } from '@/components/vendor/VendorTopBar';
 import { ThemeInitializer } from '@/components/admin/ThemeInitializer';
 import { useTranslation } from '@/lib/i18n/use-translation';
 import { useUIStore } from '@/store/uiStore';
+import { VendorAuthProvider, ProtectedRoute } from '@/lib/vendor';
 
-export default function VendorLayout({
-  children,
-}: {
-  children: ReactNode
-}) {
+function VendorLayoutContent({ children }: { children: ReactNode }) {
   const { dir } = useTranslation();
   const isCollapsed = useUIStore((state) => state.isVendorSidebarCollapsed);
 
@@ -44,5 +42,33 @@ export default function VendorLayout({
         </div>
       </div>
     </>
+  );
+}
+
+export default function VendorLayout({
+  children,
+}: {
+  children: ReactNode
+}) {
+  const pathname = usePathname();
+  
+  // Check if current page is login page
+  // التحقق إذا كانت الصفحة الحالية هي صفحة الدخول
+  const isLoginPage = pathname === '/vendor/login';
+
+  return (
+    <VendorAuthProvider>
+      {isLoginPage ? (
+        // Login page doesn't need layout or protection
+        // صفحة الدخول لا تحتاج تخطيط أو حماية
+        children
+      ) : (
+        // All other pages are protected and use the layout
+        // جميع الصفحات الأخرى محمية وتستخدم التخطيط
+        <ProtectedRoute>
+          <VendorLayoutContent>{children}</VendorLayoutContent>
+        </ProtectedRoute>
+      )}
+    </VendorAuthProvider>
   );
 }

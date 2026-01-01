@@ -363,6 +363,286 @@ class AdminVendorCreateSerializer(serializers.ModelSerializer):
 
 
 # =============================================================================
+# Vendor with User Create Serializer (Complete Vendor Creation)
+# مسلسل إنشاء البائع مع المستخدم (إنشاء بائع كامل)
+# =============================================================================
+
+class AdminVendorWithUserCreateSerializer(serializers.Serializer):
+    """
+    Admin Vendor with User Create Serializer
+    مسلسل إنشاء البائع مع المستخدم للإدارة
+    
+    This serializer creates:
+    1. Vendor
+    2. User (if not exists) or links to existing user
+    3. VendorUser (links User to Vendor)
+    
+    هذا المسلسل ينشئ:
+    1. البائع
+    2. المستخدم (إذا لم يكن موجوداً) أو يربط بمستخدم موجود
+    3. VendorUser (يربط المستخدم بالبائع)
+    
+    Security Features:
+    - Validates email uniqueness
+    - Validates vendor name uniqueness
+    - Generates secure temporary password if creating new user
+    - Validates phone format
+    - Transaction-safe (all or nothing)
+    
+    ميزات الأمان:
+    - التحقق من تفرد البريد الإلكتروني
+    - التحقق من تفرد اسم البائع
+    - إنشاء كلمة مرور مؤقتة آمنة عند إنشاء مستخدم جديد
+    - التحقق من صيغة رقم الهاتف
+    - آمن للعمليات (كل شيء أو لا شيء)
+    """
+    
+    # Vendor fields
+    # حقول البائع
+    vendor_name = serializers.CharField(
+        max_length=100,
+        required=True,
+        help_text=_('اسم البائع / Vendor name')
+    )
+    vendor_description = serializers.CharField(
+        required=False,
+        allow_blank=True,
+        help_text=_('وصف البائع / Vendor description')
+    )
+    vendor_logo = serializers.ImageField(
+        required=False,
+        allow_null=True,
+        help_text=_('شعار البائع / Vendor logo')
+    )
+    vendor_primary_color = serializers.CharField(
+        max_length=7,
+        required=False,
+        default='#000000',
+        help_text=_('اللون الأساسي / Primary color (hex format)')
+    )
+    commission_rate = serializers.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        required=False,
+        default=Decimal("10.00"),
+        help_text=_('نسبة العمولة / Commission rate (0-100)')
+    )
+    is_active = serializers.BooleanField(
+        required=False,
+        default=True,
+        help_text=_('البائع نشط / Vendor is active')
+    )
+    
+    # User fields
+    # حقول المستخدم
+    user_email = serializers.EmailField(
+        required=True,
+        help_text=_('البريد الإلكتروني للمستخدم / User email')
+    )
+    user_full_name = serializers.CharField(
+        max_length=150,
+        required=True,
+        help_text=_('الاسم الكامل للمستخدم / User full name')
+    )
+    user_phone = serializers.CharField(
+        max_length=20,
+        required=True,
+        help_text=_('رقم الهاتف / Phone number')
+    )
+    
+    # User creation options
+    # خيارات إنشاء المستخدم
+    use_existing_user = serializers.BooleanField(
+        required=False,
+        default=False,
+        help_text=_('استخدام مستخدم موجود / Use existing user')
+    )
+    user_id = serializers.IntegerField(
+        required=False,
+        allow_null=True,
+        help_text=_('معرف المستخدم الموجود (إذا use_existing_user=True) / Existing user ID')
+    )
+    
+    def validate_vendor_name(self, value):
+        """Validate vendor name is unique"""
+        if Vendor.objects.filter(name__iexact=value).exists():
+            raise serializers.ValidationError(
+                _("اسم البائع موجود مسبقاً / Vendor name already exists")
+            )
+        return value
+    
+    def validate_user_email(self, value):
+        """Validate email format and uniqueness if creating new user"""
+        value = value.lower().strip()
+        
+        # Check if email already exists
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        
+        if User.objects.filter(email=value).exists():
+            # If use_existing_user is True, this is OK
+            # إذا كان use_existing_user=True، هذا جيد
+            if not self.initial_data.get('use_existing_user', False):
+                raise serializers.ValidationError(
+                    _("البريد الإلكتروني موجود مسبقاً. استخدم use_existing_user=true / Email already exists. Use use_existing_user=true")
+                )
+        return value
+    
+    def validate_user_phone(self, value):
+        """Validate phone number uniqueness if creating new user"""
+        # Only validate if not using existing user
+        # التحقق فقط إذا لم يكن استخدام مستخدم موجود
+        if not self.initial_data.get('use_existing_user', False):
+            from django.contrib.auth import get_user_model
+            User = get_user_model()
+            
+            if User.objects.filter(phone=value).exists():
+                raise serializers.ValidationError(
+                    _("رقم الهاتف موجود مسبقاً / Phone number already exists")
+                )
+        return value
+    
+    def validate_commission_rate(self, value):
+        """Validate commission rate"""
+        if value < 0 or value > 100:
+            raise serializers.ValidationError(
+                _("نسبة العمولة يجب أن تكون بين 0 و 100 / Commission rate must be between 0 and 100")
+            )
+        return value
+    
+    def validate_primary_color(self, value):
+        """Validate color is hex format"""
+        import re
+        if value and not re.match(r'^#[0-9A-Fa-f]{6}$', value):
+            raise serializers.ValidationError(
+                _("اللون يجب أن يكون بصيغة hex (مثل #FF5733) / Color must be hex format (e.g., #FF5733)")
+            )
+        return value
+    
+    def validate(self, attrs):
+        """Additional validation"""
+        use_existing = attrs.get('use_existing_user', False)
+        user_id = attrs.get('user_id')
+        
+        if use_existing and not user_id:
+            raise serializers.ValidationError({
+                'user_id': _('يجب تحديد معرف المستخدم عند استخدام مستخدم موجود / User ID is required when using existing user')
+            })
+        
+        if use_existing and user_id:
+            from django.contrib.auth import get_user_model
+            from users.models import VendorUser
+            
+            User = get_user_model()
+            try:
+                user = User.objects.get(pk=user_id)
+                # Check if user already has a vendor
+                if VendorUser.objects.filter(user=user).exists():
+                    raise serializers.ValidationError({
+                        'user_id': _('المستخدم مرتبط ببائع آخر بالفعل / User is already associated with another vendor')
+                    })
+            except User.DoesNotExist:
+                raise serializers.ValidationError({
+                    'user_id': _('المستخدم غير موجود / User not found')
+                })
+        
+        return attrs
+    
+    def create(self, validated_data):
+        """
+        Create vendor with user
+        إنشاء بائع مع مستخدم
+        """
+        from django.contrib.auth import get_user_model
+        from django.db import transaction
+        from users.models import VendorUser, UserProfile
+        import secrets
+        import string
+        
+        User = get_user_model()
+        
+        # Extract data
+        # استخراج البيانات
+        vendor_name = validated_data['vendor_name']
+        vendor_description = validated_data.get('vendor_description', '')
+        vendor_logo = validated_data.get('vendor_logo')
+        vendor_primary_color = validated_data.get('vendor_primary_color', '#000000')
+        commission_rate = validated_data.get('commission_rate', Decimal("10.00"))
+        is_active = validated_data.get('is_active', True)
+        
+        user_email = validated_data['user_email'].lower().strip()
+        user_full_name = validated_data['user_full_name']
+        user_phone = validated_data['user_phone']
+        
+        use_existing = validated_data.get('use_existing_user', False)
+        user_id = validated_data.get('user_id')
+        
+        temp_password = None
+        
+        with transaction.atomic():
+            # Get or create user
+            # الحصول على أو إنشاء مستخدم
+            if use_existing and user_id:
+                user = User.objects.get(pk=user_id)
+                # Change role to vendor if not already
+                if user.role != User.Role.VENDOR:
+                    user.role = User.Role.VENDOR
+                    user.save(update_fields=['role'])
+            else:
+                # Create new user
+                # إنشاء مستخدم جديد
+                # Generate secure temporary password
+                # إنشاء كلمة مرور مؤقتة آمنة
+                alphabet = string.ascii_letters + string.digits + string.punctuation
+                temp_password = ''.join(secrets.choice(alphabet) for i in range(16))
+                
+                user = User.objects.create_user(
+                    email=user_email,
+                    password=temp_password,
+                    phone=user_phone,
+                    full_name=user_full_name,
+                    role=User.Role.VENDOR,
+                    is_active=True,
+                )
+                
+                # Create UserProfile (if doesn't exist)
+                # إنشاء ملف المستخدم الشخصي (إذا لم يكن موجوداً)
+                UserProfile.objects.get_or_create(
+                    user=user
+                )
+            
+            # Create vendor
+            # إنشاء البائع
+            vendor = Vendor.objects.create(
+                name=vendor_name,
+                description=vendor_description,
+                logo=vendor_logo,
+                primary_color=vendor_primary_color,
+                commission_rate=commission_rate,
+                is_active=is_active,
+            )
+            
+            # Create VendorUser
+            # إنشاء VendorUser
+            vendor_user = VendorUser.objects.create(
+                user=user,
+                vendor=vendor,
+                is_owner=True,
+            )
+            
+            # Store temp password in serializer for response
+            # تخزين كلمة المرور المؤقتة في المسلسل للاستجابة
+            self.temp_password = temp_password
+            
+            return {
+                'vendor': vendor,
+                'user': user,
+                'vendor_user': vendor_user,
+                'temp_password': temp_password,
+            }
+
+
+# =============================================================================
 # Vendor Update Serializer
 # مسلسل تعديل البائع
 # =============================================================================

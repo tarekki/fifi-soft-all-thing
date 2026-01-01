@@ -48,6 +48,7 @@ from .vendors import (
     AdminVendorCommissionUpdateView,
     AdminVendorBulkActionView,
     AdminVendorStatsView,
+    AdminVendorWithUserCreateView,
 )
 from .vendor_applications import (
     AdminVendorApplicationListView,
@@ -156,6 +157,7 @@ __all__ = [
     'AdminVendorCommissionUpdateView',
     'AdminVendorBulkActionView',
     'AdminVendorStatsView',
+    'AdminVendorWithUserCreateView',
     # Vendor Applications
     'AdminVendorApplicationListView',
     'AdminVendorApplicationDetailView',

@@ -16,12 +16,13 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useVendors } from '@/lib/admin'
+import { useVendors, createVendorWithUser } from '@/lib/admin'
 import type {
   Vendor,
   VendorDetail,
   VendorFilters,
   VendorCreatePayload,
+  VendorWithUserCreatePayload,
 } from '@/lib/admin/types/vendors'
 import { useLanguage } from '@/lib/i18n/context'
 
@@ -601,6 +602,503 @@ function VendorModal({ isOpen, vendor, isSaving, onClose, onSave }: VendorModalP
 
 
 // =============================================================================
+// Vendor with User Modal Component
+// مكون Modal إنشاء بائع مع مستخدم
+// =============================================================================
+
+interface VendorWithUserModalProps {
+  isOpen: boolean
+  onClose: () => void
+  onSuccess: (tempPassword: string | null) => void
+}
+
+function VendorWithUserModal({ isOpen, onClose, onSuccess }: VendorWithUserModalProps) {
+  const { t } = useLanguage()
+  
+  // Form state
+  const [vendorName, setVendorName] = useState('')
+  const [vendorDescription, setVendorDescription] = useState('')
+  const [vendorLogo, setVendorLogo] = useState<File | null>(null)
+  const [vendorPrimaryColor, setVendorPrimaryColor] = useState('#D4AF37')
+  const [commissionRate, setCommissionRate] = useState(10)
+  const [isActive, setIsActive] = useState(true)
+  
+  const [userEmail, setUserEmail] = useState('')
+  const [userFullName, setUserFullName] = useState('')
+  const [userPhone, setUserPhone] = useState('')
+  
+  const [useExistingUser, setUseExistingUser] = useState(false)
+  const [userId, setUserId] = useState<number | null>(null)
+  
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [primaryColorError, setPrimaryColorError] = useState<string | null>(null)
+
+  // Validation
+  const validateHexColor = (color: string): string | null => {
+    if (!color) return null
+    const hexColorRegex = /^#[0-9A-Fa-f]{6}$/
+    if (!hexColorRegex.test(color)) {
+      return t.admin.vendors.invalidHexColor || 'اللون يجب أن يكون بصيغة hex (مثال: #D4AF37)'
+    }
+    return null
+  }
+
+  // Reset form
+  useEffect(() => {
+    if (isOpen) {
+      setVendorName('')
+      setVendorDescription('')
+      setVendorLogo(null)
+      setVendorPrimaryColor('#D4AF37')
+      setCommissionRate(10)
+      setIsActive(true)
+      setUserEmail('')
+      setUserFullName('')
+      setUserPhone('')
+      setUseExistingUser(false)
+      setUserId(null)
+      setError(null)
+      setPrimaryColorError(null)
+    }
+  }, [isOpen])
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError(null)
+
+    // Validation
+    if (!vendorName.trim()) {
+      setError('اسم البائع مطلوب')
+      return
+    }
+
+    if (!useExistingUser) {
+      if (!userEmail.trim()) {
+        setError('البريد الإلكتروني مطلوب')
+        return
+      }
+      if (!userFullName.trim()) {
+        setError('الاسم الكامل مطلوب')
+        return
+      }
+      if (!userPhone.trim()) {
+        setError('رقم الهاتف مطلوب')
+        return
+      }
+    } else {
+      if (!userId) {
+        setError('يجب تحديد معرف المستخدم')
+        return
+      }
+    }
+
+    const colorError = validateHexColor(vendorPrimaryColor)
+    if (colorError) {
+      setPrimaryColorError(colorError)
+      return
+    }
+
+    setIsSubmitting(true)
+    try {
+      const payload: VendorWithUserCreatePayload = {
+        vendor_name: vendorName,
+        vendor_description: vendorDescription || undefined,
+        vendor_logo: vendorLogo || undefined,
+        vendor_primary_color: vendorPrimaryColor,
+        commission_rate: commissionRate,
+        is_active: isActive,
+        user_email: userEmail,
+        user_full_name: userFullName,
+        user_phone: userPhone,
+        use_existing_user: useExistingUser,
+        user_id: userId || undefined,
+      }
+
+      const response = await createVendorWithUser(payload)
+
+      if (response.success && response.data) {
+        onSuccess(response.data.temp_password || null)
+      } else {
+        setError(response.message || 'فشل إنشاء البائع')
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'حدث خطأ غير متوقع'
+      setError(errorMessage)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  if (!isOpen) return null
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+        onClick={onClose}
+      >
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.95, y: 20 }}
+          className="w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-white dark:bg-gray-800 rounded-2xl shadow-2xl transition-colors duration-300"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Header */}
+          <div className="sticky top-0 z-10 flex items-center justify-between px-6 py-4 border-b border-historical-gold/10 dark:border-gray-700 bg-historical-stone/30 dark:bg-gray-700/30 backdrop-blur-sm transition-colors duration-300">
+            <h2 className="text-lg font-bold text-historical-charcoal dark:text-gray-100 transition-colors duration-300">
+              إنشاء بائع مع مستخدم
+            </h2>
+            <button
+              onClick={onClose}
+              className="p-2 rounded-lg text-historical-charcoal/50 dark:text-gray-400 hover:text-historical-charcoal dark:hover:text-gray-200 hover:bg-historical-gold/10 dark:hover:bg-gray-700 transition-colors"
+            >
+              {Icons.close}
+            </button>
+          </div>
+
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="p-6 space-y-6">
+            {/* Error Display */}
+            {error && (
+              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 text-red-700 dark:text-red-400 transition-colors duration-300">
+                {error}
+              </div>
+            )}
+
+            {/* Vendor Information Section */}
+            <div className="space-y-4">
+              <h3 className="text-base font-semibold text-historical-charcoal dark:text-gray-200 border-b border-historical-gold/10 dark:border-gray-700 pb-2 transition-colors duration-300">
+                معلومات البائع
+              </h3>
+
+              {/* Vendor Name */}
+              <div>
+                <label className="block text-sm font-medium text-historical-charcoal/70 dark:text-gray-300 mb-1 transition-colors duration-300">
+                  اسم البائع *
+                </label>
+                <input
+                  type="text"
+                  value={vendorName}
+                  onChange={(e) => setVendorName(e.target.value)}
+                  required
+                  className="w-full px-4 py-2.5 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 text-historical-charcoal dark:text-gray-200 transition-colors duration-300"
+                  placeholder="اسم المتجر"
+                />
+              </div>
+
+              {/* Vendor Description */}
+              <div>
+                <label className="block text-sm font-medium text-historical-charcoal/70 dark:text-gray-300 mb-1 transition-colors duration-300">
+                  وصف البائع
+                </label>
+                <textarea
+                  value={vendorDescription}
+                  onChange={(e) => setVendorDescription(e.target.value)}
+                  rows={3}
+                  className="w-full px-4 py-2.5 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 text-historical-charcoal dark:text-gray-200 resize-none transition-colors duration-300"
+                  placeholder="وصف مختصر عن البائع"
+                />
+              </div>
+
+              {/* Color and Commission */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-historical-charcoal/70 dark:text-gray-300 mb-1 transition-colors duration-300">
+                    اللون الأساسي
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={vendorPrimaryColor}
+                      onChange={(e) => {
+                        setVendorPrimaryColor(e.target.value)
+                        setPrimaryColorError(null)
+                      }}
+                      className="w-12 h-10 rounded-lg border border-historical-gold/20 dark:border-gray-600 cursor-pointer transition-colors duration-300"
+                    />
+                    <div className="flex-1">
+                      <input
+                        type="text"
+                        value={vendorPrimaryColor}
+                        onChange={(e) => {
+                          setVendorPrimaryColor(e.target.value)
+                          setPrimaryColorError(null)
+                        }}
+                        onBlur={() => {
+                          const error = validateHexColor(vendorPrimaryColor)
+                          setPrimaryColorError(error)
+                        }}
+                        className={`w-full px-3 py-2 rounded-xl border ${
+                          primaryColorError
+                            ? 'border-red-500 dark:border-red-600 focus:ring-red-500 dark:focus:ring-red-600'
+                            : 'border-historical-gold/20 dark:border-gray-600 focus:ring-historical-gold/30 dark:focus:ring-yellow-600'
+                        } bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 text-sm text-historical-charcoal dark:text-gray-200 transition-colors duration-300`}
+                        placeholder="#D4AF37"
+                      />
+                      {primaryColorError && (
+                        <p className="text-sm text-red-600 dark:text-red-400 mt-1 transition-colors duration-300">
+                          {primaryColorError}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-historical-charcoal/70 dark:text-gray-300 mb-1 transition-colors duration-300">
+                    نسبة العمولة (%)
+                  </label>
+                  <input
+                    type="number"
+                    value={commissionRate}
+                    onChange={(e) => setCommissionRate(Number(e.target.value))}
+                    min={0}
+                    max={100}
+                    step={0.5}
+                    className="w-full px-4 py-2.5 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 text-historical-charcoal dark:text-gray-200 transition-colors duration-300"
+                  />
+                </div>
+              </div>
+
+              {/* Logo */}
+              <div>
+                <label className="block text-sm font-medium text-historical-charcoal/70 dark:text-gray-300 mb-1 transition-colors duration-300">
+                  شعار البائع
+                </label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setVendorLogo(e.target.files?.[0] || null)}
+                  className="w-full px-4 py-2.5 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 text-historical-charcoal dark:text-gray-200 transition-colors duration-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-historical-gold/10 dark:file:bg-yellow-900/30 file:text-historical-gold dark:file:text-yellow-400 hover:file:bg-historical-gold/20 dark:hover:file:bg-yellow-900/40"
+                />
+              </div>
+
+              {/* Active Status */}
+              <div className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  id="vendor_is_active"
+                  checked={isActive}
+                  onChange={(e) => setIsActive(e.target.checked)}
+                  className="w-5 h-5 rounded border-2 border-historical-gold/40 dark:border-gray-500 bg-white dark:bg-gray-700 text-historical-gold dark:text-yellow-400 focus:ring-2 focus:ring-historical-gold/50 dark:focus:ring-yellow-500/50 cursor-pointer transition-all duration-300 flex-shrink-0"
+                />
+                <label htmlFor="vendor_is_active" className="text-base font-semibold text-historical-charcoal dark:text-gray-100 transition-colors duration-300 cursor-pointer select-none">
+                  تفعيل البائع
+                </label>
+              </div>
+            </div>
+
+            {/* User Information Section */}
+            <div className="space-y-4 pt-4 border-t border-historical-gold/10 dark:border-gray-700">
+              <h3 className="text-base font-semibold text-historical-charcoal dark:text-gray-200 border-b border-historical-gold/10 dark:border-gray-700 pb-2 transition-colors duration-300">
+                معلومات المستخدم
+              </h3>
+
+              {/* Use Existing User Toggle */}
+              <div className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  id="use_existing_user"
+                  checked={useExistingUser}
+                  onChange={(e) => {
+                    setUseExistingUser(e.target.checked)
+                    if (!e.target.checked) {
+                      setUserId(null)
+                    }
+                  }}
+                  className="w-5 h-5 rounded border-2 border-historical-gold/40 dark:border-gray-500 bg-white dark:bg-gray-700 text-historical-gold dark:text-yellow-400 focus:ring-2 focus:ring-historical-gold/50 dark:focus:ring-yellow-500/50 cursor-pointer transition-all duration-300 flex-shrink-0"
+                />
+                <label htmlFor="use_existing_user" className="text-base font-semibold text-historical-charcoal dark:text-gray-100 transition-colors duration-300 cursor-pointer select-none">
+                  استخدام مستخدم موجود
+                </label>
+              </div>
+
+              {useExistingUser ? (
+                /* Existing User Selection */
+                <div>
+                  <label className="block text-sm font-medium text-historical-charcoal/70 dark:text-gray-300 mb-1 transition-colors duration-300">
+                    معرف المستخدم (User ID) *
+                  </label>
+                  <input
+                    type="number"
+                    value={userId || ''}
+                    onChange={(e) => setUserId(e.target.value ? Number(e.target.value) : null)}
+                    required
+                    className="w-full px-4 py-2.5 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 text-historical-charcoal dark:text-gray-200 transition-colors duration-300"
+                    placeholder="أدخل معرف المستخدم"
+                  />
+                  <p className="text-xs text-historical-charcoal/50 dark:text-gray-400 mt-1 transition-colors duration-300">
+                    يمكنك العثور على معرف المستخدم من صفحة المستخدمين
+                  </p>
+                </div>
+              ) : (
+                /* New User Fields */
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-historical-charcoal/70 dark:text-gray-300 mb-1 transition-colors duration-300">
+                      البريد الإلكتروني *
+                    </label>
+                    <input
+                      type="email"
+                      value={userEmail}
+                      onChange={(e) => setUserEmail(e.target.value)}
+                      required
+                      className="w-full px-4 py-2.5 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 text-historical-charcoal dark:text-gray-200 transition-colors duration-300"
+                      placeholder="vendor@example.com"
+                      dir="ltr"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-historical-charcoal/70 dark:text-gray-300 mb-1 transition-colors duration-300">
+                      الاسم الكامل *
+                    </label>
+                    <input
+                      type="text"
+                      value={userFullName}
+                      onChange={(e) => setUserFullName(e.target.value)}
+                      required
+                      className="w-full px-4 py-2.5 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 text-historical-charcoal dark:text-gray-200 transition-colors duration-300"
+                      placeholder="اسم البائع الكامل"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-historical-charcoal/70 dark:text-gray-300 mb-1 transition-colors duration-300">
+                      رقم الهاتف *
+                    </label>
+                    <input
+                      type="tel"
+                      value={userPhone}
+                      onChange={(e) => setUserPhone(e.target.value)}
+                      required
+                      className="w-full px-4 py-2.5 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-historical-gold/30 dark:focus:ring-yellow-600 text-historical-charcoal dark:text-gray-200 transition-colors duration-300"
+                      placeholder="0991234567"
+                      dir="ltr"
+                    />
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Actions */}
+            <div className="flex items-center gap-3 pt-4 border-t border-historical-gold/10 dark:border-gray-700">
+              <button
+                type="button"
+                onClick={onClose}
+                className="flex-1 px-4 py-2.5 rounded-xl border border-historical-gold/20 dark:border-gray-600 text-historical-charcoal dark:text-gray-200 hover:bg-historical-stone/50 dark:hover:bg-gray-700 transition-colors"
+              >
+                إلغاء
+              </button>
+              <button
+                type="submit"
+                disabled={isSubmitting || !vendorName.trim() || (!useExistingUser && (!userEmail.trim() || !userFullName.trim() || !userPhone.trim())) || (useExistingUser && !userId)}
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-l from-historical-gold to-historical-red text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isSubmitting ? Icons.loader : Icons.check}
+                <span>إنشاء</span>
+              </button>
+            </div>
+          </form>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
+  )
+}
+
+
+// =============================================================================
+// Temporary Password Modal Component
+// مكون Modal عرض كلمة المرور المؤقتة
+// =============================================================================
+
+interface TempPasswordModalProps {
+  password: string
+  onClose: () => void
+}
+
+function TempPasswordModal({ password, onClose }: TempPasswordModalProps) {
+  const [copied, setCopied] = useState(false)
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(password)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+        className="w-full max-w-md bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden transition-colors duration-300"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-historical-gold/10 dark:border-gray-700 bg-gradient-to-l from-historical-gold/10 dark:from-yellow-900/20 to-transparent transition-colors duration-300">
+          <h2 className="text-lg font-bold text-historical-charcoal dark:text-gray-100 transition-colors duration-300">
+            كلمة المرور المؤقتة
+          </h2>
+          <button
+            onClick={onClose}
+            className="p-2 rounded-lg text-historical-charcoal/50 dark:text-gray-400 hover:text-historical-charcoal dark:hover:text-gray-200 hover:bg-historical-gold/10 dark:hover:bg-gray-700 transition-colors"
+          >
+            {Icons.close}
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="p-6 space-y-4">
+          <p className="text-sm text-historical-charcoal/70 dark:text-gray-300 transition-colors duration-300">
+            تم إنشاء المستخدم بنجاح. يرجى حفظ كلمة المرور المؤقتة التالية:
+          </p>
+
+          <div className="relative">
+            <input
+              type="text"
+              value={password}
+              readOnly
+              className="w-full px-4 py-3 rounded-xl border-2 border-historical-gold/30 dark:border-yellow-600/30 bg-historical-gold/5 dark:bg-yellow-900/10 text-historical-charcoal dark:text-gray-200 font-mono text-center text-lg font-bold transition-colors duration-300"
+            />
+            <button
+              onClick={handleCopy}
+              className="absolute left-2 top-1/2 -translate-y-1/2 px-3 py-1.5 rounded-lg bg-historical-gold/10 dark:bg-yellow-900/20 text-historical-gold dark:text-yellow-400 hover:bg-historical-gold/20 dark:hover:bg-yellow-900/30 transition-colors text-sm font-medium"
+            >
+              {copied ? 'تم النسخ!' : 'نسخ'}
+            </button>
+          </div>
+
+          <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl p-4">
+            <p className="text-sm text-yellow-800 dark:text-yellow-200 transition-colors duration-300">
+              ⚠️ <strong>تحذير:</strong> هذه كلمة المرور المؤقتة. يرجى إرسالها للبائع بشكل آمن. يجب على البائع تغييرها عند أول تسجيل دخول.
+            </p>
+          </div>
+
+          <button
+            onClick={onClose}
+            className="w-full px-4 py-2.5 rounded-xl bg-gradient-to-l from-historical-gold to-historical-red text-white font-medium hover:shadow-lg transition-shadow"
+          >
+            تم
+          </button>
+        </div>
+      </motion.div>
+    </motion.div>
+  )
+}
+
+
+// =============================================================================
 // Main Component
 // المكون الرئيسي
 // =============================================================================
@@ -657,6 +1155,8 @@ export default function VendorsPage() {
   const [editingVendor, setEditingVendor] = useState<Vendor | null>(null)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [deletingVendor, setDeletingVendor] = useState<Vendor | null>(null)
+  const [isVendorWithUserModalOpen, setIsVendorWithUserModalOpen] = useState(false)
+  const [tempPassword, setTempPassword] = useState<string | null>(null)
   const isInitialMount = useRef(true)
 
   // =========================================================================
@@ -699,6 +1199,15 @@ export default function VendorsPage() {
   const handleAddVendor = useCallback(() => {
     setEditingVendor(null)
     setIsModalOpen(true)
+  }, [])
+
+  /**
+   * Handle add vendor with user
+   * معالجة إضافة بائع مع مستخدم
+   */
+  const handleAddVendorWithUser = useCallback(() => {
+    setIsVendorWithUserModalOpen(true)
+    setTempPassword(null)
   }, [])
 
   /**
@@ -803,10 +1312,17 @@ export default function VendorsPage() {
           </button>
           <button
             onClick={handleAddVendor}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-l from-historical-gold to-historical-red text-white font-medium shadow-lg hover:shadow-xl transition-shadow"
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-historical-gold/10 dark:bg-yellow-900/20 text-historical-gold dark:text-yellow-400 hover:bg-historical-gold/20 dark:hover:bg-yellow-900/30 transition-colors font-medium"
           >
             {Icons.add}
             <span>{t.admin.vendors.addVendor}</span>
+          </button>
+          <button
+            onClick={handleAddVendorWithUser}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-l from-historical-gold to-historical-red text-white font-medium shadow-lg hover:shadow-xl transition-shadow"
+          >
+            {Icons.add}
+            <span>إنشاء بائع مع مستخدم</span>
           </button>
         </div>
       </motion.div>
@@ -985,6 +1501,30 @@ export default function VendorsPage() {
             onConfirm={handleConfirmDelete}
             vendorName={deletingVendor.name}
             isDeleting={isDeleting}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Vendor with User Modal */}
+      <VendorWithUserModal
+        isOpen={isVendorWithUserModalOpen}
+        onClose={() => {
+          setIsVendorWithUserModalOpen(false)
+          setTempPassword(null)
+        }}
+        onSuccess={(password) => {
+          setTempPassword(password)
+          setIsVendorWithUserModalOpen(false)
+          refresh()
+        }}
+      />
+
+      {/* Temporary Password Modal */}
+      <AnimatePresence>
+        {tempPassword && (
+          <TempPasswordModal
+            password={tempPassword}
+            onClose={() => setTempPassword(null)}
           />
         )}
       </AnimatePresence>
