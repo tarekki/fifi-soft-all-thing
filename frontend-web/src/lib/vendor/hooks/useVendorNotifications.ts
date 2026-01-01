@@ -102,7 +102,8 @@ export function useVendorNotifications(
   
   const refreshNotifications = useCallback(async () => {
     setIsRefreshing(true)
-    setError(null)
+    // Don't clear error on refresh - keep previous error if exists
+    // لا تمسح الخطأ عند التحديث - احتفظ بالخطأ السابق إذا كان موجوداً
     
     try {
       // Fetch both notifications and unread count
@@ -112,9 +113,22 @@ export function useVendorNotifications(
         getVendorUnreadCount(),
       ])
       
+      // Clear error on successful refresh
+      // مسح الخطأ عند التحديث الناجح
+      if (notificationsRes.success || unreadRes.success) {
+        setError(null)
+      }
+      
       if (notificationsRes.success && notificationsRes.data) {
         setNotifications(notificationsRes.data.notifications || [])
         setUnreadCount(notificationsRes.data.unread_count || 0)
+      } else if (!notificationsRes.success) {
+        // Only set error if it's not a session expired error (to avoid spam)
+        // تعيين الخطأ فقط إذا لم يكن خطأ انتهاء الجلسة (لتجنب الإزعاج)
+        if (!notificationsRes.message?.includes('Session expired') && 
+            !notificationsRes.message?.includes('login again')) {
+          setError(notificationsRes.message || 'Failed to refresh notifications')
+        }
       }
       
       if (unreadRes.success && unreadRes.data) {
@@ -122,8 +136,13 @@ export function useVendorNotifications(
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error'
-      console.error('Failed to refresh vendor notifications:', errorMessage)
-      setError(errorMessage)
+      // Only log and set error if it's not a session expired error
+      // تسجيل وتعيين الخطأ فقط إذا لم يكن خطأ انتهاء الجلسة
+      if (!errorMessage.includes('Session expired') && 
+          !errorMessage.includes('login again')) {
+        console.error('Failed to refresh vendor notifications:', errorMessage)
+        setError(errorMessage)
+      }
     } finally {
       setIsRefreshing(false)
     }

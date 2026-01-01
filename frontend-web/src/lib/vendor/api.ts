@@ -93,7 +93,9 @@ function isTokenExpired(token: string): boolean {
  */
 async function refreshAccessToken(refreshToken: string): Promise<string | null> {
   try {
-    const response = await fetch(`${API_BASE_URL}/admin/auth/refresh/`, {
+    // Use standard JWT refresh endpoint (works for all users including vendors)
+    // استخدام endpoint تجديد JWT القياسي (يعمل لجميع المستخدمين بما في ذلك البائعين)
+    const response = await fetch(`${API_BASE_URL}/auth/refresh/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -107,10 +109,29 @@ async function refreshAccessToken(refreshToken: string): Promise<string | null> 
 
     const data = await response.json()
 
-    if (data.success && data.data?.access) {
+    // JWT standard format: { access: string, refresh?: string }
+    // تنسيق JWT القياسي: { access: string, refresh?: string }
+    if (data.access) {
       // Save new access token
       // حفظ access token الجديد
+      localStorage.setItem(ACCESS_TOKEN_KEY, data.access)
+      
+      // Save new refresh token if provided (token rotation)
+      // حفظ refresh token جديد إذا تم توفيره (تدوير الرموز)
+      if (data.refresh) {
+        localStorage.setItem(REFRESH_TOKEN_KEY, data.refresh)
+      }
+      
+      return data.access
+    }
+
+    // Fallback: Check for wrapped response format
+    // احتياطي: التحقق من تنسيق الاستجابة الملفوفة
+    if (data.success && data.data?.access) {
       localStorage.setItem(ACCESS_TOKEN_KEY, data.data.access)
+      if (data.data.refresh) {
+        localStorage.setItem(REFRESH_TOKEN_KEY, data.data.refresh)
+      }
       return data.data.access
     }
 
