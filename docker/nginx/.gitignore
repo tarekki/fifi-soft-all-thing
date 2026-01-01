@@ -1,0 +1,17 @@
+# SSL Certificates (Never commit!)
+ssl/*.pem
+ssl/*.key
+ssl/*.csr
+ssl/*.crt
+
+# Logs
+logs/*.log
+logs/*.access
+logs/*.error
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+*~
+
