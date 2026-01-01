@@ -84,15 +84,15 @@ export default function ProductsPage() {
             {/* Header Section */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h2 className="text-3xl font-black text-[#0A0A0B] tracking-tight flex items-center gap-3">
-                        <Package className="w-8 h-8 text-[#C5A065]" />
+                    <h2 className="text-3xl font-black text-historical-charcoal dark:text-gray-100 tracking-tight flex items-center gap-3 transition-colors duration-300">
+                        <Package className="w-8 h-8 text-[#C5A065] dark:text-yellow-400 transition-colors duration-300" />
                         {t.vendor.products}
                     </h2>
-                    <p className="text-gray-500 font-medium mt-1">
+                    <p className="text-gray-500 dark:text-gray-400 font-medium mt-1 transition-colors duration-300">
                         {t.vendor.manageProductsDesc}
                     </p>
                 </div>
-                <button className="flex items-center justify-center gap-2 px-8 py-4 bg-[#0A0A0B] text-[#C5A065] font-black rounded-2xl hover:scale-105 transition-all shadow-xl shadow-[#0A0A0B]/20 group">
+                <button className="flex items-center justify-center gap-2 px-8 py-4 bg-historical-gold/10 dark:bg-yellow-900/20 text-[#C5A065] dark:text-yellow-400 font-black rounded-2xl hover:bg-historical-gold/20 dark:hover:bg-yellow-900/30 hover:scale-105 transition-all shadow-xl shadow-historical-gold/10 dark:shadow-yellow-900/20 group">
                     <Plus className="w-6 h-6 transition-transform group-hover:rotate-90" />
                     {t.vendor.addProduct}
                 </button>
