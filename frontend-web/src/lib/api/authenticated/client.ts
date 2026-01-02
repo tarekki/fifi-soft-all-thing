@@ -40,7 +40,7 @@ import type { ApiResponse } from '@/types/api'
  * ملاحظة: في Next.js، متغيرات البيئة المسبوقة بـ NEXT_PUBLIC_ متاحة
  */
 // @ts-expect-error - process.env is available in Next.js server-side
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://localhost/api/v1'
 
 /**
  * API Error Class

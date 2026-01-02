@@ -16,7 +16,7 @@ import type { Cart, AddCartItemDTO, UpdateCartItemDTO } from '@/types/cart'
  * API Base URL
  * عنوان URL الأساسي للـ API
  */
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://localhost/api/v1'
 
 /**
  * API Error Class

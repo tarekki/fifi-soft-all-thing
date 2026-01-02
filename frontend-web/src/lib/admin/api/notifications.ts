@@ -43,7 +43,7 @@ import {
 // الإعدادات
 // =============================================================================
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://localhost/api/v1'
 const ADMIN_API_URL = `${API_BASE_URL}/admin`
 
 // =============================================================================
@@ -179,7 +179,7 @@ export async function getNotifications(
   }
   
   const queryString = params.toString()
-  const endpoint = `/notifications${queryString ? `?${queryString}` : ''}`
+  const endpoint = queryString ? `/notifications/?${queryString}` : '/notifications/'
   
   return adminFetch<NotificationResponse>(endpoint)
 }

@@ -38,7 +38,7 @@ import type {
 // الإعدادات
 // =============================================================================
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://localhost/api/v1'
 const ADMIN_API_URL = `${API_BASE_URL}/admin`
 
 // Token storage keys

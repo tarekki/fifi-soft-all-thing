@@ -6,7 +6,7 @@
  * wrapper بسيط لـ fetch للبيانات العامة للقراءة فقط
  */
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://localhost/api/v1'
 
 export async function apiClient<T>(
   endpoint: string,
