@@ -566,3 +566,169 @@ class VendorApplication(models.Model):
         self.reviewed_by = admin_user
         self.reviewed_at = timezone.now()
         self.save()
+
+
+# =============================================================================
+# Vendor Settings Model
+# نموذج إعدادات البائع
+# =============================================================================
+
+class VendorSettings(models.Model):
+    """
+    Vendor settings including notification preferences and store settings.
+    إعدادات البائع بما في ذلك تفضيلات الإشعارات وإعدادات المتجر.
+    
+    This model stores all vendor-specific settings that need to persist.
+    هذا النموذج يخزن جميع الإعدادات الخاصة بالبائع التي تحتاج إلى الاستمرار.
+    
+    Fields:
+        Notification Preferences / تفضيلات الإشعارات:
+            - notify_new_orders: إشعارات الطلبات الجديدة
+            - notify_order_status_changes: إشعارات تغيير حالة الطلب
+            - notify_order_cancellations: إشعارات إلغاء الطلبات
+            - notify_low_stock: إشعارات المخزون المنخفض
+            - notify_out_of_stock: إشعارات نفاد المخزون
+            - notify_new_customers: إشعارات الزبائن الجدد
+            - email_notifications_enabled: تفعيل إشعارات البريد الإلكتروني
+        
+        Store Settings / إعدادات المتجر:
+            - auto_confirm_orders: تأكيد الطلبات تلقائياً
+            - default_order_status: حالة الطلب الافتراضية
+            - stock_alert_threshold: حد تنبيه المخزون
+            - auto_archive_orders_after_days: أرشفة الطلبات تلقائياً بعد (أيام)
+    """
+    
+    # One-to-one relationship with Vendor
+    # علاقة واحد لواحد مع البائع
+    vendor = models.OneToOneField(
+        Vendor,
+        on_delete=models.CASCADE,
+        related_name='settings',
+        verbose_name=_('البائع / Vendor'),
+        help_text=_('البائع المرتبط بهذه الإعدادات')
+    )
+    
+    # ==========================================================================
+    # Notification Preferences
+    # تفضيلات الإشعارات
+    # ==========================================================================
+    
+    notify_new_orders = models.BooleanField(
+        default=True,
+        verbose_name=_('إشعارات الطلبات الجديدة / Notify New Orders'),
+        help_text=_('تلقي إشعارات عند استلام طلبات جديدة')
+    )
+    
+    notify_order_status_changes = models.BooleanField(
+        default=True,
+        verbose_name=_('إشعارات تغيير حالة الطلب / Notify Order Status Changes'),
+        help_text=_('تلقي إشعارات عند تغيير حالة الطلب')
+    )
+    
+    notify_order_cancellations = models.BooleanField(
+        default=True,
+        verbose_name=_('إشعارات إلغاء الطلبات / Notify Order Cancellations'),
+        help_text=_('تلقي إشعارات عند إلغاء الطلبات')
+    )
+    
+    notify_low_stock = models.BooleanField(
+        default=True,
+        verbose_name=_('إشعارات المخزون المنخفض / Notify Low Stock'),
+        help_text=_('تلقي إشعارات عند انخفاض المخزون')
+    )
+    
+    notify_out_of_stock = models.BooleanField(
+        default=True,
+        verbose_name=_('إشعارات نفاد المخزون / Notify Out of Stock'),
+        help_text=_('تلقي إشعارات عند نفاد المخزون')
+    )
+    
+    notify_new_customers = models.BooleanField(
+        default=False,
+        verbose_name=_('إشعارات الزبائن الجدد / Notify New Customers'),
+        help_text=_('تلقي إشعارات عند تسجيل زبائن جدد')
+    )
+    
+    email_notifications_enabled = models.BooleanField(
+        default=True,
+        verbose_name=_('تفعيل إشعارات البريد الإلكتروني / Email Notifications Enabled'),
+        help_text=_('تفعيل إرسال الإشعارات عبر البريد الإلكتروني')
+    )
+    
+    # ==========================================================================
+    # Store Settings
+    # إعدادات المتجر
+    # ==========================================================================
+    
+    auto_confirm_orders = models.BooleanField(
+        default=False,
+        verbose_name=_('تأكيد الطلبات تلقائياً / Auto Confirm Orders'),
+        help_text=_('تأكيد الطلبات الجديدة تلقائياً عند استلامها')
+    )
+    
+    default_order_status = models.CharField(
+        max_length=20,
+        choices=[
+            ('pending', _('معلق / Pending')),
+            ('confirmed', _('مؤكد / Confirmed')),
+            ('processing', _('قيد المعالجة / Processing')),
+        ],
+        default='pending',
+        verbose_name=_('حالة الطلب الافتراضية / Default Order Status'),
+        help_text=_('الحالة الافتراضية للطلبات الجديدة')
+    )
+    
+    stock_alert_threshold = models.PositiveIntegerField(
+        default=10,
+        validators=[MinValueValidator(0)],
+        verbose_name=_('حد تنبيه المخزون / Stock Alert Threshold'),
+        help_text=_('عدد الوحدات التي عندها يتم إرسال تنبيه المخزون المنخفض')
+    )
+    
+    auto_archive_orders_after_days = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(1), MaxValueValidator(365)],
+        verbose_name=_('أرشفة الطلبات تلقائياً بعد (أيام) / Auto Archive Orders After Days'),
+        help_text=_('عدد الأيام بعدها يتم أرشفة الطلبات تلقائياً (اتركه فارغاً لتعطيل الأرشفة التلقائية)')
+    )
+    
+    # ==========================================================================
+    # Timestamps
+    # الطوابع الزمنية
+    # ==========================================================================
+    
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name=_('تاريخ الإنشاء / Created At')
+    )
+    
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        verbose_name=_('تاريخ التحديث / Updated At')
+    )
+    
+    class Meta:
+        verbose_name = _('إعدادات البائع / Vendor Settings')
+        verbose_name_plural = _('إعدادات البائعين / Vendor Settings')
+        indexes = [
+            models.Index(fields=['vendor']),
+        ]
+    
+    def __str__(self):
+        return f"Settings for {self.vendor.name}"
+    
+    @classmethod
+    def get_or_create_for_vendor(cls, vendor):
+        """
+        Get or create settings for a vendor.
+        الحصول على أو إنشاء إعدادات للبائع.
+        
+        Args:
+            vendor: Vendor instance
+            
+        Returns:
+            VendorSettings: Settings instance
+        """
+        settings, created = cls.objects.get_or_create(vendor=vendor)
+        return settings

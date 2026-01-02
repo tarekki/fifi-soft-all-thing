@@ -11,7 +11,7 @@ from django.utils.html import format_html
 from django.db.models import Count, Sum, Q
 from django.utils import timezone
 from django.contrib import messages
-from .models import Vendor, VendorApplication
+from .models import Vendor, VendorApplication, VendorSettings
 
 
 # ============================================================================
@@ -444,3 +444,71 @@ class VendorApplicationAdmin(admin.ModelAdmin):
                 obj.reviewed_at = timezone.now()
         
         super().save_model(request, obj, form, change)
+
+
+# ============================================================================
+# Vendor Settings Admin
+# إدارة إعدادات البائعين
+# ============================================================================
+
+@admin.register(VendorSettings)
+class VendorSettingsAdmin(admin.ModelAdmin):
+    """
+    Vendor Settings Admin Interface
+    واجهة إدارة إعدادات البائعين
+    """
+    
+    list_display = [
+        'vendor',
+        'email_notifications_enabled',
+        'auto_confirm_orders',
+        'stock_alert_threshold',
+        'updated_at',
+    ]
+    
+    list_filter = [
+        'email_notifications_enabled',
+        'auto_confirm_orders',
+        'default_order_status',
+        'updated_at',
+    ]
+    
+    search_fields = [
+        'vendor__name',
+    ]
+    
+    readonly_fields = [
+        'created_at',
+        'updated_at',
+    ]
+    
+    fieldsets = (
+        ('Vendor / البائع', {
+            'fields': ('vendor',)
+        }),
+        ('Notification Preferences / تفضيلات الإشعارات', {
+            'fields': (
+                'notify_new_orders',
+                'notify_order_status_changes',
+                'notify_order_cancellations',
+                'notify_low_stock',
+                'notify_out_of_stock',
+                'notify_new_customers',
+                'email_notifications_enabled',
+            )
+        }),
+        ('Store Settings / إعدادات المتجر', {
+            'fields': (
+                'auto_confirm_orders',
+                'default_order_status',
+                'stock_alert_threshold',
+                'auto_archive_orders_after_days',
+            )
+        }),
+        ('Timestamps / الطوابع الزمنية', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    ordering = ['vendor__name']

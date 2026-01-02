@@ -91,6 +91,32 @@ class DashboardOverviewSerializer(serializers.Serializer):
     pending_vendors = serializers.IntegerField(
         help_text=_('البائعين المعلقين / Pending vendor applications')
     )
+    
+    # Vendor Settings Statistics - إحصائيات إعدادات البائعين
+    vendors_with_settings = serializers.IntegerField(
+        help_text=_('عدد البائعين مع إعدادات / Vendors with settings')
+    )
+    vendors_notify_new_orders = serializers.IntegerField(
+        help_text=_('البائعين مع إشعارات الطلبات الجديدة / Vendors with new order notifications')
+    )
+    vendors_notify_low_stock = serializers.IntegerField(
+        help_text=_('البائعين مع إشعارات المخزون المنخفض / Vendors with low stock notifications')
+    )
+    vendors_email_notifications = serializers.IntegerField(
+        help_text=_('البائعين مع إشعارات البريد الإلكتروني / Vendors with email notifications')
+    )
+    vendors_auto_confirm = serializers.IntegerField(
+        help_text=_('البائعين مع تأكيد تلقائي / Vendors with auto-confirm orders')
+    )
+    vendors_default_pending = serializers.IntegerField(
+        help_text=_('البائعين مع حالة افتراضية (معلق) / Vendors with default status (pending)')
+    )
+    vendors_default_confirmed = serializers.IntegerField(
+        help_text=_('البائعين مع حالة افتراضية (مؤكد) / Vendors with default status (confirmed)')
+    )
+    avg_stock_threshold = serializers.FloatField(
+        help_text=_('متوسط حد تنبيه المخزون / Average stock alert threshold')
+    )
 
 
 # =============================================================================

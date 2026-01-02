@@ -15,7 +15,7 @@ Endpoints:
 from rest_framework.views import APIView
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-from django.db.models import Sum, Count
+from django.db.models import Sum, Count, Avg
 from django.db.models.functions import TruncDate, TruncMonth
 from datetime import timedelta
 from decimal import Decimal
@@ -190,6 +190,36 @@ class DashboardOverviewView(APIView):
         pending_vendors = Vendor.objects.filter(is_active=False).count()  # Assuming pending = inactive
         
         # =================================================================
+        # Vendor Settings Statistics
+        # إحصائيات إعدادات البائعين
+        # =================================================================
+        
+        from vendors.models import VendorSettings
+        
+        # Count vendors with settings
+        # عدد البائعين مع إعدادات
+        vendors_with_settings = VendorSettings.objects.count()
+        
+        # Notification preferences statistics
+        # إحصائيات تفضيلات الإشعارات
+        vendors_notify_new_orders = VendorSettings.objects.filter(notify_new_orders=True).count()
+        vendors_notify_low_stock = VendorSettings.objects.filter(notify_low_stock=True).count()
+        vendors_email_notifications = VendorSettings.objects.filter(email_notifications_enabled=True).count()
+        
+        # Store settings statistics
+        # إحصائيات إعدادات المتجر
+        vendors_auto_confirm = VendorSettings.objects.filter(auto_confirm_orders=True).count()
+        vendors_default_pending = VendorSettings.objects.filter(default_order_status='pending').count()
+        vendors_default_confirmed = VendorSettings.objects.filter(default_order_status='confirmed').count()
+        
+        # Average stock alert threshold
+        # متوسط حد تنبيه المخزون
+        avg_stock_threshold_result = VendorSettings.objects.aggregate(
+            avg=Avg('stock_alert_threshold')
+        )
+        avg_stock_threshold = avg_stock_threshold_result['avg'] or 10
+        
+        # =================================================================
         # Build Response
         # بناء الاستجابة
         # =================================================================
@@ -222,6 +252,16 @@ class DashboardOverviewView(APIView):
             'total_vendors': total_vendors,
             'active_vendors': active_vendors,
             'pending_vendors': pending_vendors,
+            
+            # Vendor Settings Statistics
+            'vendors_with_settings': vendors_with_settings,
+            'vendors_notify_new_orders': vendors_notify_new_orders,
+            'vendors_notify_low_stock': vendors_notify_low_stock,
+            'vendors_email_notifications': vendors_email_notifications,
+            'vendors_auto_confirm': vendors_auto_confirm,
+            'vendors_default_pending': vendors_default_pending,
+            'vendors_default_confirmed': vendors_default_confirmed,
+            'avg_stock_threshold': round(float(avg_stock_threshold), 1) if avg_stock_threshold else 10.0,
         }
         
         serializer = DashboardOverviewSerializer(data)

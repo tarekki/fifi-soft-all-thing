@@ -19,6 +19,7 @@
 
 import { motion } from 'framer-motion'
 import { useRouter } from 'next/navigation'
+import { useEffect } from 'react'
 import { useDashboard } from '@/lib/admin'
 import type { RecentOrder, RecentActivity } from '@/lib/admin'
 import { useLanguage } from '@/lib/i18n/context'
@@ -268,7 +269,10 @@ const itemVariants = {
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] },
+    transition: { 
+      duration: 0.4, 
+      ease: "easeOut" as const,
+    },
   },
 }
 
@@ -581,8 +585,8 @@ function RecentActivityList({
           </div>
         ) : (
           activities.map((activity) => {
-            // Use target_ref.type if available, fallback to target_type
-            const targetType = activity.target_ref?.type || activity.target_type || 'order'
+            // Use target_type, fallback to 'order'
+            const targetType = activity.target_type || 'order'
             
             return (
               <div key={activity.id} className="flex items-start gap-3">
@@ -635,6 +639,15 @@ export default function AdminDashboardPage() {
     refresh,
     setChartPeriod,
   } = useDashboard(30000)
+
+  // Debug: Check overview
+  useEffect(() => {
+    console.log('[Dashboard] Overview:', overview)
+    console.log('[Dashboard] Overview exists?', !!overview)
+    if (overview) {
+      console.log('[Dashboard] vendors_with_settings:', overview.vendors_with_settings)
+    }
+  }, [overview])
 
   // Build KPI cards from real data
   // بناء بطاقات مؤشرات الأداء من البيانات الحقيقية
@@ -747,6 +760,132 @@ export default function AdminDashboardPage() {
 
       {/* Recent Orders */}
       <RecentOrdersTable orders={recentOrders} isLoading={isLoading} />
+
+      {/* Vendor Settings Statistics */}
+      {overview && (
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 transition-colors duration-300">
+          <h2 className="text-xl font-bold text-historical-charcoal dark:text-gray-100 mb-4 transition-colors duration-300">
+            {language === 'ar' ? 'إحصائيات إعدادات البائعين' : 'Vendor Settings Statistics'}
+          </h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Vendors with Settings */}
+            <div className="bg-gradient-to-br from-purple-500/10 to-purple-500/5 rounded-lg p-4 border border-purple-500/10">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-gray-600 dark:text-gray-400">
+                  {language === 'ar' ? 'البائعين مع إعدادات' : 'Vendors with Settings'}
+                </span>
+                <div className="w-8 h-8 rounded-lg bg-purple-500/20 text-purple-600 flex items-center justify-center">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                </div>
+              </div>
+              <p className="text-2xl font-bold text-historical-charcoal dark:text-gray-100">
+                {formatNumber(overview.vendors_with_settings ?? 0)}
+              </p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                {language === 'ar' ? `من أصل ${formatNumber(overview.total_vendors ?? 0)} بائع` : `out of ${formatNumber(overview.total_vendors ?? 0)} vendors`}
+              </p>
+            </div>
+
+            {/* Email Notifications */}
+            <div className="bg-gradient-to-br from-blue-500/10 to-blue-500/5 rounded-lg p-4 border border-blue-500/10">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-gray-600 dark:text-gray-400">
+                  {language === 'ar' ? 'إشعارات البريد الإلكتروني' : 'Email Notifications'}
+                </span>
+                <div className="w-8 h-8 rounded-lg bg-blue-500/20 text-blue-600 flex items-center justify-center">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+                  </svg>
+                </div>
+              </div>
+              <p className="text-2xl font-bold text-historical-charcoal dark:text-gray-100">
+                {formatNumber(overview.vendors_email_notifications ?? 0)}
+              </p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                {language === 'ar' ? 'بائع مفعل' : 'vendors enabled'}
+              </p>
+            </div>
+
+            {/* Auto Confirm Orders */}
+            <div className="bg-gradient-to-br from-green-500/10 to-green-500/5 rounded-lg p-4 border border-green-500/10">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-gray-600 dark:text-gray-400">
+                  {language === 'ar' ? 'تأكيد تلقائي' : 'Auto Confirm'}
+                </span>
+                <div className="w-8 h-8 rounded-lg bg-green-500/20 text-green-600 flex items-center justify-center">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+              </div>
+              <p className="text-2xl font-bold text-historical-charcoal dark:text-gray-100">
+                {formatNumber(overview.vendors_auto_confirm ?? 0)}
+              </p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                {language === 'ar' ? 'بائع مفعل' : 'vendors enabled'}
+              </p>
+            </div>
+
+            {/* Average Stock Threshold */}
+            <div className="bg-gradient-to-br from-orange-500/10 to-orange-500/5 rounded-lg p-4 border border-orange-500/10">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-gray-600 dark:text-gray-400">
+                  {language === 'ar' ? 'متوسط حد المخزون' : 'Avg Stock Threshold'}
+                </span>
+                <div className="w-8 h-8 rounded-lg bg-orange-500/20 text-orange-600 flex items-center justify-center">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+                  </svg>
+                </div>
+              </div>
+              <p className="text-2xl font-bold text-historical-charcoal dark:text-gray-100">
+                {formatNumber(Math.round(overview.avg_stock_threshold ?? 10))}
+              </p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                {language === 'ar' ? 'وحدة' : 'units'}
+              </p>
+            </div>
+          </div>
+
+          {/* Additional Stats Row */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+            <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3 border border-gray-200 dark:border-gray-600">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600 dark:text-gray-400">
+                  {language === 'ar' ? 'إشعارات طلبات جديدة' : 'New Order Notifications'}
+                </span>
+                <span className="text-lg font-semibold text-historical-charcoal dark:text-gray-100">
+                  {formatNumber(overview.vendors_notify_new_orders ?? 0)}
+                </span>
+              </div>
+            </div>
+            <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3 border border-gray-200 dark:border-gray-600">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600 dark:text-gray-400">
+                  {language === 'ar' ? 'إشعارات مخزون منخفض' : 'Low Stock Notifications'}
+                </span>
+                <span className="text-lg font-semibold text-historical-charcoal dark:text-gray-100">
+                  {formatNumber(overview.vendors_notify_low_stock ?? 0)}
+                </span>
+              </div>
+            </div>
+            <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3 border border-gray-200 dark:border-gray-600">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600 dark:text-gray-400">
+                  {language === 'ar' ? 'حالة افتراضية (معلق)' : 'Default Status (Pending)'}
+                </span>
+                <span className="text-lg font-semibold text-historical-charcoal dark:text-gray-100">
+                  {formatNumber(overview.vendors_default_pending ?? 0)}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </motion.div>
   )
 }

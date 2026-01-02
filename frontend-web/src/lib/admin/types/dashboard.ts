@@ -46,6 +46,17 @@ export interface DashboardOverview {
   total_vendors: number
   active_vendors: number
   pending_vendors: number
+  
+  // Vendor Settings Statistics
+  // إحصائيات إعدادات البائعين
+  vendors_with_settings: number
+  vendors_notify_new_orders: number
+  vendors_notify_low_stock: number
+  vendors_email_notifications: number
+  vendors_auto_confirm: number
+  vendors_default_pending: number
+  vendors_default_confirmed: number
+  avg_stock_threshold: number
 }
 
 // =============================================================================

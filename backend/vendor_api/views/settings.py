@@ -53,6 +53,7 @@ from vendor_api.serializers.settings import (
 )
 from core.utils import success_response, error_response
 from users.models import VendorUser, UserProfile
+from vendors.models import VendorSettings
 
 User = get_user_model()
 
@@ -478,16 +479,24 @@ class VendorNotificationPreferencesView(APIView):
         Get notification preferences.
         الحصول على تفضيلات الإشعارات.
         """
-        # For now, return default preferences
-        # In the future, store in database (e.g., VendorSettings model)
+        vendor, vendor_user = get_vendor_from_request(request)
+        if not vendor:
+            return error_response(
+                message=_('لا يوجد بائع مرتبط بهذا المستخدم / No vendor associated with this user')
+            )
+        
+        # Get or create settings for this vendor
+        # الحصول على أو إنشاء إعدادات لهذا البائع
+        settings = VendorSettings.get_or_create_for_vendor(vendor)
+        
         data = {
-            'notify_new_orders': True,
-            'notify_order_status_changes': True,
-            'notify_order_cancellations': True,
-            'notify_low_stock': True,
-            'notify_out_of_stock': True,
-            'notify_new_customers': False,
-            'email_notifications_enabled': True,
+            'notify_new_orders': settings.notify_new_orders,
+            'notify_order_status_changes': settings.notify_order_status_changes,
+            'notify_order_cancellations': settings.notify_order_cancellations,
+            'notify_low_stock': settings.notify_low_stock,
+            'notify_out_of_stock': settings.notify_out_of_stock,
+            'notify_new_customers': settings.notify_new_customers,
+            'email_notifications_enabled': settings.email_notifications_enabled,
         }
         
         return success_response(data=data)
@@ -504,6 +513,12 @@ class VendorNotificationPreferencesView(APIView):
         Update notification preferences.
         تحديث تفضيلات الإشعارات.
         """
+        vendor, vendor_user = get_vendor_from_request(request)
+        if not vendor:
+            return error_response(
+                message=_('لا يوجد بائع مرتبط بهذا المستخدم / No vendor associated with this user')
+            )
+        
         serializer = VendorNotificationPreferencesUpdateSerializer(data=request.data)
         
         if not serializer.is_valid():
@@ -512,16 +527,39 @@ class VendorNotificationPreferencesView(APIView):
                 errors=serializer.errors,
             )
         
-        # For now, just return the updated preferences
-        # In the future, save to database
+        # Get or create settings for this vendor
+        # الحصول على أو إنشاء إعدادات لهذا البائع
+        settings = VendorSettings.get_or_create_for_vendor(vendor)
+        
+        # Update notification preferences
+        # تحديث تفضيلات الإشعارات
+        if 'notify_new_orders' in serializer.validated_data:
+            settings.notify_new_orders = serializer.validated_data['notify_new_orders']
+        if 'notify_order_status_changes' in serializer.validated_data:
+            settings.notify_order_status_changes = serializer.validated_data['notify_order_status_changes']
+        if 'notify_order_cancellations' in serializer.validated_data:
+            settings.notify_order_cancellations = serializer.validated_data['notify_order_cancellations']
+        if 'notify_low_stock' in serializer.validated_data:
+            settings.notify_low_stock = serializer.validated_data['notify_low_stock']
+        if 'notify_out_of_stock' in serializer.validated_data:
+            settings.notify_out_of_stock = serializer.validated_data['notify_out_of_stock']
+        if 'notify_new_customers' in serializer.validated_data:
+            settings.notify_new_customers = serializer.validated_data['notify_new_customers']
+        if 'email_notifications_enabled' in serializer.validated_data:
+            settings.email_notifications_enabled = serializer.validated_data['email_notifications_enabled']
+        
+        settings.save()
+        
+        # Return updated data
+        # إرجاع البيانات المحدثة
         data = {
-            'notify_new_orders': serializer.validated_data.get('notify_new_orders', True),
-            'notify_order_status_changes': serializer.validated_data.get('notify_order_status_changes', True),
-            'notify_order_cancellations': serializer.validated_data.get('notify_order_cancellations', True),
-            'notify_low_stock': serializer.validated_data.get('notify_low_stock', True),
-            'notify_out_of_stock': serializer.validated_data.get('notify_out_of_stock', True),
-            'notify_new_customers': serializer.validated_data.get('notify_new_customers', False),
-            'email_notifications_enabled': serializer.validated_data.get('email_notifications_enabled', True),
+            'notify_new_orders': settings.notify_new_orders,
+            'notify_order_status_changes': settings.notify_order_status_changes,
+            'notify_order_cancellations': settings.notify_order_cancellations,
+            'notify_low_stock': settings.notify_low_stock,
+            'notify_out_of_stock': settings.notify_out_of_stock,
+            'notify_new_customers': settings.notify_new_customers,
+            'email_notifications_enabled': settings.email_notifications_enabled,
         }
         
         return success_response(
@@ -561,14 +599,16 @@ class VendorStoreSettingsView(APIView):
                 message=_('لا يوجد بائع مرتبط بهذا المستخدم / No vendor associated with this user')
             )
         
-        # For now, return default settings
-        # In the future, store in database (e.g., VendorSettings model)
+        # Get or create settings for this vendor
+        # الحصول على أو إنشاء إعدادات لهذا البائع
+        settings = VendorSettings.get_or_create_for_vendor(vendor)
+        
         data = {
-            'is_active': vendor.is_active,
-            'auto_confirm_orders': False,
-            'default_order_status': 'pending',
-            'stock_alert_threshold': 10,
-            'auto_archive_orders_after_days': None,
+            'is_active': vendor.is_active,  # Read-only from vendor model
+            'auto_confirm_orders': settings.auto_confirm_orders,
+            'default_order_status': settings.default_order_status,
+            'stock_alert_threshold': settings.stock_alert_threshold,
+            'auto_archive_orders_after_days': settings.auto_archive_orders_after_days,
         }
         
         return success_response(data=data)
@@ -599,14 +639,31 @@ class VendorStoreSettingsView(APIView):
                 errors=serializer.errors,
             )
         
-        # For now, just return the updated settings
-        # In the future, save to database
+        # Get or create settings for this vendor
+        # الحصول على أو إنشاء إعدادات لهذا البائع
+        settings = VendorSettings.get_or_create_for_vendor(vendor)
+        
+        # Update store settings
+        # تحديث إعدادات المتجر
+        if 'auto_confirm_orders' in serializer.validated_data:
+            settings.auto_confirm_orders = serializer.validated_data['auto_confirm_orders']
+        if 'default_order_status' in serializer.validated_data:
+            settings.default_order_status = serializer.validated_data['default_order_status']
+        if 'stock_alert_threshold' in serializer.validated_data:
+            settings.stock_alert_threshold = serializer.validated_data['stock_alert_threshold']
+        if 'auto_archive_orders_after_days' in serializer.validated_data:
+            settings.auto_archive_orders_after_days = serializer.validated_data['auto_archive_orders_after_days']
+        
+        settings.save()
+        
+        # Return updated data
+        # إرجاع البيانات المحدثة
         data = {
-            'is_active': vendor.is_active,
-            'auto_confirm_orders': serializer.validated_data.get('auto_confirm_orders', False),
-            'default_order_status': serializer.validated_data.get('default_order_status', 'pending'),
-            'stock_alert_threshold': serializer.validated_data.get('stock_alert_threshold', 10),
-            'auto_archive_orders_after_days': serializer.validated_data.get('auto_archive_orders_after_days', None),
+            'is_active': vendor.is_active,  # Read-only from vendor model
+            'auto_confirm_orders': settings.auto_confirm_orders,
+            'default_order_status': settings.default_order_status,
+            'stock_alert_threshold': settings.stock_alert_threshold,
+            'auto_archive_orders_after_days': settings.auto_archive_orders_after_days,
         }
         
         return success_response(
