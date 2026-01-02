@@ -108,15 +108,10 @@ class VendorDashboardOverviewView(APIView):
         # إحصائيات الإيرادات (المبيعات)
         # =================================================================
         
-        # Get all orders that contain products from this vendor
-        # الحصول على جميع الطلبات التي تحتوي على منتجات من هذا البائع
-        vendor_order_items = OrderItem.objects.filter(
-            product_variant__product__vendor=vendor
-        )
-        
-        vendor_orders = Order.objects.filter(
-            items__in=vendor_order_items
-        ).distinct()
+        # Get all orders and order items for this vendor (using denormalized vendor field)
+        # الحصول على جميع الطلبات وعناصر الطلب لهذا البائع (باستخدام حقل vendor المطبيع)
+        vendor_order_items = OrderItem.objects.filter(vendor=vendor)
+        vendor_orders = Order.objects.filter(vendor=vendor)
         
         # Total sales (all time) - only completed/delivered orders
         # إجمالي المبيعات (كل الأوقات) - فقط الطلبات المكتملة/المسلمة
@@ -447,10 +442,10 @@ class VendorSalesChartView(APIView):
             date_format = '%Y-%m'
             label_format = '%b %Y'  # Month Year for display
         
-        # Get all order items that belong to this vendor
-        # الحصول على جميع عناصر الطلب التي تنتمي لهذا البائع
+        # Get all order items that belong to this vendor (using denormalized vendor field)
+        # الحصول على جميع عناصر الطلب التي تنتمي لهذا البائع (باستخدام حقل vendor المطبيع)
         vendor_order_items = OrderItem.objects.filter(
-            product_variant__product__vendor=vendor,
+            vendor=vendor,
             order__created_at__gte=start_date,
             order__status__in=['delivered', 'completed', 'processing', 'pending', 'confirmed']
         ).select_related('order', 'product_variant', 'product_variant__product')
@@ -886,10 +881,10 @@ class VendorRecentOrdersView(APIView):
         limit = int(request.query_params.get('limit', 10))
         limit = min(limit, 50)  # Max 50 orders
         
-        # Get all order items that belong to this vendor
-        # الحصول على جميع عناصر الطلب التي تنتمي لهذا البائع
+        # Get all order items that belong to this vendor (using denormalized vendor field)
+        # الحصول على جميع عناصر الطلب التي تنتمي لهذا البائع (باستخدام حقل vendor المطبيع)
         vendor_order_items = OrderItem.objects.filter(
-            product_variant__product__vendor=vendor
+            vendor=vendor
         ).select_related('order', 'order__user')
         
         # Get unique orders

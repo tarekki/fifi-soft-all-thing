@@ -178,21 +178,17 @@ class VendorCustomerListView(APIView):
                 message=_('لا يوجد بائع مرتبط بهذا المستخدم / No vendor associated with this user')
             )
         
-        # Get all order items that belong to this vendor
-        # الحصول على جميع عناصر الطلب التي تنتمي لهذا البائع
-        vendor_order_items = OrderItem.objects.filter(
-            product_variant__product__vendor=vendor
-        ).select_related('order', 'order__user')
+        # Get orders for this vendor (using denormalized vendor field - no deep JOINs needed)
+        # الحصول على الطلبات لهذا البائع (باستخدام حقل vendor المطبيع - لا حاجة لـ JOINs عميقة)
+        vendor_orders = Order.objects.filter(vendor=vendor).select_related('user')
         
-        # Get unique orders
-        # الحصول على الطلبات الفريدة
-        order_ids = vendor_order_items.values_list('order_id', flat=True).distinct()
+        # Get order IDs
+        # الحصول على معرفات الطلبات
+        order_ids = vendor_orders.values_list('id', flat=True)
         
-        # Get orders that contain vendor's products
-        # الحصول على الطلبات التي تحتوي على منتجات البائع
-        orders = Order.objects.filter(
-            id__in=order_ids
-        ).select_related('user').prefetch_related('items')
+        # Use vendor orders directly (already filtered by vendor)
+        # استخدام طلبات البائع مباشرة (مفلترة بالفعل حسب البائع)
+        orders = vendor_orders.prefetch_related('items')
         
         # =================================================================
         # Aggregate customer data

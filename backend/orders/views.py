@@ -131,8 +131,8 @@ class OrderViewSet(viewsets.ModelViewSet):
         if user.role == 'customer':
             return Order.objects.filter(user=user).prefetch_related('items', 'items__product_variant', 'items__product_variant__product')
         
-        # Vendor can see orders containing their products
-        # البائع يمكنه رؤية الطلبات التي تحتوي على منتجاته
+        # Vendor can see orders for their vendor (using denormalized vendor field)
+        # البائع يمكنه رؤية الطلبات لبائعه (باستخدام حقل vendor المطبيع)
         if user.role == 'vendor':
             # Get vendor IDs associated with this user
             # الحصول على معرفات البائعين المرتبطة بهذا المستخدم
@@ -142,11 +142,11 @@ class OrderViewSet(viewsets.ModelViewSet):
             if not vendor_ids:
                 return Order.objects.none()
             
-            # Get orders that contain products from this vendor
-            # الحصول على الطلبات التي تحتوي على منتجات من هذا البائع
+            # Get orders for this vendor (using denormalized vendor field - no deep JOINs needed)
+            # الحصول على الطلبات لهذا البائع (باستخدام حقل vendor المطبيع - لا حاجة لـ JOINs عميقة)
             return Order.objects.filter(
-                items__product_variant__product__vendor_id__in=vendor_ids
-            ).distinct().prefetch_related('items', 'items__product_variant', 'items__product_variant__product')
+                vendor_id__in=vendor_ids
+            ).select_related('vendor').prefetch_related('items', 'items__product_variant', 'items__product_variant__product')
         
         return Order.objects.none()
     
@@ -204,13 +204,9 @@ class OrderViewSet(viewsets.ModelViewSet):
             from users.models import VendorUser
             vendor_ids = VendorUser.objects.filter(user=user).values_list('vendor_id', flat=True)
             
-            # Check if order contains products from this vendor
-            # التحقق من إذا كان الطلب يحتوي على منتجات من هذا البائع
-            order_has_vendor_products = order.items.filter(
-                product_variant__product__vendor_id__in=vendor_ids
-            ).exists()
-            
-            if not order_has_vendor_products:
+            # Check if order belongs to this vendor (using denormalized vendor field)
+            # التحقق من إذا كان الطلب ينتمي لهذا البائع (باستخدام حقل vendor المطبيع)
+            if order.vendor_id not in vendor_ids:
                 return error_response(
                     message='You do not have permission to update this order.',
                     status_code=status.HTTP_403_FORBIDDEN

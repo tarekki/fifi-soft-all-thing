@@ -137,21 +137,11 @@ class VendorOrderListView(APIView):
                 message=_('لا يوجد بائع مرتبط بهذا المستخدم / No vendor associated with this user')
             )
         
-        # Get all order items that belong to this vendor
-        # الحصول على جميع عناصر الطلب التي تنتمي لهذا البائع
-        vendor_order_items = OrderItem.objects.filter(
-            product_variant__product__vendor=vendor
-        ).select_related('order', 'order__user')
-        
-        # Get unique orders
-        # الحصول على الطلبات الفريدة
-        order_ids = vendor_order_items.values_list('order_id', flat=True).distinct()
-        
-        # Start with orders that contain vendor's products
-        # البدء بالطلبات التي تحتوي على منتجات البائع
+        # Get orders for this vendor (using denormalized vendor field - no deep JOINs needed)
+        # الحصول على الطلبات لهذا البائع (باستخدام حقل vendor المطبيع - لا حاجة لـ JOINs عميقة)
         queryset = Order.objects.filter(
-            id__in=order_ids
-        ).select_related('user').prefetch_related(
+            vendor=vendor
+        ).select_related('user', 'vendor').prefetch_related(
             'items',
             'items__product_variant',
             'items__product_variant__product',
@@ -371,11 +361,10 @@ class VendorOrderDetailView(APIView):
         # Get order
         # الحصول على الطلب
         try:
-            order = Order.objects.select_related('user').prefetch_related(
+            order = Order.objects.select_related('user', 'vendor').prefetch_related(
                 'items',
                 'items__product_variant',
                 'items__product_variant__product',
-                'items__product_variant__product__vendor',
             ).get(id=pk)
         except Order.DoesNotExist:
             return error_response(
@@ -383,18 +372,20 @@ class VendorOrderDetailView(APIView):
                 status_code=404
             )
         
-        # Check if order contains vendor's products
-        # التحقق من أن الطلب يحتوي على منتجات البائع
-        vendor_order_items = OrderItem.objects.filter(
-            order=order,
-            product_variant__product__vendor=vendor
-        )
-        
-        if not vendor_order_items.exists():
+        # Check if order belongs to this vendor (using denormalized vendor field)
+        # التحقق من أن الطلب ينتمي لهذا البائع (باستخدام حقل vendor المطبيع)
+        if order.vendor != vendor:
             return error_response(
                 message=_('هذا الطلب لا يحتوي على منتجات من متجرك / This order does not contain products from your store'),
                 status_code=403
             )
+        
+        # Get order items for this vendor (using denormalized vendor field)
+        # الحصول على عناصر الطلب لهذا البائع (باستخدام حقل vendor المطبيع)
+        vendor_order_items = OrderItem.objects.filter(
+            order=order,
+            vendor=vendor
+        )
         
         # Build order detail data
         # بناء بيانات تفاصيل الطلب

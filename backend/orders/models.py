@@ -80,6 +80,20 @@ class Order(models.Model):
     )
     
     # =========================================================================
+    # Vendor Relationship
+    # علاقة البائع
+    # =========================================================================
+    
+    vendor = models.ForeignKey(
+        'vendors.Vendor',
+        on_delete=models.DO_NOTHING,
+        related_name="orders",
+        db_index=True,
+        verbose_name=_('Vendor'),
+        help_text=_('Vendor associated with this order / البائع المرتبط بهذا الطلب')
+    )
+    
+    # =========================================================================
     # Customer Information
     # معلومات العميل
     # =========================================================================
@@ -312,6 +326,15 @@ class OrderItem(models.Model):
         help_text=_('Product variant ordered / متغير المنتج المطلوب')
     )
     
+    vendor = models.ForeignKey(
+        'vendors.Vendor',
+        on_delete=models.DO_NOTHING,
+        related_name="order_items",
+        db_index=True,
+        verbose_name=_('Vendor'),
+        help_text=_('Vendor associated with this order item / البائع المرتبط بهذا العنصر')
+    )
+    
     # =========================================================================
     # Quantity & Pricing
     # الكمية والتسعير
@@ -348,6 +371,7 @@ class OrderItem(models.Model):
             models.Index(fields=['order']),
             models.Index(fields=['product_variant']),
             models.Index(fields=['order', 'product_variant']),
+            models.Index(fields=['vendor']),
         ]
     
     @property
