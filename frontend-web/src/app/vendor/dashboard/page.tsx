@@ -131,6 +131,31 @@ function formatNumber(value: number): string {
 }
 
 /**
+ * Helper function to safely get string value from translations
+ * دالة مساعدة للحصول على قيمة string بشكل آمن من الترجمة
+ * 
+ * STRICT: Never returns objects, always returns string
+ * صارم: لا ترجع objects أبداً، ترجع string دائماً
+ */
+function safeString(value: any, fallback: string): string {
+  // If value is a string, return it
+  // إذا كانت value string، إرجاعها
+  if (typeof value === 'string' && value.length > 0) {
+    return value
+  }
+  
+  // If value is an object, array, or any non-string, return fallback
+  // إذا كانت value object أو array أو أي شيء غير string، إرجاع fallback
+  if (value && typeof value === 'object') {
+    return fallback
+  }
+  
+  // If value is null, undefined, or empty, return fallback
+  // إذا كانت value null أو undefined أو فارغة، إرجاع fallback
+  return fallback
+}
+
+/**
  * Get status style classes
  * الحصول على classes حسب الحالة
  */
@@ -151,15 +176,52 @@ function getStatusStyle(status: string): string {
  * الحصول على اسم الحالة (مترجم)
  */
 function getStatusLabel(status: string, t: any): string {
-  const labels: Record<string, string> = {
-    pending: t.vendor.status?.pending || 'قيد الانتظار',
-    processing: t.vendor.status?.processing || 'قيد المعالجة',
-    shipping: t.vendor.status?.shipping || 'قيد الشحن',
-    delivered: t.vendor.status?.delivered || 'تم التسليم',
-    cancelled: t.vendor.status?.cancelled || 'ملغي',
-    completed: t.vendor.status?.completed || 'مكتمل',
+  // STRICT: Ensure status is a string, never an object
+  // صارم: التأكد من أن status هو string وليس object أبداً
+  let statusStr: string = 'pending'
+  
+  if (typeof status === 'string' && status.length > 0) {
+    statusStr = status
+  } else if (status && typeof status === 'object') {
+    // If status is an object, use default
+    // إذا كان status object، استخدام القيمة الافتراضية
+    statusStr = 'pending'
+  } else {
+    statusStr = String(status || 'pending')
   }
-  return labels[status] || status
+  
+  // STRICT: Safely access status translations - NEVER return the object itself
+  // صارم: الوصول الآمن لترجمات الحالة - عدم إرجاع الـ object نفسه أبداً
+  const vendorStatus = t?.vendor?.status
+  
+  // Define fallbacks first
+  // تعريف fallbacks أولاً
+  const fallbacks: Record<string, string> = {
+    pending: 'قيد الانتظار',
+    processing: 'قيد المعالجة',
+    shipping: 'قيد الشحن',
+    delivered: 'تم التسليم',
+    cancelled: 'ملغي',
+    completed: 'مكتمل',
+  }
+  
+  // Extract string value from vendorStatus if it exists and is valid
+  // استخراج قيمة string من vendorStatus إذا كان موجوداً وصالحاً
+  if (vendorStatus && typeof vendorStatus === 'object' && !Array.isArray(vendorStatus)) {
+    const statusKey = statusStr as keyof typeof fallbacks
+    const translatedValue = vendorStatus[statusKey]
+    
+    // ONLY return if it's a valid string
+    // إرجاع فقط إذا كانت string صالحة
+    if (typeof translatedValue === 'string' && translatedValue.length > 0) {
+      return translatedValue
+    }
+  }
+  
+  // Return fallback for the status - ALWAYS a string
+  // إرجاع fallback للحالة - string دائماً
+  const statusKey = statusStr as keyof typeof fallbacks
+  return fallbacks[statusKey] || 'pending'
 }
 
 /**
@@ -174,13 +236,35 @@ function formatRelativeDate(dateStr: string, t: any): string {
   const diffHours = Math.floor(diffMs / 3600000)
   const diffDays = Math.floor(diffMs / 86400000)
   
-  if (diffMins < 1) return t.vendor.time?.now || 'الآن'
-  if (diffMins < 60) return (t.vendor.time?.minutesAgo || 'منذ {n} دقيقة').replace('{n}', diffMins.toString())
-  if (diffHours < 24) return (t.vendor.time?.hoursAgo || 'منذ {n} ساعة').replace('{n}', diffHours.toString())
-  if (diffDays === 1) return t.vendor.time?.yesterday || 'أمس'
-  if (diffDays < 7) return (t.vendor.time?.daysAgo || 'منذ {n} أيام').replace('{n}', diffDays.toString())
+  // Safely access time translations
+  // الوصول الآمن لترجمات الوقت
+  const vendorTime = t.vendor?.time
+  const timeTranslations = vendorTime && typeof vendorTime === 'object' && !Array.isArray(vendorTime) && typeof vendorTime.now !== 'undefined'
+    ? vendorTime
+    : {}
   
-  return date.toLocaleDateString(t.vendor.time?.locale || 'ar-SA')
+  const getStringValue = (value: any, fallback: string): string => {
+    return typeof value === 'string' ? value : fallback
+  }
+  
+  const locale = getStringValue(timeTranslations.locale, 'ar-SA')
+  
+  if (diffMins < 1) return getStringValue(timeTranslations.now, 'الآن')
+  if (diffMins < 60) {
+    const template = getStringValue(timeTranslations.minutesAgo, 'منذ {n} دقيقة')
+    return template.replace('{n}', diffMins.toString())
+  }
+  if (diffHours < 24) {
+    const template = getStringValue(timeTranslations.hoursAgo, 'منذ {n} ساعة')
+    return template.replace('{n}', diffHours.toString())
+  }
+  if (diffDays === 1) return getStringValue(timeTranslations.yesterday, 'أمس')
+  if (diffDays < 7) {
+    const template = getStringValue(timeTranslations.daysAgo, 'منذ {n} أيام')
+    return template.replace('{n}', diffDays.toString())
+  }
+  
+  return date.toLocaleDateString(locale)
 }
 
 /**
@@ -197,44 +281,44 @@ function generateSimpleReport(
   
   const report = [
     '='.repeat(50),
-    language === 'ar' ? 'تقرير البائع' : 'Vendor Report',
+    t.vendor.reportTitle || (language === 'ar' ? 'تقرير البائع' : 'Vendor Report'),
     '='.repeat(50),
     '',
-    `${language === 'ar' ? 'تاريخ التقرير:' : 'Report Date:'} ${date}`,
+    `${t.vendor.reportDate || (language === 'ar' ? 'تاريخ التقرير:' : 'Report Date:')} ${date}`,
     '',
     '-'.repeat(50),
-    language === 'ar' ? 'إحصائيات المبيعات' : 'Sales Statistics',
+    t.vendor.salesStatistics || (language === 'ar' ? 'إحصائيات المبيعات' : 'Sales Statistics'),
     '-'.repeat(50),
-    `${language === 'ar' ? 'إجمالي المبيعات:' : 'Total Sales:'} ${formatCurrency(data.total_sales, language === 'ar' ? 'ar-SY' : 'en-US', currency)}`,
-    `${language === 'ar' ? 'التغيير من الشهر الماضي:' : 'Change from Last Month:'} ${data.total_sales_change > 0 ? '+' : ''}${data.total_sales_change.toFixed(2)}%`,
-    `${language === 'ar' ? 'مبيعات اليوم:' : 'Today Sales:'} ${formatCurrency(data.today_sales, language === 'ar' ? 'ar-SY' : 'en-US', currency)}`,
+    `${t.vendor.totalSalesLabel || (language === 'ar' ? 'إجمالي المبيعات:' : 'Total Sales:')} ${formatCurrency(data.total_sales, language === 'ar' ? 'ar-SY' : 'en-US', currency)}`,
+    `${t.vendor.changeFromLastMonth || (language === 'ar' ? 'التغيير من الشهر الماضي:' : 'Change from Last Month:')} ${data.total_sales_change > 0 ? '+' : ''}${data.total_sales_change.toFixed(2)}%`,
+    `${t.vendor.todaySales || (language === 'ar' ? 'مبيعات اليوم:' : 'Today Sales:')} ${formatCurrency(data.today_sales, language === 'ar' ? 'ar-SY' : 'en-US', currency)}`,
     '',
     '-'.repeat(50),
-    language === 'ar' ? 'إحصائيات الطلبات' : 'Orders Statistics',
+    t.vendor.ordersStatistics || (language === 'ar' ? 'إحصائيات الطلبات' : 'Orders Statistics'),
     '-'.repeat(50),
-    `${language === 'ar' ? 'إجمالي الطلبات:' : 'Total Orders:'} ${data.total_orders}`,
-    `${language === 'ar' ? 'التغيير من الشهر الماضي:' : 'Change from Last Month:'} ${data.total_orders_change > 0 ? '+' : ''}${data.total_orders_change.toFixed(2)}%`,
-    `${language === 'ar' ? 'طلبات اليوم:' : 'Today Orders:'} ${data.today_orders}`,
-    `${language === 'ar' ? 'طلبات قيد الانتظار:' : 'Pending Orders:'} ${data.pending_orders}`,
-    `${language === 'ar' ? 'طلبات قيد المعالجة:' : 'Processing Orders:'} ${data.processing_orders}`,
+    `${t.vendor.totalOrdersLabel || (language === 'ar' ? 'إجمالي الطلبات:' : 'Total Orders:')} ${data.total_orders}`,
+    `${t.vendor.changeFromLastMonth || (language === 'ar' ? 'التغيير من الشهر الماضي:' : 'Change from Last Month:')} ${data.total_orders_change > 0 ? '+' : ''}${data.total_orders_change.toFixed(2)}%`,
+    `${t.vendor.todayOrders || (language === 'ar' ? 'طلبات اليوم:' : 'Today Orders:')} ${data.today_orders}`,
+    `${t.vendor.pendingOrders || (language === 'ar' ? 'طلبات قيد الانتظار:' : 'Pending Orders:')} ${data.pending_orders}`,
+    `${t.vendor.processingOrders || (language === 'ar' ? 'طلبات قيد المعالجة:' : 'Processing Orders:')} ${data.processing_orders}`,
     '',
     '-'.repeat(50),
-    language === 'ar' ? 'إحصائيات المنتجات' : 'Products Statistics',
+    t.vendor.productsStatistics || (language === 'ar' ? 'إحصائيات المنتجات' : 'Products Statistics'),
     '-'.repeat(50),
-    `${language === 'ar' ? 'إجمالي المنتجات:' : 'Total Products:'} ${data.total_products}`,
-    `${language === 'ar' ? 'المنتجات النشطة:' : 'Active Products:'} ${data.active_products}`,
-    `${language === 'ar' ? 'منتجات قليلة المخزون:' : 'Low Stock Products:'} ${data.low_stock_products}`,
-    `${language === 'ar' ? 'منتجات نفد المخزون:' : 'Out of Stock Products:'} ${data.out_of_stock_products}`,
+    `${t.vendor.totalProducts || (language === 'ar' ? 'إجمالي المنتجات:' : 'Total Products:')} ${data.total_products}`,
+    `${t.vendor.activeProductsLabel || (language === 'ar' ? 'المنتجات النشطة:' : 'Active Products:')} ${data.active_products}`,
+    `${t.vendor.lowStockProducts || (language === 'ar' ? 'منتجات قليلة المخزون:' : 'Low Stock Products:')} ${data.low_stock_products}`,
+    `${t.vendor.outOfStockProducts || (language === 'ar' ? 'منتجات نفد المخزون:' : 'Out of Stock Products:')} ${data.out_of_stock_products}`,
     '',
     '-'.repeat(50),
-    language === 'ar' ? 'إحصائيات الزيارات' : 'Visits Statistics',
+    t.vendor.visitsStatistics || (language === 'ar' ? 'إحصائيات الزيارات' : 'Visits Statistics'),
     '-'.repeat(50),
-    `${language === 'ar' ? 'إجمالي الزيارات:' : 'Total Visits:'} ${data.total_visits}`,
-    `${language === 'ar' ? 'التغيير من الأسبوع الماضي:' : 'Change from Last Week:'} ${data.total_visits_change > 0 ? '+' : ''}${data.total_visits_change.toFixed(2)}%`,
-    `${language === 'ar' ? 'زيارات اليوم:' : 'Today Visits:'} ${data.today_visits}`,
+    `${t.vendor.totalVisits || (language === 'ar' ? 'إجمالي الزيارات:' : 'Total Visits:')} ${data.total_visits}`,
+    `${t.vendor.changeFromLastWeek || (language === 'ar' ? 'التغيير من الأسبوع الماضي:' : 'Change from Last Week:')} ${data.total_visits_change > 0 ? '+' : ''}${data.total_visits_change.toFixed(2)}%`,
+    `${t.vendor.todayVisits || (language === 'ar' ? 'زيارات اليوم:' : 'Today Visits:')} ${data.today_visits}`,
     '',
     '='.repeat(50),
-    language === 'ar' ? 'نهاية التقرير' : 'End of Report',
+    t.vendor.endOfReport || (language === 'ar' ? 'نهاية التقرير' : 'End of Report'),
     '='.repeat(50),
   ]
   
@@ -290,7 +374,7 @@ const itemVariants = {
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] },
+    transition: { duration: 0.4, ease: "easeOut" as const },
   },
 }
 
@@ -387,10 +471,21 @@ function SalesChart({
   const maxValue = Math.max(...chartData.map(d => d.value), 1)
   const { t, language } = useLanguage()
 
+  // Safely access period translations
+  // الوصول الآمن لترجمات الفترة
+  const vendorPeriod = t.vendor?.period
+  const periodTranslations: { week?: string; month?: string; year?: string } = vendorPeriod && typeof vendorPeriod === 'object' && !Array.isArray(vendorPeriod) && typeof vendorPeriod.week !== 'undefined'
+    ? vendorPeriod
+    : {}
+  
+  const getStringValue = (value: any, fallback: string): string => {
+    return typeof value === 'string' ? value : fallback
+  }
+  
   const periodLabels = {
-    week: t.vendor.period?.week || 'أسبوع',
-    month: t.vendor.period?.month || 'شهر',
-    year: t.vendor.period?.year || 'سنة',
+    week: getStringValue(periodTranslations.week, 'أسبوع'),
+    month: getStringValue(periodTranslations.month, 'شهر'),
+    year: getStringValue(periodTranslations.year, 'سنة'),
   }
 
   return (
@@ -400,7 +495,7 @@ function SalesChart({
     >
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h3 className="text-lg font-bold text-historical-charcoal dark:text-gray-100 transition-colors duration-300">{t.vendor.salesTrend}</h3>
+          <h3 className="text-lg font-bold text-historical-charcoal dark:text-gray-100 transition-colors duration-300">{safeString(t.vendor.salesTrend, 'اتجاه المبيعات')}</h3>
           <p className="text-sm text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">
             {period === 'week' ? periodLabels.week : period === 'month' ? periodLabels.month : periodLabels.year}
           </p>
@@ -436,7 +531,7 @@ function SalesChart({
         </div>
       ) : chartData.length === 0 ? (
         <div className="flex items-center justify-center h-48 text-historical-charcoal/40 dark:text-gray-500 transition-colors duration-300">
-          {t.vendor.noData || 'لا توجد بيانات'}
+          {safeString(t.vendor.noData, 'لا توجد بيانات')}
         </div>
       ) : (
         <div className="relative">
@@ -543,16 +638,16 @@ function RecentOrdersTable({
     >
       <div className="flex items-center justify-between p-6 border-b border-historical-gold/10 dark:border-gray-700 transition-colors duration-300">
         <div>
-          <h3 className="text-lg font-bold text-historical-charcoal dark:text-gray-100 transition-colors duration-300">{t.vendor.recentOrders}</h3>
+          <h3 className="text-lg font-bold text-historical-charcoal dark:text-gray-100 transition-colors duration-300">{safeString(t.vendor.recentOrders, 'أحدث الطلبات')}</h3>
           <p className="text-sm text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">
-            {isLoading ? t.vendor.loading || 'جاري التحميل...' : (t.vendor.ordersCount || 'عدد الطلبات: {count}').replace('{count}', orders.length.toString())}
+            {isLoading ? safeString(t.vendor.loading, 'جاري التحميل...') : safeString(t.vendor.ordersCount, 'عدد الطلبات: {count}').replace('{count}', orders.length.toString())}
           </p>
         </div>
         <button 
           onClick={() => router.push('/vendor/orders')}
           className="text-sm text-historical-gold dark:text-yellow-400 hover:text-historical-red dark:hover:text-yellow-300 transition-colors font-medium cursor-pointer"
         >
-          {t.vendor.viewAll || 'عرض الكل'}
+          {safeString(t.vendor.viewAll, 'عرض الكل')}
         </button>
       </div>
 
@@ -560,11 +655,16 @@ function RecentOrdersTable({
         <table className="w-full">
           <thead className="bg-historical-stone/50 dark:bg-gray-700/50 transition-colors duration-300">
             <tr>
-              <th className={cn("text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-6 py-3 transition-colors duration-300", dir === 'rtl' ? 'text-right' : 'text-left')}>{t.vendor.orderId || 'رقم الطلب'}</th>
-              <th className={cn("text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-6 py-3 transition-colors duration-300", dir === 'rtl' ? 'text-right' : 'text-left')}>{t.vendor.customer || 'العميل'}</th>
-              <th className={cn("text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-6 py-3 transition-colors duration-300", dir === 'rtl' ? 'text-right' : 'text-left')}>{t.vendor.total || 'الإجمالي'}</th>
-              <th className={cn("text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-6 py-3 transition-colors duration-300", dir === 'rtl' ? 'text-right' : 'text-left')}>{t.vendor.status || 'الحالة'}</th>
-              <th className={cn("text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-6 py-3 transition-colors duration-300", dir === 'rtl' ? 'text-right' : 'text-left')}>{t.vendor.date || 'التاريخ'}</th>
+              <th className={cn("text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-6 py-3 transition-colors duration-300", dir === 'rtl' ? 'text-right' : 'text-left')}>{safeString(t.vendor.orderId, 'رقم الطلب')}</th>
+              <th className={cn("text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-6 py-3 transition-colors duration-300", dir === 'rtl' ? 'text-right' : 'text-left')}>{safeString(t.vendor.customer, 'العميل')}</th>
+              <th className={cn("text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-6 py-3 transition-colors duration-300", dir === 'rtl' ? 'text-right' : 'text-left')}>{safeString(t.vendor.total, 'الإجمالي')}</th>
+              <th className={cn("text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-6 py-3 transition-colors duration-300", dir === 'rtl' ? 'text-right' : 'text-left')}>
+                {(() => {
+                  const label = t.vendor.statusLabel
+                  return typeof label === 'string' ? label : 'الحالة'
+                })()}
+              </th>
+              <th className={cn("text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-6 py-3 transition-colors duration-300", dir === 'rtl' ? 'text-right' : 'text-left')}>{safeString(t.vendor.date, 'التاريخ')}</th>
               <th className={cn("text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-6 py-3 transition-colors duration-300", dir === 'rtl' ? 'text-right' : 'text-left')}></th>
             </tr>
           </thead>
@@ -583,7 +683,7 @@ function RecentOrdersTable({
             ) : orders.length === 0 ? (
               <tr>
                 <td colSpan={6} className="px-6 py-12 text-center text-historical-charcoal/40 dark:text-gray-500 transition-colors duration-300">
-                  {t.vendor.noOrders || 'لا توجد طلبات'}
+                  {safeString(t.vendor.noOrders, 'لا توجد طلبات')}
                 </td>
               </tr>
             ) : (
@@ -614,7 +714,46 @@ function RecentOrdersTable({
                   </td>
                   <td className="px-6 py-4">
                     <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${getStatusStyle(order.status)} transition-colors duration-300`}>
-                      {dir === 'rtl' && order.statusAr ? order.statusAr : getStatusLabel(order.status, t)}
+                      {(() => {
+                        // Safely get status label - always return string
+                        // الحصول على تسمية الحالة بشكل آمن - إرجاع string دائماً
+                        try {
+                          // Use statusAr if available and valid
+                          // استخدام statusAr إذا كان متاحاً وصالحاً
+                          if (dir === 'rtl' && order.statusAr && typeof order.statusAr === 'string') {
+                            return order.statusAr
+                          }
+                          
+                          // Ensure order.status is a string
+                          // التأكد من أن order.status هو string
+                          const statusStr = typeof order.status === 'string' ? order.status : String(order.status || 'pending')
+                          
+                          // Get translated label
+                          // الحصول على التسمية المترجمة
+                          const label = getStatusLabel(statusStr, t)
+                          
+                          // STRICT: Final validation - must be string, never object
+                          // صارم: التحقق النهائي - يجب أن يكون string وليس object أبداً
+                          if (typeof label === 'string' && label.length > 0) {
+                            return label
+                          }
+                          
+                          // If label is not valid string, use statusStr
+                          // إذا كانت label ليست string صالحة، استخدام statusStr
+                          if (typeof statusStr === 'string' && statusStr.length > 0) {
+                            return statusStr
+                          }
+                          
+                          // Ultimate fallback
+                          // Fallback نهائي
+                          return 'pending'
+                        } catch (error) {
+                          // Don't log error object - just return fallback
+                          // عدم تسجيل error object - فقط إرجاع fallback
+                          const fallback = typeof order.status === 'string' ? order.status : 'pending'
+                          return fallback
+                        }
+                      })()}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-sm text-historical-charcoal/50 dark:text-gray-400 transition-colors duration-300">
@@ -624,7 +763,7 @@ function RecentOrdersTable({
                     <button 
                       onClick={() => router.push(`/vendor/orders/${order.orderId || order.id.replace('#', '')}`)}
                       className="p-2 rounded-lg text-historical-charcoal/40 dark:text-gray-500 hover:text-historical-charcoal dark:hover:text-gray-200 hover:bg-historical-gold/10 dark:hover:bg-gray-700/50 transition-colors"
-                      title={t.vendor.viewOrder || 'عرض الطلب'}
+                      title={safeString(t.vendor.viewOrder, 'عرض الطلب')}
                     >
                       {Icons.eye}
                     </button>
@@ -974,7 +1113,7 @@ export default function DashboardPage() {
           className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl p-6"
         >
           <h3 className="text-red-800 dark:text-red-400 font-bold mb-2">
-            {t.vendor.error || 'خطأ'}
+            {safeString(t.vendor.error, 'خطأ')}
           </h3>
           <p className="text-red-600 dark:text-red-300">
             {error}
@@ -995,10 +1134,13 @@ export default function DashboardPage() {
       <motion.div variants={itemVariants} className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-historical-charcoal dark:text-gray-100 transition-colors duration-300">
-            {t.vendor.welcomeBack?.replace('{name}', userName) || (language === 'ar' ? `مرحباً بك، ${userName}` : `Welcome Back, ${userName}`)}
+            {(() => {
+              const welcomeText = safeString(t.vendor.welcomeBack, language === 'ar' ? `مرحباً بك، {name}` : `Welcome Back, {name}`)
+              return typeof welcomeText === 'string' ? welcomeText.replace('{name}', userName) : (language === 'ar' ? `مرحباً بك، ${userName}` : `Welcome Back, ${userName}`)
+            })()}
           </h1>
           <p className="text-historical-charcoal/50 dark:text-gray-400 mt-1 transition-colors duration-300">
-            {t.vendor.performanceToday || 'أداءك اليوم'}
+            {safeString(t.vendor.performanceToday, 'أداءك اليوم')}
           </p>
         </div>
         
@@ -1008,7 +1150,7 @@ export default function DashboardPage() {
             className="flex items-center gap-2 px-4 py-2 rounded-xl bg-historical-gold/10 dark:bg-yellow-900/20 text-[#C5A065] dark:text-yellow-400 hover:bg-historical-gold/20 dark:hover:bg-yellow-900/30 transition-colors"
           >
             <Plus className="w-5 h-5" />
-            <span className="text-sm font-medium">{t.vendor.addProduct || 'إضافة منتج'}</span>
+            <span className="text-sm font-medium">{safeString(t.vendor.addProduct, 'إضافة منتج')}</span>
           </button>
           <button
             onClick={handleExportReport}
@@ -1083,16 +1225,13 @@ export default function DashboardPage() {
             ) : (
               <>
                 <p className="font-medium text-historical-charcoal dark:text-gray-200 leading-relaxed transition-colors duration-300">
-                  {dir === 'rtl'
-                    ? <>لا توجد نصائح متاحة حالياً.</>
-                    : <>No tips available at the moment.</>
-                  }
+                  {safeString(t.vendor.noTipsAvailable, language === 'ar' ? 'لا توجد نصائح متاحة حالياً.' : 'No tips available at the moment.')}
                 </p>
                 <button 
                   onClick={() => router.push('/vendor/products')}
                   className="mt-6 w-full py-3 bg-historical-gold dark:bg-yellow-600 text-white dark:text-white font-black rounded-xl hover:scale-105 transition-all text-sm"
                 >
-                  {t.vendor.viewProducts || 'عرض المنتجات'}
+                  {safeString(t.vendor.viewProducts, 'عرض المنتجات')}
                 </button>
               </>
             )}
@@ -1104,7 +1243,7 @@ export default function DashboardPage() {
             className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm p-6 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-soft transition-colors duration-300"
           >
             <h4 className="text-gray-400 dark:text-gray-500 font-bold uppercase tracking-widest text-xs mb-6 transition-colors duration-300">
-              {t.vendor.responseSpeed || 'سرعة الاستجابة'}
+              {safeString(t.vendor.responseSpeed, 'سرعة الاستجابة')}
             </h4>
             {isLoading ? (
               <div className="space-y-3 animate-pulse">
@@ -1116,7 +1255,7 @@ export default function DashboardPage() {
               <>
                 <div className="flex items-center justify-between mb-2">
                   <span className="font-bold text-historical-charcoal dark:text-gray-100 transition-colors duration-300">
-                    {t.vendor.responseRate || 'معدل الاستجابة'}
+                    {safeString(t.vendor.responseRate, 'معدل الاستجابة')}
                   </span>
                   <span className={cn(
                     "font-bold transition-colors duration-300",
@@ -1148,10 +1287,10 @@ export default function DashboardPage() {
                 </div>
                 <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-4 italic font-medium transition-colors duration-300">
                   {dashboardData.response_rate >= 90
-                    ? (t.vendor.keepItUp || 'استمر في الأداء الممتاز!')
+                    ? safeString(t.vendor.keepItUp, 'استمر في الأداء الممتاز!')
                     : dashboardData.response_rate >= 70
-                    ? (t.vendor.goodJob || 'أداء جيد، يمكنك التحسين!')
-                    : (t.vendor.needsImprovement || 'يحتاج إلى تحسين')
+                    ? safeString(t.vendor.goodJob, 'أداء جيد، يمكنك التحسين!')
+                    : safeString(t.vendor.needsImprovement, 'يحتاج إلى تحسين')
                   }
                 </p>
               </>
@@ -1159,17 +1298,17 @@ export default function DashboardPage() {
               <>
                 <div className="flex items-center justify-between mb-2">
                   <span className="font-bold text-historical-charcoal dark:text-gray-100 transition-colors duration-300">
-                    {t.vendor.responseRate || 'معدل الاستجابة'}
+                    {safeString(t.vendor.responseRate, 'معدل الاستجابة')}
                   </span>
                   <span className="font-bold text-gray-400 dark:text-gray-500 transition-colors duration-300">
-                    {t.vendor.notAvailable || 'غير متاح'}
+                    {safeString(t.vendor.notAvailable, 'غير متاح')}
                   </span>
                 </div>
                 <div className="w-full h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden transition-colors duration-300">
                   <div className="w-0 h-full bg-gray-300 dark:bg-gray-600 rounded-full transition-colors duration-300" />
                 </div>
                 <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-4 italic font-medium transition-colors duration-300">
-                  {t.vendor.noDataAvailable || 'لا توجد بيانات كافية لحساب معدل الاستجابة'}
+                  {safeString(t.vendor.noDataAvailable, 'لا توجد بيانات كافية لحساب معدل الاستجابة')}
                 </p>
               </>
             )}

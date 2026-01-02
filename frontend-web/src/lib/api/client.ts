@@ -36,6 +36,23 @@ export async function apiClient<T>(
       // Try to parse error response
       // محاولة تحليل استجابة الخطأ
       let errorMessage = `API Error: ${response.status} ${response.statusText}`
+      
+      // Special handling for 502 Bad Gateway
+      // معالجة خاصة لخطأ 502 Bad Gateway
+      if (response.status === 502) {
+        errorMessage = `Backend server is not responding (502 Bad Gateway). Please check if the backend service is running.`
+        console.error('[API Client] 502 Bad Gateway:', {
+          url,
+          apiUrl: API_URL,
+          endpoint,
+          message: 'Backend server (Django) is not reachable from Nginx',
+        })
+      } else if (response.status === 503) {
+        errorMessage = `Backend server is temporarily unavailable (503 Service Unavailable). Please try again later.`
+      } else if (response.status === 504) {
+        errorMessage = `Backend server request timeout (504 Gateway Timeout). The server took too long to respond.`
+      }
+      
       try {
         const errorData = await response.json()
         if (errorData.message) {

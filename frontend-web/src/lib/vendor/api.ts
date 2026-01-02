@@ -538,6 +538,7 @@ export interface VendorRecentOrder {
   id: number
   order_number: string
   customer_name: string
+  customer_key?: string
   total: string
   status: string
   status_display: string

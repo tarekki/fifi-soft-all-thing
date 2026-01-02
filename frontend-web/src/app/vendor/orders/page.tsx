@@ -267,7 +267,7 @@ export default function OrdersPage() {
                   {t.vendor.total || 'الإجمالي'}
                 </th>
                 <th className={cn("text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-6 py-3 transition-colors duration-300", dir === 'rtl' ? 'text-right' : 'text-left')}>
-                  {t.vendor.status || 'الحالة'}
+                  {typeof t.vendor.status === 'string' ? t.vendor.status : (t.vendor.statusLabel || 'الحالة')}
                 </th>
                 <th className={cn("text-xs font-medium text-historical-charcoal/50 dark:text-gray-400 px-6 py-3 transition-colors duration-300", dir === 'rtl' ? 'text-right' : 'text-left')}>
                   {t.vendor.date || 'التاريخ'}

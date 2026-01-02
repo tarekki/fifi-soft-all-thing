@@ -240,6 +240,8 @@ class VendorMeView(APIView):
         الحصول على معلومات البائع الحالي.
         """
         try:
+            # Get vendor_user with optimized query
+            # الحصول على vendor_user مع استعلام محسّن
             vendor_user = VendorUser.objects.select_related('vendor', 'user').get(user=request.user)
             vendor = vendor_user.vendor
             user = request.user
@@ -248,10 +250,10 @@ class VendorMeView(APIView):
             # إعداد بيانات المستخدم
             user_data = {
                 'id': user.id,
-                'email': user.email,
-                'full_name': user.full_name,
-                'phone': user.phone,
-                'role': user.role,
+                'email': user.email or '',
+                'full_name': user.full_name or '',
+                'phone': user.phone or '',
+                'role': user.role or '',
                 'is_active': user.is_active,
             }
             
@@ -261,16 +263,19 @@ class VendorMeView(APIView):
             if vendor.logo:
                 try:
                     logo_url = request.build_absolute_uri(vendor.logo.url)
-                except:
+                except Exception as e:
+                    # Log error but don't fail the request
+                    # تسجيل الخطأ لكن لا تفشل الطلب
+                    logger.warning(f'Failed to build logo URL for vendor {vendor.id}: {str(e)}')
                     logo_url = None
             
             vendor_data = {
                 'id': vendor.id,
-                'name': vendor.name,
-                'slug': vendor.slug,
-                'description': vendor.description,
+                'name': vendor.name or '',
+                'slug': vendor.slug or '',
+                'description': vendor.description or '',
                 'logo': logo_url,
-                'commission_rate': str(vendor.commission_rate),
+                'commission_rate': str(vendor.commission_rate) if vendor.commission_rate else '0',
                 'is_active': vendor.is_active,
             }
             
@@ -293,9 +298,18 @@ class VendorMeView(APIView):
             )
             
         except VendorUser.DoesNotExist:
+            logger.error(f'VendorUser not found for user {request.user.id}')
             return error_response(
                 message=_('لا يوجد بائع مرتبط بهذا الحساب / No vendor associated with this account'),
                 status_code=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            # Log the full error for debugging
+            # تسجيل الخطأ الكامل للتشخيص
+            logger.error(f'Error in VendorMeView: {str(e)}', exc_info=True)
+            return error_response(
+                message=_('حدث خطأ أثناء جلب معلومات البائع / An error occurred while fetching vendor information'),
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
 

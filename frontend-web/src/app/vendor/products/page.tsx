@@ -867,7 +867,7 @@ export default function ProductsPage() {
                     <th className={cn("px-8 py-5 text-[11px] font-black uppercase text-gray-400 dark:text-gray-500 tracking-[2px]", dir === 'rtl' ? "text-right" : "text-left")}>{t.vendor.category}</th>
                     <th className={cn("px-8 py-5 text-[11px] font-black uppercase text-gray-400 dark:text-gray-500 tracking-[2px]", dir === 'rtl' ? "text-right" : "text-left")}>{t.vendor.price}</th>
                     <th className={cn("px-8 py-5 text-[11px] font-black uppercase text-gray-400 dark:text-gray-500 tracking-[2px]", dir === 'rtl' ? "text-right" : "text-left")}>{t.vendor.stock}</th>
-                    <th className={cn("px-8 py-5 text-[11px] font-black uppercase text-gray-400 dark:text-gray-500 tracking-[2px]", dir === 'rtl' ? "text-right" : "text-left")}>{t.vendor.status}</th>
+                    <th className={cn("px-8 py-5 text-[11px] font-black uppercase text-gray-400 dark:text-gray-500 tracking-[2px]", dir === 'rtl' ? "text-right" : "text-left")}>{typeof t.vendor.status === 'string' ? t.vendor.status : (t.vendor.statusLabel || 'الحالة')}</th>
                     <th className={cn("px-8 py-5 text-[11px] font-black uppercase text-gray-400 dark:text-gray-500 tracking-[2px]", dir === 'rtl' ? "text-right" : "text-left")}>{t.vendor.actions}</th>
                   </tr>
                 </thead>

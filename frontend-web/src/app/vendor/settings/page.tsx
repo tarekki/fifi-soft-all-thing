@@ -197,7 +197,7 @@ export default function VendorSettingsPage() {
         (!notificationsRes || !notificationsRes.success) &&
         (!storeRes || !storeRes.success)
       ) {
-        setError('فشل في جلب البيانات. يرجى المحاولة مرة أخرى / Failed to fetch data. Please try again.')
+        setError(t.vendor.failedToFetchData || 'فشل في جلب البيانات. يرجى المحاولة مرة أخرى')
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch settings'
@@ -324,10 +324,10 @@ export default function VendorSettingsPage() {
                     setProfile(res.data)
                     setSuccess(t.vendor.profileUpdated || 'تم تحديث الملف الشخصي بنجاح')
                   } else {
-                    setError(res?.message || 'Failed to update profile')
+                    setError(res?.message || t.vendor.failedToUpdateProfile || 'فشل تحديث الملف الشخصي')
                   }
                 } catch (err) {
-                  setError(err instanceof Error ? err.message : 'Failed to update profile')
+                    setError(err instanceof Error ? err.message : t.vendor.failedToUpdateProfile || 'فشل تحديث الملف الشخصي')
                 } finally {
                   setIsSaving(false)
                 }
@@ -341,10 +341,10 @@ export default function VendorSettingsPage() {
                     await fetchData()
                     setSuccess(t.vendor.avatarUploaded || 'تم رفع الصورة بنجاح')
                   } else {
-                    setError(res?.message || 'Failed to upload avatar')
+                    setError(res?.message || t.vendor.failedToUploadAvatar || 'فشل رفع الصورة')
                   }
                 } catch (err) {
-                  setError(err instanceof Error ? err.message : 'Failed to upload avatar')
+                  setError(err instanceof Error ? err.message : t.vendor.failedToUploadAvatar || 'فشل رفع الصورة')
                 } finally {
                   setIsSaving(false)
                 }
@@ -366,10 +366,10 @@ export default function VendorSettingsPage() {
                     setVendorInfo(res.data)
                     setSuccess(t.vendor.vendorInfoUpdated || 'تم تحديث معلومات البائع بنجاح')
                   } else {
-                    setError(res?.message || 'Failed to update vendor info')
+                    setError(res?.message || t.vendor.failedToUpdateVendorInfo || 'فشل تحديث معلومات البائع')
                   }
                 } catch (err) {
-                  setError(err instanceof Error ? err.message : 'Failed to update vendor info')
+                  setError(err instanceof Error ? err.message : t.vendor.failedToUpdateVendorInfo || 'فشل تحديث معلومات البائع')
                 } finally {
                   setIsSaving(false)
                 }
@@ -383,10 +383,10 @@ export default function VendorSettingsPage() {
                     await fetchData()
                     setSuccess(t.vendor.logoUploaded || 'تم رفع الشعار بنجاح')
                   } else {
-                    setError(res?.message || 'Failed to upload logo')
+                    setError(res?.message || t.vendor.failedToUploadLogo || 'فشل رفع الشعار')
                   }
                 } catch (err) {
-                  setError(err instanceof Error ? err.message : 'Failed to upload logo')
+                  setError(err instanceof Error ? err.message : t.vendor.failedToUploadLogo || 'فشل رفع الشعار')
                 } finally {
                   setIsSaving(false)
                 }
@@ -408,10 +408,10 @@ export default function VendorSettingsPage() {
                     await fetchData()
                     setSuccess(t.vendor.sessionRevoked || 'تم إلغاء الجلسة بنجاح')
                   } else {
-                    setError(res?.message || 'Failed to revoke session')
+                    setError(res?.message || t.vendor.failedToRevokeSession || 'فشل إلغاء الجلسة')
                   }
                 } catch (err) {
-                  setError(err instanceof Error ? err.message : 'Failed to revoke session')
+                  setError(err instanceof Error ? err.message : t.vendor.failedToRevokeSession || 'فشل إلغاء الجلسة')
                 } finally {
                   setIsSaving(false)
                 }
@@ -432,10 +432,10 @@ export default function VendorSettingsPage() {
                     setNotifications(res.data)
                     setSuccess(t.vendor.notificationsUpdated || 'تم تحديث تفضيلات الإشعارات بنجاح')
                   } else {
-                    setError(res?.message || 'Failed to update notifications')
+                    setError(res?.message || t.vendor.failedToUpdateNotifications || 'فشل تحديث الإشعارات')
                   }
                 } catch (err) {
-                  setError(err instanceof Error ? err.message : 'Failed to update notifications')
+                  setError(err instanceof Error ? err.message : t.vendor.failedToUpdateNotifications || 'فشل تحديث الإشعارات')
                 } finally {
                   setIsSaving(false)
                 }
@@ -456,10 +456,10 @@ export default function VendorSettingsPage() {
                     setStoreSettings(res.data)
                     setSuccess(t.vendor.storeSettingsUpdated || 'تم تحديث إعدادات المتجر بنجاح')
                   } else {
-                    setError(res?.message || 'Failed to update store settings')
+                    setError(res?.message || t.vendor.failedToUpdateStoreSettings || 'فشل تحديث إعدادات المتجر')
                   }
                 } catch (err) {
-                  setError(err instanceof Error ? err.message : 'Failed to update store settings')
+                  setError(err instanceof Error ? err.message : t.vendor.failedToUpdateStoreSettings || 'فشل تحديث إعدادات المتجر')
                 } finally {
                   setIsSaving(false)
                 }
@@ -530,7 +530,7 @@ function ProfileTab({
     const file = e.target.files?.[0]
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
-        alert('حجم الصورة كبير جداً. الحد الأقصى 5MB')
+        alert(t.vendor.imageSizeTooLarge || 'حجم الصورة كبير جداً. الحد الأقصى 5MB')
         return
       }
       setAvatarFile(file)
@@ -564,9 +564,6 @@ function ProfileTab({
             <Loader2 className="w-8 h-8 animate-spin text-historical-gold mx-auto mb-4" />
             <p className="text-historical-charcoal/70 dark:text-gray-300">
               {t.vendor.loadingProfile || 'جاري تحميل الملف الشخصي...'}
-            </p>
-            <p className="text-xs text-historical-charcoal/50 dark:text-gray-500 mt-2">
-              Debug: profile is null
             </p>
           </div>
         </div>
@@ -611,7 +608,7 @@ function ProfileTab({
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-historical-charcoal/70 dark:text-gray-300 mb-1">
-                    {language === 'ar' ? 'إجمالي الطلبات' : 'Total Orders'}
+                    {t.vendor.totalOrders || 'إجمالي الطلبات'}
                   </p>
                   <p className="text-2xl font-bold text-historical-charcoal dark:text-white">
                     {quickStats.total_orders || 0}
@@ -626,7 +623,7 @@ function ProfileTab({
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-historical-charcoal/70 dark:text-gray-300 mb-1">
-                    {language === 'ar' ? 'إجمالي الإيرادات' : 'Total Revenue'}
+                    {t.vendor.totalRevenue || 'إجمالي الإيرادات'}
                   </p>
                   <p className="text-2xl font-bold text-historical-charcoal dark:text-white">
                     {formatCurrency(quickStats.total_revenue)}
@@ -641,7 +638,7 @@ function ProfileTab({
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-historical-charcoal/70 dark:text-gray-300 mb-1">
-                    {language === 'ar' ? 'إجمالي الزبائن' : 'Total Customers'}
+                    {t.vendor.totalCustomers || 'إجمالي الزبائن'}
                   </p>
                   <p className="text-2xl font-bold text-historical-charcoal dark:text-white">
                     {quickStats.total_customers || 0}
@@ -656,7 +653,7 @@ function ProfileTab({
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-historical-charcoal/70 dark:text-gray-300 mb-1">
-                    {language === 'ar' ? 'طلبات قيد الانتظار' : 'Pending Orders'}
+                    {t.vendor.pendingOrders || 'طلبات قيد الانتظار'}
                   </p>
                   <p className="text-2xl font-bold text-historical-charcoal dark:text-white">
                     {quickStats.pending_orders || 0}
@@ -673,7 +670,7 @@ function ProfileTab({
       <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 dark:border-gray-700 p-6">
         <h2 className="text-xl font-bold text-historical-charcoal dark:text-white mb-6 flex items-center gap-2">
           <User className="w-5 h-5 text-historical-gold" />
-          {language === 'ar' ? 'معلومات الملف الشخصي' : 'Profile Information'}
+          {t.vendor.profileInformation || 'معلومات الملف الشخصي'}
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -712,12 +709,8 @@ function ProfileTab({
                   <Award className="w-4 h-4 text-historical-gold" />
                   <span className="text-xs text-historical-charcoal/60 dark:text-gray-400">
                     {vendorMe.vendor_user.is_owner
-                      ? language === 'ar'
-                        ? 'مالك المتجر'
-                        : 'Store Owner'
-                      : language === 'ar'
-                      ? 'مدير المتجر'
-                      : 'Store Manager'}
+                      ? t.vendor.storeOwner || 'مالك المتجر'
+                      : t.vendor.storeManager || 'مدير المتجر'}
                   </span>
                 </div>
               )}
@@ -804,14 +797,14 @@ function ProfileTab({
         <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 dark:border-gray-700 p-6">
           <h2 className="text-xl font-bold text-historical-charcoal dark:text-white mb-6 flex items-center gap-2">
             <Shield className="w-5 h-5 text-historical-gold" />
-            {language === 'ar' ? 'معلومات الحساب' : 'Account Information'}
+            {t.vendor.accountInformation || 'معلومات الحساب'}
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-historical-charcoal/70 dark:text-gray-300 mb-1">
-                  {language === 'ar' ? 'معرف المستخدم' : 'User ID'}
+                  {t.vendor.userId || 'معرف المستخدم'}
                 </label>
                 <p className="text-sm text-historical-charcoal dark:text-white font-mono">
                   #{vendorMe.user?.id || 'N/A'}
@@ -819,33 +812,31 @@ function ProfileTab({
               </div>
               <div>
                 <label className="block text-sm font-medium text-historical-charcoal/70 dark:text-gray-300 mb-1">
-                  {language === 'ar' ? 'الدور' : 'Role'}
+                  {t.vendor.role || 'الدور'}
                 </label>
                 <p className="text-sm text-historical-charcoal dark:text-white">
                   {vendorMe.user?.role === 'vendor'
-                    ? language === 'ar'
-                      ? 'بائع'
-                      : 'Vendor'
+                    ? (language === 'ar' ? 'بائع' : 'Vendor')
                     : vendorMe.user?.role || 'N/A'}
                 </p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-historical-charcoal/70 dark:text-gray-300 mb-1">
-                  {language === 'ar' ? 'حالة الحساب' : 'Account Status'}
+                  {t.vendor.accountStatus || 'حالة الحساب'}
                 </label>
                 <div className="flex items-center gap-2">
                   {vendorMe.user?.is_active ? (
                     <>
                       <Check className="w-4 h-4 text-green-500" />
                       <span className="text-sm text-green-600 dark:text-green-400">
-                        {language === 'ar' ? 'نشط' : 'Active'}
+                        {t.vendor.active || 'نشط'}
                       </span>
                     </>
                   ) : (
                     <>
                       <X className="w-4 h-4 text-red-500" />
                       <span className="text-sm text-red-600 dark:text-red-400">
-                        {language === 'ar' ? 'غير نشط' : 'Inactive'}
+                        {t.vendor.inactive || 'غير نشط'}
                       </span>
                     </>
                   )}
@@ -857,7 +848,7 @@ function ProfileTab({
                 <>
                   <div>
                     <label className="block text-sm font-medium text-historical-charcoal/70 dark:text-gray-300 mb-1">
-                      {language === 'ar' ? 'البائع المرتبط' : 'Associated Vendor'}
+                      {t.vendor.associatedVendor || 'البائع المرتبط'}
                     </label>
                     <div className="flex items-center gap-2">
                       {vendorMe.vendor.logo && (
@@ -874,38 +865,34 @@ function ProfileTab({
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-historical-charcoal/70 dark:text-gray-300 mb-1">
-                      {language === 'ar' ? 'الصلاحيات' : 'Permissions'}
+                      {t.vendor.permissions || 'الصلاحيات'}
                     </label>
                     <div className="flex items-center gap-2">
                       <Award className="w-4 h-4 text-historical-gold" />
                       <span className="text-sm text-historical-charcoal dark:text-white">
                         {vendorMe.vendor_user?.is_owner
-                          ? language === 'ar'
-                            ? 'مالك'
-                            : 'Owner'
-                          : language === 'ar'
-                          ? 'مدير'
-                          : 'Manager'}
+                          ? t.vendor.owner || 'مالك'
+                          : t.vendor.manager || 'مدير'}
                       </span>
                     </div>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-historical-charcoal/70 dark:text-gray-300 mb-1">
-                      {language === 'ar' ? 'حالة المتجر' : 'Store Status'}
+                      {t.vendor.storeStatus || 'حالة المتجر'}
                     </label>
                     <div className="flex items-center gap-2">
                       {vendorMe.vendor.is_active ? (
                         <>
                           <Check className="w-4 h-4 text-green-500" />
                           <span className="text-sm text-green-600 dark:text-green-400">
-                            {language === 'ar' ? 'نشط' : 'Active'}
+                            {t.vendor.active || 'نشط'}
                           </span>
                         </>
                       ) : (
                         <>
                           <X className="w-4 h-4 text-red-500" />
                           <span className="text-sm text-red-600 dark:text-red-400">
-                            {language === 'ar' ? 'غير نشط' : 'Inactive'}
+                            {t.vendor.inactive || 'غير نشط'}
                           </span>
                         </>
                       )}
@@ -923,7 +910,7 @@ function ProfileTab({
         <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 dark:border-gray-700 p-6">
           <h2 className="text-xl font-bold text-historical-charcoal dark:text-white mb-6 flex items-center gap-2">
             <Activity className="w-5 h-5 text-historical-gold" />
-            {language === 'ar' ? 'ملخص النشاط' : 'Activity Summary'}
+            {t.vendor.activitySummary || 'ملخص النشاط'}
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -933,7 +920,7 @@ function ProfileTab({
                   <Calendar className="w-5 h-5 text-historical-gold" />
                   <div>
                     <p className="text-sm text-historical-charcoal/70 dark:text-gray-300">
-                      {language === 'ar' ? 'طلبات اليوم' : 'Today Orders'}
+                      {t.vendor.todayOrders || 'طلبات اليوم'}
                     </p>
                     <p className="text-lg font-semibold text-historical-charcoal dark:text-white">
                       {quickStats.today_orders || 0}
@@ -948,7 +935,7 @@ function ProfileTab({
                   <TrendingUp className="w-5 h-5 text-historical-gold" />
                   <div>
                     <p className="text-sm text-historical-charcoal/70 dark:text-gray-300">
-                      {language === 'ar' ? 'إيرادات اليوم' : 'Today Revenue'}
+                      {t.vendor.todayRevenue || 'إيرادات اليوم'}
                     </p>
                     <p className="text-lg font-semibold text-historical-charcoal dark:text-white">
                       {formatCurrency(quickStats.today_revenue)}
@@ -1006,7 +993,7 @@ function VendorTab({
     const file = e.target.files?.[0]
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
-        alert('حجم الصورة كبير جداً. الحد الأقصى 5MB')
+        alert(t.vendor.imageSizeTooLarge || 'حجم الصورة كبير جداً. الحد الأقصى 5MB')
         return
       }
       setLogoFile(file)
@@ -1167,12 +1154,12 @@ function SecurityTab({
     setPasswordSuccess(null)
 
     if (newPassword.length < 8) {
-      setPasswordError('كلمة المرور يجب أن تكون 8 أحرف على الأقل')
+      setPasswordError(t.vendor.passwordTooShort || 'كلمة المرور يجب أن تكون 8 أحرف على الأقل')
       return
     }
 
     if (newPassword !== confirmPassword) {
-      setPasswordError('كلمات المرور غير متطابقة')
+      setPasswordError(t.vendor.passwordsDoNotMatch || 'كلمات المرور غير متطابقة')
       return
     }
 
@@ -1185,15 +1172,15 @@ function SecurityTab({
       })
 
       if (res?.success) {
-        setPasswordSuccess('تم تغيير كلمة المرور بنجاح')
+        setPasswordSuccess(t.vendor.passwordChangedSuccessfully || 'تم تغيير كلمة المرور بنجاح')
         setCurrentPassword('')
         setNewPassword('')
         setConfirmPassword('')
       } else {
-        setPasswordError(res?.message || 'فشل تغيير كلمة المرور')
+        setPasswordError(res?.message || t.vendor.passwordChangeFailed || 'فشل تغيير كلمة المرور')
       }
     } catch (err) {
-      setPasswordError(err instanceof Error ? err.message : 'Unknown error')
+      setPasswordError(err instanceof Error ? err.message : t.vendor.unknownError || 'خطأ غير معروف')
     } finally {
       setIsChangingPassword(false)
     }
@@ -1308,16 +1295,16 @@ function SecurityTab({
               <div className="flex-1">
                 <div className="flex items-center gap-2">
                   <p className="font-medium text-historical-charcoal dark:text-white">
-                    {session.is_current ? '(الجلسة الحالية)' : session.ip_address || 'Unknown IP'}
+                    {session.is_current ? `(${t.vendor.currentSession || 'الجلسة الحالية'})` : session.ip_address || t.vendor.unknownIP || 'عنوان IP غير معروف'}
                   </p>
                   {session.is_current && (
                     <span className="px-2 py-1 bg-green-500/20 text-green-600 dark:text-green-400 rounded text-xs">
-                      Current
+                      {t.vendor.currentSession || 'الجلسة الحالية'}
                     </span>
                   )}
                 </div>
                 <p className="text-sm text-historical-charcoal/70 dark:text-gray-300 mt-1">
-                  {session.user_agent || 'Unknown device'}
+                  {session.user_agent || t.vendor.unknownDevice || 'جهاز غير معروف'}
                 </p>
                 <p className="text-xs text-historical-charcoal/50 dark:text-gray-400 mt-1">
                   {new Date(session.last_activity).toLocaleString(language === 'ar' ? 'ar-SY' : 'en-US')}
@@ -1486,6 +1473,84 @@ function NotificationsTab({
           <div className="flex items-center justify-between p-4 bg-historical-gold/5 dark:bg-gray-700/30 rounded-lg">
             <div>
               <p className="font-medium text-historical-charcoal dark:text-white">
+                {t.vendor.notifyOrderCancellations || 'إشعارات إلغاء الطلبات'}
+              </p>
+              <p className="text-sm text-historical-charcoal/70 dark:text-gray-300">
+                {t.vendor.notifyOrderCancellationsDesc || 'تلقي إشعارات عند إلغاء الطلبات'}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => toggleSwitch('notify_order_cancellations')}
+              className={cn(
+                'relative w-12 h-6 rounded-full transition-colors',
+                formData.notify_order_cancellations ? 'bg-historical-gold' : 'bg-gray-300 dark:bg-gray-600'
+              )}
+            >
+              <span
+                className={cn(
+                  'absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform',
+                  formData.notify_order_cancellations && 'translate-x-6'
+                )}
+              />
+            </button>
+          </div>
+
+          <div className="flex items-center justify-between p-4 bg-historical-gold/5 dark:bg-gray-700/30 rounded-lg">
+            <div>
+              <p className="font-medium text-historical-charcoal dark:text-white">
+                {t.vendor.notifyOutOfStock || 'إشعارات نفاد المخزون'}
+              </p>
+              <p className="text-sm text-historical-charcoal/70 dark:text-gray-300">
+                {t.vendor.notifyOutOfStockDesc || 'تلقي إشعارات عند نفاد المخزون'}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => toggleSwitch('notify_out_of_stock')}
+              className={cn(
+                'relative w-12 h-6 rounded-full transition-colors',
+                formData.notify_out_of_stock ? 'bg-historical-gold' : 'bg-gray-300 dark:bg-gray-600'
+              )}
+            >
+              <span
+                className={cn(
+                  'absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform',
+                  formData.notify_out_of_stock && 'translate-x-6'
+                )}
+              />
+            </button>
+          </div>
+
+          <div className="flex items-center justify-between p-4 bg-historical-gold/5 dark:bg-gray-700/30 rounded-lg">
+            <div>
+              <p className="font-medium text-historical-charcoal dark:text-white">
+                {t.vendor.notifyNewCustomers || 'إشعارات الزبائن الجدد'}
+              </p>
+              <p className="text-sm text-historical-charcoal/70 dark:text-gray-300">
+                {t.vendor.notifyNewCustomersDesc || 'تلقي إشعارات عند تسجيل زبائن جدد'}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => toggleSwitch('notify_new_customers')}
+              className={cn(
+                'relative w-12 h-6 rounded-full transition-colors',
+                formData.notify_new_customers ? 'bg-historical-gold' : 'bg-gray-300 dark:bg-gray-600'
+              )}
+            >
+              <span
+                className={cn(
+                  'absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform',
+                  formData.notify_new_customers && 'translate-x-6'
+                )}
+              />
+            </button>
+          </div>
+
+          <div className="flex items-center justify-between p-4 bg-historical-gold/5 dark:bg-gray-700/30 rounded-lg">
+            <div>
+              <p className="font-medium text-historical-charcoal dark:text-white">
                 {t.vendor.emailNotifications || 'إشعارات البريد الإلكتروني'}
               </p>
               <p className="text-sm text-historical-charcoal/70 dark:text-gray-300">
@@ -1619,9 +1684,9 @@ function StoreTab({
               onChange={(e) => setFormData({ ...formData, default_order_status: e.target.value as any })}
               className="w-full px-4 py-2 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700 text-historical-charcoal dark:text-white focus:ring-2 focus:ring-historical-gold/30"
             >
-              <option value="pending">{t.vendor.pending || 'معلق'}</option>
-              <option value="confirmed">{t.vendor.confirmed || 'مؤكد'}</option>
-              <option value="processing">{t.vendor.processing || 'قيد المعالجة'}</option>
+              <option value="pending">{t.vendor.status?.pending || 'معلق'}</option>
+              <option value="confirmed">{t.vendor.status?.confirmed || 'مؤكد'}</option>
+              <option value="processing">{t.vendor.status?.processing || 'قيد المعالجة'}</option>
             </select>
           </div>
 
@@ -1648,7 +1713,7 @@ function StoreTab({
               max="365"
               value={formData.auto_archive_orders_after_days || ''}
               onChange={(e) => setFormData({ ...formData, auto_archive_orders_after_days: e.target.value ? parseInt(e.target.value) : null })}
-              placeholder="اتركه فارغاً لتعطيل الأرشفة التلقائية"
+              placeholder={t.vendor.leaveEmptyToDisableAutoArchive || 'اتركه فارغاً لتعطيل الأرشفة التلقائية'}
               className="w-full px-4 py-2 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700 text-historical-charcoal dark:text-white focus:ring-2 focus:ring-historical-gold/30"
             />
           </div>

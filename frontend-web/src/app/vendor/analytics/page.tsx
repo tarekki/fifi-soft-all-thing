@@ -89,13 +89,14 @@ const itemVariants = {
 
 function formatCurrency(value: string | number, locale: string = 'ar-SY', currencySymbol: string = 'ل.س'): string {
   const numValue = typeof value === 'string' ? parseFloat(value) : value
-  if (isNaN(numValue)) return '0 ' + currencySymbol
+  if (isNaN(numValue)) return (locale === 'ar-SY' ? '٠' : '0') + ' ' + currencySymbol
   
   if (locale === 'ar-SY') {
     return new Intl.NumberFormat('ar-SY', {
       style: 'decimal',
       minimumFractionDigits: 0,
       maximumFractionDigits: 2,
+      numberingSystem: 'arabext', // Use Arabic-Indic numerals (٠-٩)
     }).format(numValue) + ' ' + currencySymbol
   } else {
     return new Intl.NumberFormat('en-US', {
@@ -106,16 +107,31 @@ function formatCurrency(value: string | number, locale: string = 'ar-SY', curren
   }
 }
 
-function formatNumber(value: number): string {
-  return new Intl.NumberFormat('ar-SY', {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(value)
+function formatNumber(value: number, locale: string = 'ar-SY'): string {
+  if (locale === 'ar-SY') {
+    return new Intl.NumberFormat('ar-SY', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+      numberingSystem: 'arabext', // Use Arabic-Indic numerals (٠-٩)
+    }).format(value)
+  } else {
+    return new Intl.NumberFormat('en-US', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(value)
+  }
 }
 
-function formatPercentage(value: number | null): string {
+function formatPercentage(value: number | null, locale: string = 'ar-SY'): string {
   if (value === null) return 'N/A'
-  return `${value >= 0 ? '+' : ''}${value.toFixed(1)}%`
+  const formatted = locale === 'ar-SY'
+    ? new Intl.NumberFormat('ar-SY', {
+        minimumFractionDigits: 1,
+        maximumFractionDigits: 1,
+        numberingSystem: 'arabext', // Use Arabic-Indic numerals (٠-٩)
+      }).format(value)
+    : value.toFixed(1)
+  return `${value >= 0 ? '+' : ''}${formatted}%`
 }
 
 // =============================================================================
@@ -133,12 +149,14 @@ function BarChart({
   maxValue,
   color = 'gold',
   isLoading,
+  language = 'ar',
 }: {
   data: number[]
   labels: string[]
   maxValue: number
   color?: 'gold' | 'blue' | 'green' | 'purple'
   isLoading?: boolean
+  language?: string
 }) {
   const colorClasses = {
     gold: 'from-historical-gold dark:from-yellow-600 to-historical-gold/50 dark:to-yellow-700/50',
@@ -170,7 +188,7 @@ function BarChart({
           >
             <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
               <div className="bg-historical-charcoal dark:bg-gray-700 text-white dark:text-gray-200 text-xs px-2 py-1 rounded-lg whitespace-nowrap transition-colors duration-300">
-                {formatNumber(value)}
+                {formatNumber(value, language === 'ar' ? 'ar-SY' : 'en-US')}
               </div>
             </div>
           </motion.div>
@@ -193,12 +211,14 @@ function LineChart({
   maxValue,
   color = 'gold',
   isLoading,
+  language = 'ar',
 }: {
   data: number[]
   labels: string[]
   maxValue: number
   color?: 'gold' | 'blue' | 'green' | 'purple'
   isLoading?: boolean
+  language?: string
 }) {
   const colorClasses = {
     gold: 'stroke-historical-gold dark:stroke-yellow-400',
@@ -261,6 +281,7 @@ function MetricCard({
   icon,
   color = 'gold',
   isLoading,
+  language = 'ar',
 }: {
   title: string
   value: string
@@ -268,6 +289,7 @@ function MetricCard({
   icon: React.ReactNode
   color?: 'gold' | 'blue' | 'green' | 'purple'
   isLoading?: boolean
+  language?: string
 }) {
   const colorClasses = {
     gold: 'bg-historical-gold/10 dark:bg-yellow-900/20 border-historical-gold/20 dark:border-yellow-800/30',
@@ -301,7 +323,7 @@ function MetricCard({
             change >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
           )}>
             {change >= 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
-            {formatPercentage(change)}
+            {formatPercentage(change, language === 'ar' ? 'ar-SY' : 'en-US')}
           </div>
         )}
       </div>
@@ -424,6 +446,8 @@ export default function AnalyticsPage() {
   // Handle tab change
   const handleTabChange = (tab: typeof activeTab) => {
     setActiveTab(tab)
+    // Reset loading state when tab changes to trigger data fetch
+    setIsLoading(true)
   }
 
   // Handle refresh
@@ -560,23 +584,31 @@ export default function AnalyticsPage() {
       )}
 
       {/* Content */}
-      {activeTab === 'overview' && (
-        <OverviewTab overview={overview} isLoading={isLoading} language={language} t={t} />
-      )}
-      {activeTab === 'sales' && (
-        <SalesTab salesData={salesData} isLoading={isLoading} language={language} t={t} />
-      )}
-      {activeTab === 'products' && (
-        <ProductsTab productsData={productsData} isLoading={isLoading} language={language} t={t} />
-      )}
-      {activeTab === 'customers' && (
-        <CustomersTab customersData={customersData} isLoading={isLoading} language={language} t={t} />
-      )}
-      {activeTab === 'time' && (
-        <TimeTab timeData={timeData} isLoading={isLoading} language={language} t={t} />
-      )}
-      {activeTab === 'comparison' && (
-        <ComparisonTab comparisonData={comparisonData} isLoading={isLoading} language={language} t={t} />
+      {isLoading ? (
+        <div className="flex items-center justify-center min-h-[400px]">
+          <Loader2 className="w-8 h-8 animate-spin text-historical-gold" />
+        </div>
+      ) : (
+        <>
+          {activeTab === 'overview' && (
+            <OverviewTab overview={overview} isLoading={isLoading} language={language} t={t} />
+          )}
+          {activeTab === 'sales' && (
+            <SalesTab salesData={salesData} isLoading={isLoading} language={language} t={t} />
+          )}
+          {activeTab === 'products' && (
+            <ProductsTab productsData={productsData} isLoading={isLoading} language={language} t={t} />
+          )}
+          {activeTab === 'customers' && (
+            <CustomersTab customersData={customersData} isLoading={isLoading} language={language} t={t} />
+          )}
+          {activeTab === 'time' && (
+            <TimeTab timeData={timeData} isLoading={isLoading} language={language} t={t} />
+          )}
+          {activeTab === 'comparison' && (
+            <ComparisonTab comparisonData={comparisonData} isLoading={isLoading} language={language} t={t} />
+          )}
+        </>
       )}
     </motion.div>
   )
@@ -618,14 +650,14 @@ function OverviewTab({
       },
       {
         title: t.vendor.totalOrders || 'إجمالي الطلبات',
-        value: formatNumber(overview.total_orders),
+        value: formatNumber(overview.total_orders, language === 'ar' ? 'ar-SY' : 'en-US'),
         change: overview.orders_change,
         icon: <ShoppingBag className="w-6 h-6" />,
         color: 'green' as const,
       },
       {
         title: t.vendor.totalCustomers || 'إجمالي الزبائن',
-        value: formatNumber(overview.total_customers),
+        value: formatNumber(overview.total_customers, language === 'ar' ? 'ar-SY' : 'en-US'),
         change: null,
         icon: <Users className="w-6 h-6" />,
         color: 'purple' as const,
@@ -642,7 +674,7 @@ function OverviewTab({
       {
         title: t.vendor.repeatCustomerRate || 'معدل تكرار الشراء',
         value: overview.repeat_customer_rate !== null 
-          ? `${overview.repeat_customer_rate.toFixed(1)}%`
+          ? formatPercentage(overview.repeat_customer_rate, language === 'ar' ? 'ar-SY' : 'en-US')
           : 'N/A',
         change: null,
         icon: <TrendingUp className="w-6 h-6" />,
@@ -651,8 +683,41 @@ function OverviewTab({
     ]
   }, [overview, language, t])
 
+  if (isLoading) {
+    return (
+      <motion.div 
+        variants={itemVariants} 
+        initial="hidden" 
+        animate="visible"
+        className="flex items-center justify-center h-64"
+      >
+        <Loader2 className="w-8 h-8 animate-spin text-historical-gold" />
+      </motion.div>
+    )
+  }
+
+  if (!overview || metrics.length === 0) {
+    return (
+      <motion.div 
+        variants={itemVariants} 
+        initial="hidden" 
+        animate="visible"
+        className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-12 border border-historical-gold/10 dark:border-gray-700 text-center"
+      >
+        <p className="text-historical-charcoal/50 dark:text-gray-400 text-lg">
+          {t.vendor.noData || 'لا توجد بيانات'}
+        </p>
+      </motion.div>
+    )
+  }
+
   return (
-    <motion.div variants={containerVariants} className="space-y-6">
+    <motion.div 
+      variants={containerVariants} 
+      initial="hidden" 
+      animate="visible"
+      className="space-y-6"
+    >
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {metrics.map((metric, index) => (
           <MetricCard
@@ -663,6 +728,7 @@ function OverviewTab({
             icon={metric.icon}
             color={metric.color}
             isLoading={isLoading}
+            language={language}
           />
         ))}
       </div>
@@ -699,37 +765,71 @@ function SalesTab({
     }
   }, [salesData])
 
+  if (isLoading) {
+    return (
+      <motion.div 
+        variants={itemVariants} 
+        initial="hidden" 
+        animate="visible"
+        className="flex items-center justify-center h-64"
+      >
+        <Loader2 className="w-8 h-8 animate-spin text-historical-gold" />
+      </motion.div>
+    )
+  }
+
+  if (!salesData) {
+    return (
+      <motion.div 
+        variants={itemVariants} 
+        initial="hidden" 
+        animate="visible"
+        className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-12 border border-historical-gold/10 dark:border-gray-700 text-center"
+      >
+        <p className="text-historical-charcoal/50 dark:text-gray-400 text-lg">
+          {t.vendor.noData || 'لا توجد بيانات'}
+        </p>
+      </motion.div>
+    )
+  }
+
   return (
-    <motion.div variants={containerVariants} className="space-y-6">
+    <motion.div 
+      variants={containerVariants} 
+      initial="hidden" 
+      animate="visible"
+      className="space-y-6"
+    >
       {/* Summary Cards */}
-      {salesData && (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <MetricCard
-            title={t.vendor.totalRevenue || 'إجمالي الإيرادات'}
-            value={formatCurrency(salesData.total_revenue, language === 'ar' ? 'ar-SY' : 'en-US', t.common.currency)}
-            change={null}
-            icon={<DollarSign className="w-6 h-6" />}
-            color="gold"
-            isLoading={false}
-          />
-          <MetricCard
-            title={t.vendor.totalOrders || 'إجمالي الطلبات'}
-            value={formatNumber(salesData.total_orders)}
-            change={null}
-            icon={<ShoppingBag className="w-6 h-6" />}
-            color="blue"
-            isLoading={false}
-          />
-          <MetricCard
-            title={t.vendor.averageOrderValue || 'متوسط قيمة الطلب'}
-            value={formatCurrency(salesData.average_order_value_overall, language === 'ar' ? 'ar-SY' : 'en-US', t.common.currency)}
-            change={null}
-            icon={<TrendingUp className="w-6 h-6" />}
-            color="green"
-            isLoading={false}
-          />
-        </div>
-      )}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <MetricCard
+          title={t.vendor.totalRevenue || 'إجمالي الإيرادات'}
+          value={formatCurrency(salesData.total_revenue, language === 'ar' ? 'ar-SY' : 'en-US', t.common.currency)}
+          change={null}
+          icon={<DollarSign className="w-6 h-6" />}
+          color="gold"
+          isLoading={false}
+          language={language}
+        />
+        <MetricCard
+          title={t.vendor.totalOrders || 'إجمالي الطلبات'}
+          value={formatNumber(salesData.total_orders, language === 'ar' ? 'ar-SY' : 'en-US')}
+          change={null}
+          icon={<ShoppingBag className="w-6 h-6" />}
+          color="blue"
+          isLoading={false}
+          language={language}
+        />
+        <MetricCard
+          title={t.vendor.averageOrderValue || 'متوسط قيمة الطلب'}
+          value={formatCurrency(salesData.average_order_value_overall, language === 'ar' ? 'ar-SY' : 'en-US', t.common.currency)}
+          change={null}
+          icon={<TrendingUp className="w-6 h-6" />}
+          color="green"
+          isLoading={false}
+          language={language}
+        />
+      </div>
 
       {/* Charts */}
       <motion.div variants={itemVariants} className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 border border-historical-gold/10 dark:border-gray-700">
@@ -742,6 +842,7 @@ function SalesTab({
           maxValue={revenueData.maxValue}
           color="gold"
           isLoading={isLoading}
+          language={language}
         />
       </motion.div>
 
@@ -755,6 +856,7 @@ function SalesTab({
           maxValue={ordersData.maxValue}
           color="blue"
           isLoading={isLoading}
+          language={language}
         />
       </motion.div>
     </motion.div>
@@ -772,8 +874,41 @@ function ProductsTab({
   language: string
   t: any
 }) {
+  if (isLoading) {
+    return (
+      <motion.div 
+        variants={itemVariants} 
+        initial="hidden" 
+        animate="visible"
+        className="flex items-center justify-center h-64"
+      >
+        <Loader2 className="w-8 h-8 animate-spin text-historical-gold" />
+      </motion.div>
+    )
+  }
+
+  if (!productsData) {
+    return (
+      <motion.div 
+        variants={itemVariants} 
+        initial="hidden" 
+        animate="visible"
+        className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-12 border border-historical-gold/10 dark:border-gray-700 text-center"
+      >
+        <p className="text-historical-charcoal/50 dark:text-gray-400 text-lg">
+          {t.vendor.noData || 'لا توجد بيانات'}
+        </p>
+      </motion.div>
+    )
+  }
+
   return (
-    <motion.div variants={containerVariants} className="space-y-6">
+    <motion.div 
+      variants={containerVariants} 
+      initial="hidden" 
+      animate="visible"
+      className="space-y-6"
+    >
       {/* Top Products */}
       {productsData && (
         <>
@@ -791,7 +926,7 @@ function ProductsTab({
                     <div>
                       <h4 className="font-semibold text-historical-charcoal dark:text-white">{product.product_name}</h4>
                       <p className="text-sm text-historical-charcoal/70 dark:text-gray-300">
-                        {formatNumber(product.units_sold)} {t.vendor.unitsSold || 'وحدة'} • {formatNumber(product.orders_count)} {t.vendor.orders || 'طلب'}
+                        {formatNumber(product.units_sold, language === 'ar' ? 'ar-SY' : 'en-US')} {t.vendor.unitsSold || 'وحدة'} • {formatNumber(product.orders_count, language === 'ar' ? 'ar-SY' : 'en-US')} {t.vendor.orders || 'طلب'}
                       </p>
                     </div>
                   </div>
@@ -809,19 +944,21 @@ function ProductsTab({
           <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <MetricCard
               title={t.vendor.lowStockProducts || 'منتجات بمخزون منخفض'}
-              value={formatNumber(productsData.low_stock_count)}
+              value={formatNumber(productsData.low_stock_count, language === 'ar' ? 'ar-SY' : 'en-US')}
               change={null}
               icon={<Package className="w-6 h-6" />}
               color="gold"
               isLoading={false}
+              language={language}
             />
             <MetricCard
               title={t.vendor.outOfStockProducts || 'منتجات نفذت من المخزون'}
-              value={formatNumber(productsData.out_of_stock_count)}
+              value={formatNumber(productsData.out_of_stock_count, language === 'ar' ? 'ar-SY' : 'en-US')}
               change={null}
               icon={<Package className="w-6 h-6" />}
               color="purple"
               isLoading={false}
+              language={language}
             />
           </motion.div>
         </>
@@ -850,44 +987,81 @@ function CustomersTab({
     }
   }, [customersData])
 
+  if (isLoading) {
+    return (
+      <motion.div 
+        variants={itemVariants} 
+        initial="hidden" 
+        animate="visible"
+        className="flex items-center justify-center h-64"
+      >
+        <Loader2 className="w-8 h-8 animate-spin text-historical-gold" />
+      </motion.div>
+    )
+  }
+
+  if (!customersData) {
+    return (
+      <motion.div 
+        variants={itemVariants} 
+        initial="hidden" 
+        animate="visible"
+        className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-12 border border-historical-gold/10 dark:border-gray-700 text-center"
+      >
+        <p className="text-historical-charcoal/50 dark:text-gray-400 text-lg">
+          {t.vendor.noData || 'لا توجد بيانات'}
+        </p>
+      </motion.div>
+    )
+  }
+
   return (
-    <motion.div variants={containerVariants} className="space-y-6">
+    <motion.div 
+      variants={containerVariants} 
+      initial="hidden" 
+      animate="visible"
+      className="space-y-6"
+    >
       {/* Summary */}
       {customersData && (
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
           <MetricCard
             title={t.vendor.totalCustomers || 'إجمالي الزبائن'}
-            value={formatNumber(customersData.total_customers)}
+            value={formatNumber(customersData.total_customers, language === 'ar' ? 'ar-SY' : 'en-US')}
             change={null}
             icon={<Users className="w-6 h-6" />}
             color="purple"
             isLoading={false}
+            language={language}
           />
           <MetricCard
             title={t.vendor.newCustomers || 'زبائن جدد'}
-            value={formatNumber(customersData.new_customers)}
+            value={formatNumber(customersData.new_customers, language === 'ar' ? 'ar-SY' : 'en-US')}
             change={null}
             icon={<Users className="w-6 h-6" />}
             color="blue"
             isLoading={false}
+            language={language}
           />
           <MetricCard
             title={t.vendor.returningCustomers || 'زبائن متكررون'}
-            value={formatNumber(customersData.returning_customers)}
+            value={formatNumber(customersData.returning_customers, language === 'ar' ? 'ar-SY' : 'en-US')}
             change={null}
             icon={<Users className="w-6 h-6" />}
             color="green"
             isLoading={false}
+            language={language}
           />
           <MetricCard
             title={t.vendor.repeatPurchaseRate || 'معدل تكرار الشراء'}
             value={customersData.repeat_purchase_rate !== null 
-              ? `${customersData.repeat_purchase_rate.toFixed(1)}%`
+              ? formatPercentage(customersData.repeat_purchase_rate, language === 'ar' ? 'ar-SY' : 'en-US')
               : 'N/A'}
             change={null}
             icon={<TrendingUp className="w-6 h-6" />}
             color="gold"
             isLoading={false}
+            language={language}
           />
         </div>
       )}
@@ -903,6 +1077,7 @@ function CustomersTab({
           maxValue={growthData.maxValue}
           color="purple"
           isLoading={isLoading}
+          language={language}
         />
       </motion.div>
 
@@ -918,7 +1093,7 @@ function CustomersTab({
                 <div>
                   <h4 className="font-semibold text-historical-charcoal dark:text-white">{customer.customer_name}</h4>
                   <p className="text-sm text-historical-charcoal/70 dark:text-gray-300">
-                    {formatNumber(customer.orders_count)} {t.vendor.orders || 'طلب'}
+                    {formatNumber(customer.orders_count, language === 'ar' ? 'ar-SY' : 'en-US')} {t.vendor.orders || 'طلب'}
                   </p>
                 </div>
                 <div className="text-right">
@@ -964,8 +1139,41 @@ function TimeTab({
     }
   }, [timeData])
 
+  if (isLoading) {
+    return (
+      <motion.div 
+        variants={itemVariants} 
+        initial="hidden" 
+        animate="visible"
+        className="flex items-center justify-center h-64"
+      >
+        <Loader2 className="w-8 h-8 animate-spin text-historical-gold" />
+      </motion.div>
+    )
+  }
+
+  if (!timeData) {
+    return (
+      <motion.div 
+        variants={itemVariants} 
+        initial="hidden" 
+        animate="visible"
+        className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-12 border border-historical-gold/10 dark:border-gray-700 text-center"
+      >
+        <p className="text-historical-charcoal/50 dark:text-gray-400 text-lg">
+          {t.vendor.noData || 'لا توجد بيانات'}
+        </p>
+      </motion.div>
+    )
+  }
+
   return (
-    <motion.div variants={containerVariants} className="space-y-6">
+    <motion.div 
+      variants={containerVariants} 
+      initial="hidden" 
+      animate="visible"
+      className="space-y-6"
+    >
       {/* Best Times */}
       {timeData && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -999,6 +1207,7 @@ function TimeTab({
           maxValue={hourlyRevenueData.maxValue}
           color="gold"
           isLoading={isLoading}
+          language={language}
         />
       </motion.div>
 
@@ -1013,6 +1222,7 @@ function TimeTab({
           maxValue={dayOfWeekRevenueData.maxValue}
           color="blue"
           isLoading={isLoading}
+          language={language}
         />
       </motion.div>
     </motion.div>
@@ -1048,8 +1258,41 @@ function ComparisonTab({
     }
   }, [comparisonData])
 
+  if (isLoading) {
+    return (
+      <motion.div 
+        variants={itemVariants} 
+        initial="hidden" 
+        animate="visible"
+        className="flex items-center justify-center h-64"
+      >
+        <Loader2 className="w-8 h-8 animate-spin text-historical-gold" />
+      </motion.div>
+    )
+  }
+
+  if (!comparisonData) {
+    return (
+      <motion.div 
+        variants={itemVariants} 
+        initial="hidden" 
+        animate="visible"
+        className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-12 border border-historical-gold/10 dark:border-gray-700 text-center"
+      >
+        <p className="text-historical-charcoal/50 dark:text-gray-400 text-lg">
+          {t.vendor.noData || 'لا توجد بيانات'}
+        </p>
+      </motion.div>
+    )
+  }
+
   return (
-    <motion.div variants={containerVariants} className="space-y-6">
+    <motion.div 
+      variants={containerVariants} 
+      initial="hidden" 
+      animate="visible"
+      className="space-y-6"
+    >
       {/* Summary Cards */}
       {comparisonData && (
         <>
@@ -1063,7 +1306,7 @@ function ComparisonTab({
                   {formatCurrency(comparisonData.current_revenue, language === 'ar' ? 'ar-SY' : 'en-US', t.common.currency)}
                 </p>
                 <p className="text-sm text-historical-charcoal/70 dark:text-gray-300">
-                  {formatNumber(comparisonData.current_orders)} {t.vendor.orders || 'طلب'} • {formatNumber(comparisonData.current_customers)} {t.vendor.customers || 'زبون'}
+                  {formatNumber(comparisonData.current_orders, language === 'ar' ? 'ar-SY' : 'en-US')} {t.vendor.orders || 'طلب'} • {formatNumber(comparisonData.current_customers, language === 'ar' ? 'ar-SY' : 'en-US')} {t.vendor.customers || 'زبون'}
                 </p>
               </div>
             </motion.div>
@@ -1076,7 +1319,7 @@ function ComparisonTab({
                   {formatCurrency(comparisonData.previous_revenue, language === 'ar' ? 'ar-SY' : 'en-US', t.common.currency)}
                 </p>
                 <p className="text-sm text-historical-charcoal/70 dark:text-gray-300">
-                  {formatNumber(comparisonData.previous_orders)} {t.vendor.orders || 'طلب'} • {formatNumber(comparisonData.previous_customers)} {t.vendor.customers || 'زبون'}
+                  {formatNumber(comparisonData.previous_orders, language === 'ar' ? 'ar-SY' : 'en-US')} {t.vendor.orders || 'طلب'} • {formatNumber(comparisonData.previous_customers, language === 'ar' ? 'ar-SY' : 'en-US')} {t.vendor.customers || 'زبون'}
                 </p>
               </div>
             </motion.div>
@@ -1085,27 +1328,30 @@ function ComparisonTab({
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <MetricCard
               title={t.vendor.revenueChange || 'تغيير الإيرادات'}
-              value={formatPercentage(comparisonData.revenue_change)}
+              value={formatPercentage(comparisonData.revenue_change, language === 'ar' ? 'ar-SY' : 'en-US')}
               change={comparisonData.revenue_change}
               icon={<DollarSign className="w-6 h-6" />}
               color="gold"
               isLoading={false}
+              language={language}
             />
             <MetricCard
               title={t.vendor.ordersChange || 'تغيير الطلبات'}
-              value={formatPercentage(comparisonData.orders_change)}
+              value={formatPercentage(comparisonData.orders_change, language === 'ar' ? 'ar-SY' : 'en-US')}
               change={comparisonData.orders_change}
               icon={<ShoppingBag className="w-6 h-6" />}
               color="blue"
               isLoading={false}
+              language={language}
             />
             <MetricCard
               title={t.vendor.customersChange || 'تغيير الزبائن'}
-              value={formatPercentage(comparisonData.customers_change)}
+              value={formatPercentage(comparisonData.customers_change, language === 'ar' ? 'ar-SY' : 'en-US')}
               change={comparisonData.customers_change}
               icon={<Users className="w-6 h-6" />}
               color="purple"
               isLoading={false}
+              language={language}
             />
           </div>
         </>
@@ -1127,6 +1373,7 @@ function ComparisonTab({
               maxValue={Math.max(currentData.maxValue, previousData.maxValue)}
               color="gold"
               isLoading={isLoading}
+              language={language}
             />
           </div>
           <div>
@@ -1139,6 +1386,7 @@ function ComparisonTab({
               maxValue={Math.max(currentData.maxValue, previousData.maxValue)}
               color="blue"
               isLoading={isLoading}
+              language={language}
             />
           </div>
         </div>

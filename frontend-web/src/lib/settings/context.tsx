@@ -228,6 +228,15 @@ export function SettingsProvider({
       setError(errorMessage)
       console.error('[SettingsProvider] Error fetching settings:', err)
       
+      // If it's a 502 error, provide more helpful message
+      // إذا كان خطأ 502، قدم رسالة أكثر فائدة
+      if (errorMessage.includes('502') || errorMessage.includes('Bad Gateway')) {
+        console.warn('[SettingsProvider] Backend server appears to be down. Check Docker containers:')
+        console.warn('1. Is backend container running? (docker ps)')
+        console.warn('2. Is backend healthy? (docker logs yallabuy_backend)')
+        console.warn('3. Can Nginx reach backend? (docker network inspect yallabuy_network)')
+      }
+      
       // Log additional debugging info
       // تسجيل معلومات إضافية للتشخيص
       if (errorMessage.includes('Failed to connect')) {
