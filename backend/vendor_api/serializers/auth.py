@@ -82,8 +82,10 @@ class VendorLoginSerializer(serializers.Serializer):
         
         # Check if user has associated VendorUser
         # التحقق من وجود VendorUser مرتبط
+        # Use select_related to avoid N+1 queries
+        # استخدام select_related لتجنب استعلامات N+1
         from users.models import VendorUser
-        vendor_user = VendorUser.objects.filter(user=user).first()
+        vendor_user = VendorUser.objects.select_related('vendor').filter(user=user).first()
         
         if not vendor_user:
             raise serializers.ValidationError(
@@ -92,6 +94,8 @@ class VendorLoginSerializer(serializers.Serializer):
         
         # Check if vendor is active
         # التحقق من أن البائع نشط
+        # vendor is already loaded via select_related, no additional query
+        # vendor محمل بالفعل عبر select_related، لا يوجد استعلام إضافي
         if not vendor_user.vendor.is_active:
             raise serializers.ValidationError(
                 _('البائع غير نشط. يرجى التواصل مع الدعم / Vendor is inactive. Please contact support')

@@ -379,26 +379,71 @@ export async function vendorFetch<T>(
 export async function vendorLogin(
   credentials: VendorLoginCredentials
 ): Promise<ApiResponse<VendorLoginResponse>> {
-  const response = await fetch(`${VENDOR_API_URL}/auth/login/`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(credentials),
-  })
+  // Create AbortController for timeout
+  // إنشاء AbortController للمهلة الزمنية
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), 100000) // 100 seconds timeout
 
-  const data = await response.json()
+  try {
+    const response = await fetch(`${VENDOR_API_URL}/auth/login/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(credentials),
+      signal: controller.signal,
+    })
 
-  // Save tokens if login successful
-  // حفظ التوكنات إذا نجح تسجيل الدخول
-  if (data.success && data.data?.access && data.data?.refresh) {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem(ACCESS_TOKEN_KEY, data.data.access)
-      localStorage.setItem(REFRESH_TOKEN_KEY, data.data.refresh)
+    clearTimeout(timeoutId)
+
+    // Handle timeout or network errors
+    // معالجة المهلة الزمنية أو أخطاء الشبكة
+    if (!response.ok && response.status === 504) {
+      return {
+        success: false,
+        data: null,
+        message: 'انتهت مهلة الاتصال بالخادم. يرجى المحاولة مرة أخرى / Server timeout. Please try again',
+        errors: null,
+      } as ApiResponse<VendorLoginResponse>
     }
-  }
 
-  return data as ApiResponse<VendorLoginResponse>
+    const data = await response.json()
+
+    // Save tokens if login successful
+    // حفظ التوكنات إذا نجح تسجيل الدخول
+    if (data.success && data.data?.access && data.data?.refresh) {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(ACCESS_TOKEN_KEY, data.data.access)
+        localStorage.setItem(REFRESH_TOKEN_KEY, data.data.refresh)
+      }
+    }
+
+    return data as ApiResponse<VendorLoginResponse>
+  } catch (error) {
+    clearTimeout(timeoutId)
+    
+    // Handle abort (timeout) or network errors
+    // معالجة الإلغاء (المهلة الزمنية) أو أخطاء الشبكة
+    if (error instanceof Error && error.name === 'AbortError') {
+      return {
+        success: false,
+        data: null,
+        message: 'انتهت مهلة الاتصال. يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى / Connection timeout. Please check your internet connection and try again',
+        errors: null,
+      } as ApiResponse<VendorLoginResponse>
+    }
+
+    // Handle other network errors
+    // معالجة أخطاء الشبكة الأخرى
+    return {
+      success: false,
+      data: null,
+      message: error instanceof Error 
+        ? `فشل الاتصال بالخادم: ${error.message} / Failed to connect to server: ${error.message}`
+        : 'فشل الاتصال بالخادم. يرجى المحاولة مرة أخرى / Failed to connect to server. Please try again',
+      errors: null,
+    } as ApiResponse<VendorLoginResponse>
+  }
 }
 
 /**

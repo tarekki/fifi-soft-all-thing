@@ -151,11 +151,18 @@ class VendorLoginView(APIView):
         
         # Prepare vendor data
         # إعداد بيانات البائع
+        # vendor is already loaded via select_related in serializer
+        # vendor محمل بالفعل عبر select_related في serializer
         logo_url = None
         if vendor.logo:
             try:
+                # Use get_absolute_url if available, otherwise build manually
+                # استخدام get_absolute_url إذا كان متاحاً، وإلا بناء يدوياً
                 logo_url = request.build_absolute_uri(vendor.logo.url)
-            except:
+            except Exception as e:
+                # Log error but don't fail login
+                # تسجيل الخطأ لكن لا تفشل تسجيل الدخول
+                logger.warning(f'Failed to build logo URL for vendor {vendor.id}: {str(e)}')
                 logo_url = None
         
         vendor_data = {
