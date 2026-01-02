@@ -30,6 +30,15 @@ import type {
   VendorTimeAnalysis,
   VendorComparisonAnalytics,
   VendorAnalyticsFilters,
+  VendorProfile,
+  VendorProfileUpdate,
+  VendorInfo,
+  VendorInfoUpdate,
+  VendorNotificationPreferences,
+  VendorNotificationPreferencesUpdate,
+  VendorStoreSettings,
+  VendorStoreSettingsUpdate,
+  VendorActiveSession,
 } from './types'
 
 // =============================================================================
@@ -1519,5 +1528,189 @@ export async function getVendorComparisonAnalytics(
   const queryString = params.toString()
   const endpoint = `/analytics/comparison/${queryString ? `?${queryString}` : ''}`
   return vendorFetch<VendorComparisonAnalytics>(endpoint)
+}
+
+// =============================================================================
+// Settings API Functions
+// دوال API الإعدادات
+// =============================================================================
+
+/**
+ * Get vendor profile information
+ * الحصول على معلومات ملف البائع الشخصي
+ * 
+ * @returns Promise with profile data
+ */
+export async function getVendorProfile(): Promise<ApiResponse<VendorProfile>> {
+  return vendorFetch<VendorProfile>('/settings/profile/')
+}
+
+/**
+ * Update vendor profile information
+ * تحديث معلومات ملف البائع الشخصي
+ * 
+ * @param data - Profile update data
+ * @returns Promise with updated profile data
+ */
+export async function updateVendorProfile(
+  data: VendorProfileUpdate
+): Promise<ApiResponse<VendorProfile>> {
+  return vendorFetch<VendorProfile>('/settings/profile/', {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  })
+}
+
+/**
+ * Upload vendor profile avatar
+ * رفع صورة ملف البائع الشخصي
+ * 
+ * @param file - Avatar image file
+ * @returns Promise with avatar URL
+ */
+export async function uploadVendorProfileAvatar(
+  file: File
+): Promise<ApiResponse<{ avatar_url: string }>> {
+  const formData = new FormData()
+  formData.append('avatar', file)
+  
+  return vendorFetch<{ avatar_url: string }>('/settings/profile/avatar/', {
+    method: 'POST',
+    body: formData,
+  })
+}
+
+/**
+ * Get vendor information
+ * الحصول على معلومات البائع
+ * 
+ * @returns Promise with vendor info data
+ */
+export async function getVendorInfo(): Promise<ApiResponse<VendorInfo>> {
+  return vendorFetch<VendorInfo>('/settings/vendor/')
+}
+
+/**
+ * Update vendor information
+ * تحديث معلومات البائع
+ * 
+ * @param data - Vendor info update data
+ * @returns Promise with updated vendor info data
+ */
+export async function updateVendorInfo(
+  data: VendorInfoUpdate
+): Promise<ApiResponse<VendorInfo>> {
+  return vendorFetch<VendorInfo>('/settings/vendor/', {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  })
+}
+
+/**
+ * Upload vendor logo
+ * رفع شعار البائع
+ * 
+ * @param file - Logo image file
+ * @returns Promise with logo URL
+ */
+export async function uploadVendorLogo(
+  file: File
+): Promise<ApiResponse<{ logo_url: string }>> {
+  const formData = new FormData()
+  formData.append('logo', file)
+  
+  return vendorFetch<{ logo_url: string }>('/settings/vendor/logo/', {
+    method: 'POST',
+    body: formData,
+  })
+}
+
+/**
+ * Get notification preferences
+ * الحصول على تفضيلات الإشعارات
+ * 
+ * @returns Promise with notification preferences
+ */
+export async function getVendorNotificationPreferences(): Promise<ApiResponse<VendorNotificationPreferences>> {
+  return vendorFetch<VendorNotificationPreferences>('/settings/notifications/')
+}
+
+/**
+ * Update notification preferences
+ * تحديث تفضيلات الإشعارات
+ * 
+ * @param data - Notification preferences update data
+ * @returns Promise with updated preferences
+ */
+export async function updateVendorNotificationPreferences(
+  data: VendorNotificationPreferencesUpdate
+): Promise<ApiResponse<VendorNotificationPreferences>> {
+  return vendorFetch<VendorNotificationPreferences>('/settings/notifications/', {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  })
+}
+
+/**
+ * Get store settings
+ * الحصول على إعدادات المتجر
+ * 
+ * @returns Promise with store settings
+ */
+export async function getVendorStoreSettings(): Promise<ApiResponse<VendorStoreSettings>> {
+  return vendorFetch<VendorStoreSettings>('/settings/store/')
+}
+
+/**
+ * Update store settings
+ * تحديث إعدادات المتجر
+ * 
+ * @param data - Store settings update data
+ * @returns Promise with updated store settings
+ */
+export async function updateVendorStoreSettings(
+  data: VendorStoreSettingsUpdate
+): Promise<ApiResponse<VendorStoreSettings>> {
+  return vendorFetch<VendorStoreSettings>('/settings/store/', {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  })
+}
+
+/**
+ * Get active sessions
+ * الحصول على الجلسات النشطة
+ * 
+ * @returns Promise with active sessions list
+ */
+export async function getVendorActiveSessions(): Promise<ApiResponse<VendorActiveSession[]>> {
+  return vendorFetch<VendorActiveSession[]>('/settings/sessions/')
+}
+
+/**
+ * Revoke a session
+ * إلغاء جلسة
+ * 
+ * @param sessionKey - Session key to revoke
+ * @returns Promise with success message
+ */
+export async function revokeVendorSession(
+  sessionKey: string
+): Promise<ApiResponse<null>> {
+  return vendorFetch<null>(`/settings/sessions/${sessionKey}/`, {
+    method: 'DELETE',
+  })
 }
 

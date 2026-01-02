@@ -223,6 +223,126 @@ export interface VendorAnalyticsFilters {
 }
 
 // =============================================================================
+// Vendor Settings Types
+// أنواع إعدادات البائع
+// =============================================================================
+
+/**
+ * Vendor profile information
+ * معلومات ملف البائع الشخصي
+ */
+export interface VendorProfile {
+  id: number
+  email: string
+  first_name: string
+  last_name: string
+  full_name: string
+  phone: string | null
+  avatar_url: string | null
+  preferred_language: string
+  preferred_language_display: string
+}
+
+/**
+ * Vendor profile update data
+ * بيانات تحديث ملف البائع الشخصي
+ */
+export interface VendorProfileUpdate {
+  email?: string
+  first_name?: string
+  last_name?: string
+  phone?: string
+  preferred_language?: 'ar' | 'en'
+}
+
+/**
+ * Vendor information
+ * معلومات البائع
+ */
+export interface VendorInfo {
+  id: number
+  name: string
+  slug: string
+  description: string
+  logo_url: string | null
+  primary_color: string
+  commission_rate: string
+  is_active: boolean
+}
+
+/**
+ * Vendor info update data
+ * بيانات تحديث معلومات البائع
+ */
+export interface VendorInfoUpdate {
+  description?: string
+  primary_color?: string
+}
+
+/**
+ * Notification preferences
+ * تفضيلات الإشعارات
+ */
+export interface VendorNotificationPreferences {
+  notify_new_orders: boolean
+  notify_order_status_changes: boolean
+  notify_order_cancellations: boolean
+  notify_low_stock: boolean
+  notify_out_of_stock: boolean
+  notify_new_customers: boolean
+  email_notifications_enabled: boolean
+}
+
+/**
+ * Notification preferences update data
+ * بيانات تحديث تفضيلات الإشعارات
+ */
+export interface VendorNotificationPreferencesUpdate {
+  notify_new_orders?: boolean
+  notify_order_status_changes?: boolean
+  notify_order_cancellations?: boolean
+  notify_low_stock?: boolean
+  notify_out_of_stock?: boolean
+  notify_new_customers?: boolean
+  email_notifications_enabled?: boolean
+}
+
+/**
+ * Store settings
+ * إعدادات المتجر
+ */
+export interface VendorStoreSettings {
+  is_active: boolean
+  auto_confirm_orders: boolean
+  default_order_status: 'pending' | 'confirmed' | 'processing'
+  stock_alert_threshold: number
+  auto_archive_orders_after_days: number | null
+}
+
+/**
+ * Store settings update data
+ * بيانات تحديث إعدادات المتجر
+ */
+export interface VendorStoreSettingsUpdate {
+  auto_confirm_orders?: boolean
+  default_order_status?: 'pending' | 'confirmed' | 'processing'
+  stock_alert_threshold?: number
+  auto_archive_orders_after_days?: number | null
+}
+
+/**
+ * Active session information
+ * معلومات الجلسة النشطة
+ */
+export interface VendorActiveSession {
+  session_key: string
+  ip_address: string | null
+  user_agent: string | null
+  last_activity: string
+  is_current: boolean
+}
+
+// =============================================================================
 // Vendor Authentication Types
 // أنواع مصادقة البائع
 // =============================================================================

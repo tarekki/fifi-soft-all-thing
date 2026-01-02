@@ -41,6 +41,17 @@ from .analytics import (
     VendorTimeAnalysisSerializer,
     VendorComparisonAnalyticsSerializer,
 )
+from .settings import (
+    VendorProfileSerializer,
+    VendorProfileUpdateSerializer,
+    VendorInfoSerializer,
+    VendorInfoUpdateSerializer,
+    VendorNotificationPreferencesSerializer,
+    VendorNotificationPreferencesUpdateSerializer,
+    VendorStoreSettingsSerializer,
+    VendorStoreSettingsUpdateSerializer,
+    VendorActiveSessionSerializer,
+)
 
 __all__ = [
     'VendorDashboardOverviewSerializer',
@@ -63,5 +74,14 @@ __all__ = [
     'VendorCustomerAnalyticsItemSerializer',
     'VendorTimeAnalysisSerializer',
     'VendorComparisonAnalyticsSerializer',
+    'VendorProfileSerializer',
+    'VendorProfileUpdateSerializer',
+    'VendorInfoSerializer',
+    'VendorInfoUpdateSerializer',
+    'VendorNotificationPreferencesSerializer',
+    'VendorNotificationPreferencesUpdateSerializer',
+    'VendorStoreSettingsSerializer',
+    'VendorStoreSettingsUpdateSerializer',
+    'VendorActiveSessionSerializer',
 ]
 

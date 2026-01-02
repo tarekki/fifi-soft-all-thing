@@ -30,6 +30,15 @@ from vendor_api.views.analytics import (
     VendorTimeAnalysisView,
     VendorComparisonAnalyticsView,
 )
+from vendor_api.views.settings import (
+    VendorProfileSettingsView,
+    VendorProfileAvatarUploadView,
+    VendorInfoSettingsView,
+    VendorLogoUploadView,
+    VendorNotificationPreferencesView,
+    VendorStoreSettingsView,
+    VendorActiveSessionsView,
+)
 from vendor_api.views.notifications import (
     VendorNotificationListView,
     VendorUnreadCountView,
@@ -305,6 +314,78 @@ analytics_urlpatterns = [
 
 
 # =============================================================================
+# Settings URL Patterns
+# أنماط URLs للإعدادات
+# =============================================================================
+
+settings_urlpatterns = [
+    # GET/PUT /api/v1/vendor/settings/profile/
+    # إعدادات الملف الشخصي
+    path(
+        'profile/',
+        VendorProfileSettingsView.as_view(),
+        name='vendor-settings-profile'
+    ),
+    
+    # POST /api/v1/vendor/settings/profile/avatar/
+    # رفع صورة الملف الشخصي
+    path(
+        'profile/avatar/',
+        VendorProfileAvatarUploadView.as_view(),
+        name='vendor-settings-profile-avatar'
+    ),
+    
+    # GET/PUT /api/v1/vendor/settings/vendor/
+    # إعدادات معلومات البائع
+    path(
+        'vendor/',
+        VendorInfoSettingsView.as_view(),
+        name='vendor-settings-vendor'
+    ),
+    
+    # POST /api/v1/vendor/settings/vendor/logo/
+    # رفع شعار البائع
+    path(
+        'vendor/logo/',
+        VendorLogoUploadView.as_view(),
+        name='vendor-settings-vendor-logo'
+    ),
+    
+    # GET/PUT /api/v1/vendor/settings/notifications/
+    # تفضيلات الإشعارات
+    path(
+        'notifications/',
+        VendorNotificationPreferencesView.as_view(),
+        name='vendor-settings-notifications'
+    ),
+    
+    # GET/PUT /api/v1/vendor/settings/store/
+    # إعدادات المتجر
+    path(
+        'store/',
+        VendorStoreSettingsView.as_view(),
+        name='vendor-settings-store'
+    ),
+    
+    # GET /api/v1/vendor/settings/sessions/
+    # الجلسات النشطة
+    path(
+        'sessions/',
+        VendorActiveSessionsView.as_view(),
+        name='vendor-settings-sessions'
+    ),
+    
+    # DELETE /api/v1/vendor/settings/sessions/{session_key}/
+    # إلغاء جلسة
+    path(
+        'sessions/<str:session_key>/',
+        VendorActiveSessionsView.as_view(),
+        name='vendor-settings-sessions-revoke'
+    ),
+]
+
+
+# =============================================================================
 # Main URL Patterns
 # أنماط URLs الرئيسية
 # =============================================================================
@@ -345,6 +426,10 @@ urlpatterns = [
     # Analytics endpoints
     # نقاط نهاية التحليلات
     path('analytics/', include((analytics_urlpatterns, 'analytics'))),
+    
+    # Settings endpoints
+    # نقاط نهاية الإعدادات
+    path('settings/', include((settings_urlpatterns, 'settings'))),
     
     # Notifications endpoints
     # نقاط نهاية الإشعارات

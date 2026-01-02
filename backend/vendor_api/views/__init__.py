@@ -50,6 +50,15 @@ from .analytics import (
     VendorTimeAnalysisView,
     VendorComparisonAnalyticsView,
 )
+from .settings import (
+    VendorProfileSettingsView,
+    VendorProfileAvatarUploadView,
+    VendorInfoSettingsView,
+    VendorLogoUploadView,
+    VendorNotificationPreferencesView,
+    VendorStoreSettingsView,
+    VendorActiveSessionsView,
+)
 
 __all__ = [
     'VendorDashboardOverviewView',
@@ -78,5 +87,12 @@ __all__ = [
     'VendorCustomerAnalyticsView',
     'VendorTimeAnalysisView',
     'VendorComparisonAnalyticsView',
+    'VendorProfileSettingsView',
+    'VendorProfileAvatarUploadView',
+    'VendorInfoSettingsView',
+    'VendorLogoUploadView',
+    'VendorNotificationPreferencesView',
+    'VendorStoreSettingsView',
+    'VendorActiveSessionsView',
 ]
 
