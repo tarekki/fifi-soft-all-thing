@@ -523,6 +523,7 @@ function RecentOrdersTable({
   orders: Array<{
     id: string
     customer: string
+    customer_key?: string
     date: string
     total: string
     status: string
@@ -591,7 +592,23 @@ function RecentOrdersTable({
                   <td className="px-6 py-4">
                     <span className="font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300">{order.id}</span>
                   </td>
-                  <td className="px-6 py-4 text-sm text-historical-charcoal/70 dark:text-gray-300 transition-colors duration-300">{order.customer}</td>
+                  <td className="px-6 py-4">
+                    {order.customer_key ? (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          router.push(`/vendor/customers?customer_key=${order.customer_key}`)
+                        }}
+                        className="text-sm text-historical-gold dark:text-yellow-400 hover:text-historical-red dark:hover:text-yellow-300 hover:underline transition-colors duration-300 font-medium"
+                      >
+                        {order.customer}
+                      </button>
+                    ) : (
+                      <span className="text-sm text-historical-charcoal/70 dark:text-gray-300 transition-colors duration-300">
+                        {order.customer}
+                      </span>
+                    )}
+                  </td>
                   <td className="px-6 py-4 text-sm font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300">
                     {order.total}
                   </td>
@@ -916,6 +933,7 @@ export default function DashboardPage() {
     return recentOrders.map((order) => ({
       id: order.order_number,
       customer: order.customer_name,
+      customer_key: order.customer_key,
       date: formatRelativeDate(order.created_at, t),
       total: formatCurrency(
         Number(order.total),

@@ -70,6 +70,7 @@ export interface VendorSalesChartData {
 export interface VendorRecentOrder {
   id: string
   customer: string
+  customer_key?: string
   date: string
   total: string
   status: string
@@ -159,5 +160,57 @@ export interface VendorPasswordChangeData {
   current_password: string
   new_password: string
   confirm_password: string
+}
+
+// =============================================================================
+// Vendor Customer Types
+// أنواع زبائن البائع
+// =============================================================================
+
+/**
+ * Vendor customer data
+ * بيانات زبون البائع
+ */
+export interface VendorCustomer {
+  customer_key: string
+  name: string
+  email: string | null
+  phone: string | null
+  orders_count: number
+  total_spent: string
+  last_order_at: string | null
+  first_order_at: string | null
+}
+
+/**
+ * Vendor customer filters
+ * فلاتر زبائن البائع
+ */
+export interface VendorCustomerFilters {
+  search?: string
+  date_from?: string
+  date_to?: string
+  last_order_from?: string
+  last_order_to?: string
+  sort_by?: 'orders_count' | 'total_spent' | 'last_order_at' | 'name'
+  sort_dir?: 'asc' | 'desc'
+  page?: number
+  page_size?: number
+}
+
+/**
+ * Paginated response for customers
+ * استجابة مقسمة للزبائن
+ */
+export interface PaginatedCustomerResponse {
+  results: VendorCustomer[]
+  pagination: {
+    count: number
+    next: string | null
+    previous: string | null
+    page: number
+    page_size: number
+    total_pages: number
+  }
 }
 

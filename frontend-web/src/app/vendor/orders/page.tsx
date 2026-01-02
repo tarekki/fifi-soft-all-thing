@@ -19,7 +19,7 @@
 
 import { useState, useCallback, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useTranslation } from '@/lib/i18n/use-translation'
 import { useLanguage } from '@/lib/i18n/context'
 import {
@@ -121,6 +121,11 @@ export default function OrdersPage() {
   const { t, language } = useLanguage()
   const { dir } = useTranslation()
   const router = useRouter()
+  const searchParams = useSearchParams()
+  
+  // Get customer_key from URL if exists (for filtering)
+  // الحصول على customer_key من URL إذا كان موجوداً (للتصفية)
+  const customerKeyFromUrl = searchParams.get('customer_key')
   
   // State
   const [orders, setOrders] = useState<VendorOrder[]>([])
@@ -142,6 +147,7 @@ export default function OrdersPage() {
       const filters: VendorOrderFilters = {
         search: search || undefined,
         status: statusFilter || undefined,
+        customer_key: customerKeyFromUrl || undefined,
         sort_by: 'created_at',
         sort_dir: 'desc',
         page: currentPage,
@@ -165,7 +171,7 @@ export default function OrdersPage() {
     } finally {
       setIsLoading(false)
     }
-  }, [search, statusFilter, currentPage])
+  }, [search, statusFilter, currentPage, customerKeyFromUrl])
   
   // Fetch on mount and when filters change
   useEffect(() => {
@@ -292,8 +298,22 @@ export default function OrdersPage() {
                         {order.order_number}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-sm text-historical-charcoal/70 dark:text-gray-300 transition-colors duration-300">
-                      {order.customer_name}
+                    <td className="px-6 py-4">
+                      {order.customer_key ? (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            router.push(`/vendor/customers?customer_key=${order.customer_key}`)
+                          }}
+                          className="text-sm text-historical-gold dark:text-yellow-400 hover:text-historical-red dark:hover:text-yellow-300 hover:underline transition-colors duration-300 font-medium"
+                        >
+                          {order.customer_name}
+                        </button>
+                      ) : (
+                        <span className="text-sm text-historical-charcoal/70 dark:text-gray-300 transition-colors duration-300">
+                          {order.customer_name}
+                        </span>
+                      )}
                     </td>
                     <td className="px-6 py-4 text-sm font-medium text-historical-charcoal dark:text-gray-200 transition-colors duration-300">
                       {formatCurrency(Number(order.total), language === 'ar' ? 'ar-SY' : 'en-US', t.common.currency)}

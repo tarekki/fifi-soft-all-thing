@@ -21,6 +21,7 @@ from vendor_api.views.application import VendorApplicationView
 from vendor_api.views.products import VendorProductListCreateView, VendorProductDetailView
 from vendor_api.views.categories import VendorCategoryListView
 from vendor_api.views.orders import VendorOrderListView, VendorOrderDetailView
+from vendor_api.views.customers import VendorCustomerListView
 from vendor_api.views.notifications import (
     VendorNotificationListView,
     VendorUnreadCountView,
@@ -168,6 +169,22 @@ orders_urlpatterns = [
 
 
 # =============================================================================
+# Customers URL Patterns
+# أنماط URLs للزبائن
+# =============================================================================
+
+customers_urlpatterns = [
+    # GET /api/v1/vendor/customers/
+    # قائمة الزبائن
+    path(
+        '',
+        VendorCustomerListView.as_view(),
+        name='vendor-customers-list'
+    ),
+]
+
+
+# =============================================================================
 # Notifications URL Patterns
 # أنماط URLs للإشعارات
 # =============================================================================
@@ -256,6 +273,10 @@ urlpatterns = [
     # Orders endpoints
     # نقاط نهاية الطلبات
     path('orders/', include((orders_urlpatterns, 'orders'))),
+    
+    # Customers endpoints
+    # نقاط نهاية الزبائن
+    path('customers/', include((customers_urlpatterns, 'customers'))),
     
     # Notifications endpoints
     # نقاط نهاية الإشعارات

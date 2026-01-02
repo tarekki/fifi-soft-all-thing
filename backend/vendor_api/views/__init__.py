@@ -39,6 +39,9 @@ from .notifications import (
     VendorMarkAllAsReadView,
     VendorNotificationStatsView,
 )
+from .customers import (
+    VendorCustomerListView,
+)
 
 __all__ = [
     'VendorDashboardOverviewView',
@@ -60,5 +63,6 @@ __all__ = [
     'VendorMarkMultipleAsReadView',
     'VendorMarkAllAsReadView',
     'VendorNotificationStatsView',
+    'VendorCustomerListView',
 ]
 

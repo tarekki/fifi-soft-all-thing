@@ -20,6 +20,9 @@ import type {
   VendorApplicationData,
   VendorApplicationResponse,
   VendorPasswordChangeData,
+  VendorCustomer,
+  VendorCustomerFilters,
+  PaginatedCustomerResponse,
 } from './types'
 
 // =============================================================================
@@ -724,6 +727,7 @@ export async function getVendorNotificationStats(): Promise<ApiResponse<VendorNo
 export interface VendorOrderFilters {
   search?: string
   status?: string
+  customer_key?: string
   date_from?: string
   date_to?: string
   sort_by?: 'created_at' | 'total' | 'status'
@@ -740,6 +744,7 @@ export interface VendorOrder {
   id: number
   order_number: string
   customer_name: string
+  customer_key?: string
   total: string
   status: string
   status_display: string
@@ -807,6 +812,9 @@ export async function getVendorOrders(
   if (filters?.status) {
     params.append('status', filters.status)
   }
+  if (filters?.customer_key) {
+    params.append('customer_key', filters.customer_key)
+  }
   if (filters?.date_from) {
     params.append('date_from', filters.date_from)
   }
@@ -843,6 +851,58 @@ export async function getVendorOrder(
   id: number
 ): Promise<ApiResponse<VendorOrderDetail>> {
   return vendorFetch<VendorOrderDetail>(`/orders/${id}/`)
+}
+
+// =============================================================================
+// Customers API Functions
+// دوال API الزبائن
+// =============================================================================
+
+/**
+ * Get vendor customers list
+ * الحصول على قائمة زبائن البائع
+ * 
+ * @param filters - Optional filters (search, date range, sorting, pagination)
+ * @returns Promise with paginated customers list
+ */
+export async function getVendorCustomers(
+  filters?: VendorCustomerFilters
+): Promise<ApiResponse<PaginatedCustomerResponse>> {
+  // Build query string
+  const params = new URLSearchParams()
+  
+  if (filters?.search) {
+    params.append('search', filters.search)
+  }
+  if (filters?.date_from) {
+    params.append('date_from', filters.date_from)
+  }
+  if (filters?.date_to) {
+    params.append('date_to', filters.date_to)
+  }
+  if (filters?.last_order_from) {
+    params.append('last_order_from', filters.last_order_from)
+  }
+  if (filters?.last_order_to) {
+    params.append('last_order_to', filters.last_order_to)
+  }
+  if (filters?.sort_by) {
+    params.append('sort_by', filters.sort_by)
+  }
+  if (filters?.sort_dir) {
+    params.append('sort_dir', filters.sort_dir)
+  }
+  if (filters?.page) {
+    params.append('page', filters.page.toString())
+  }
+  if (filters?.page_size) {
+    params.append('page_size', filters.page_size.toString())
+  }
+  
+  const queryString = params.toString()
+  const endpoint = `/customers/${queryString ? `?${queryString}` : ''}`
+  
+  return vendorFetch<PaginatedCustomerResponse>(endpoint)
 }
 
 /**

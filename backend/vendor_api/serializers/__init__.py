@@ -28,6 +28,9 @@ from .products import (
     VendorProductVariantSerializer,
     VendorProductVariantCreateSerializer,
 )
+from .customers import (
+    VendorCustomerListSerializer,
+)
 
 __all__ = [
     'VendorDashboardOverviewSerializer',
@@ -41,5 +44,6 @@ __all__ = [
     'VendorProductImageCreateSerializer',
     'VendorProductVariantSerializer',
     'VendorProductVariantCreateSerializer',
+    'VendorCustomerListSerializer',
 ]
 

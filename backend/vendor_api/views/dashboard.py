@@ -32,6 +32,7 @@ from vendor_api.serializers.dashboard import (
 )
 from core.utils import success_response, error_response
 from users.models import VendorUser
+import hashlib
 
 
 # =============================================================================
@@ -911,6 +912,18 @@ class VendorRecentOrdersView(APIView):
             'cancelled': _('ملغي / Cancelled'),
         }
         
+        # Helper function to generate customer_key
+        # دالة مساعدة لإنشاء customer_key
+        def generate_customer_key(vendor_id: int, user_id: int = None, guest_identifier: str = None) -> str:
+            if user_id:
+                raw_key = f"vendor_{vendor_id}_user_{user_id}"
+            elif guest_identifier:
+                raw_key = f"vendor_{vendor_id}_guest_{guest_identifier}"
+            else:
+                raw_key = f"vendor_{vendor_id}_unknown"
+            hash_obj = hashlib.sha256(raw_key.encode())
+            return hash_obj.hexdigest()[:16]
+        
         # Build response data
         # بناء بيانات الاستجابة
         data = []
@@ -922,8 +935,15 @@ class VendorRecentOrdersView(APIView):
                 customer_name = f"{order.user.first_name} {order.user.last_name}".strip()
                 if not customer_name:
                     customer_name = order.user.email.split('@')[0] if order.user.email else _('مستخدم / User')
+                # Calculate customer_key for authenticated customer
+                # حساب customer_key للعميل المسجل
+                customer_key = generate_customer_key(vendor.id, order.user.id)
             else:
                 customer_name = order.customer_name or _('ضيف / Guest')
+                # Calculate customer_key for guest customer
+                # حساب customer_key للعميل الضيف
+                guest_identifier = order.customer_name or order.customer_phone or f"guest_{order.id}"
+                customer_key = generate_customer_key(vendor.id, None, guest_identifier)
             
             # Calculate total for this vendor's items only
             # حساب الإجمالي لعناصر هذا البائع فقط
@@ -937,6 +957,7 @@ class VendorRecentOrdersView(APIView):
                 'id': order.id,
                 'order_number': order.order_number or f"ORD-{order.id:06d}",
                 'customer_name': customer_name,
+                'customer_key': customer_key,
                 'total': str(vendor_total),
                 'status': order.status,
                 'status_display': status_display_map.get(order.status, order.status),

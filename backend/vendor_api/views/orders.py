@@ -40,6 +40,41 @@ from orders.models import Order, OrderItem
 from users.models import VendorUser
 from core.utils import success_response, error_response
 from core.pagination import StandardResultsSetPagination
+import hashlib
+
+
+# =============================================================================
+# Helper Functions
+# دوال مساعدة
+# =============================================================================
+
+def generate_customer_key(vendor_id: int, user_id: int = None, guest_identifier: str = None) -> str:
+    """
+    Generate a unique customer key for vendor-specific customer identification.
+    إنشاء مفتاح عميل فريد لتحديد هوية العميل الخاص بالبائع.
+    
+    Args:
+        vendor_id: Vendor ID
+        user_id: User ID (for authenticated customers)
+        guest_identifier: Guest identifier (for guest orders)
+    
+    Returns:
+        Unique customer key (hash)
+    """
+    if user_id:
+        # Authenticated customer: hash(vendor_id + user_id)
+        raw_key = f"vendor_{vendor_id}_user_{user_id}"
+    elif guest_identifier:
+        # Guest customer: hash(vendor_id + guest_identifier)
+        raw_key = f"vendor_{vendor_id}_guest_{guest_identifier}"
+    else:
+        # Fallback: should not happen
+        raw_key = f"vendor_{vendor_id}_unknown"
+    
+    # Generate SHA256 hash and take first 16 characters
+    # إنشاء hash SHA256 وأخذ أول 16 حرف
+    hash_obj = hashlib.sha256(raw_key.encode())
+    return hash_obj.hexdigest()[:16]
 
 
 # =============================================================================
@@ -77,6 +112,7 @@ class VendorOrderListView(APIView):
         parameters=[
             OpenApiParameter(name='search', type=str, description='Search by order number, customer name'),
             OpenApiParameter(name='status', type=str, description='Filter by status (pending, confirmed, shipped, delivered, cancelled)'),
+            OpenApiParameter(name='customer_key', type=str, description='Filter by customer key (from customers API)'),
             OpenApiParameter(name='date_from', type=str, description='Filter by date from (YYYY-MM-DD)'),
             OpenApiParameter(name='date_to', type=str, description='Filter by date to (YYYY-MM-DD)'),
             OpenApiParameter(name='sort_by', type=str, description='Sort field (created_at, total, status)'),
@@ -144,6 +180,38 @@ class VendorOrderListView(APIView):
             valid_statuses = [s for s in statuses if s in dict(Order.STATUS_CHOICES)]
             if valid_statuses:
                 queryset = queryset.filter(status__in=valid_statuses)
+        
+        # =================================================================
+        # Customer Key Filter
+        # فلتر مفتاح العميل
+        # =================================================================
+        customer_key_filter = request.query_params.get('customer_key', '').strip()
+        if customer_key_filter:
+            # Filter orders by customer_key
+            # We need to match orders where the customer_key matches
+            # تصفية الطلبات حسب customer_key
+            # نحتاج لمطابقة الطلبات حيث customer_key يطابق
+            filtered_order_ids = []
+            for order in queryset:
+                # Calculate customer_key for this order
+                # حساب customer_key لهذا الطلب
+                if order.user:
+                    customer_key = generate_customer_key(vendor.id, order.user.id)
+                else:
+                    guest_identifier = order.customer_name or order.customer_phone or f"guest_{order.id}"
+                    customer_key = generate_customer_key(vendor.id, None, guest_identifier)
+                
+                if customer_key == customer_key_filter:
+                    filtered_order_ids.append(order.id)
+            
+            # Filter queryset to only include matching orders
+            # تصفية queryset لتشمل فقط الطلبات المطابقة
+            if filtered_order_ids:
+                queryset = queryset.filter(id__in=filtered_order_ids)
+            else:
+                # No matching orders
+                # لا توجد طلبات مطابقة
+                queryset = queryset.none()
         
         # =================================================================
         # Date Range Filter
@@ -226,8 +294,15 @@ class VendorOrderListView(APIView):
                 customer_name = f"{order.user.first_name} {order.user.last_name}".strip()
                 if not customer_name:
                     customer_name = order.user.email.split('@')[0] if order.user.email else _('مستخدم / User')
+                # Calculate customer_key for authenticated customer
+                # حساب customer_key للعميل المسجل
+                customer_key = generate_customer_key(vendor.id, order.user.id)
             else:
                 customer_name = order.customer_name or _('ضيف / Guest')
+                # Calculate customer_key for guest customer
+                # حساب customer_key للعميل الضيف
+                guest_identifier = order.customer_name or order.customer_phone or f"guest_{order.id}"
+                customer_key = generate_customer_key(vendor.id, None, guest_identifier)
             
             # Calculate total for this vendor's items only
             # حساب الإجمالي لعناصر هذا البائع فقط
@@ -245,6 +320,7 @@ class VendorOrderListView(APIView):
                 'id': order.id,
                 'order_number': order.order_number or f"ORD-{order.id:06d}",
                 'customer_name': customer_name,
+                'customer_key': customer_key,
                 'total': str(vendor_total),
                 'status': order.status,
                 'status_display': status_display_map.get(order.status, order.status),
