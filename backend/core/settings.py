@@ -79,6 +79,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.middleware.gzip.GZipMiddleware",  # GZip compression for responses - ضغط الاستجابات
+    "core.middleware.ProxyHTTPSMiddleware",  # Handle HTTPS behind proxy - التعامل مع HTTPS خلف البروكسي
     "django.contrib.sessions.middleware.SessionMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -462,6 +463,14 @@ EMAIL_SUBJECT_PREFIX = "[Trendyol-SY] "
 FRONTEND_URL = config("FRONTEND_URL", default="http://localhost:3000")
 
 # ============================================================================
+# HTTPS Proxy Configuration
+# إعدادات HTTPS للبروكسي
+# ============================================================================
+# This setting works in both DEBUG and production
+# هذا الإعداد يعمل في DEBUG والإنتاج
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# ============================================================================
 # Production Security Headers
 # إعدادات الأمان للإنتاج
 # ============================================================================
@@ -472,7 +481,6 @@ if not DEBUG:
     # HTTPS Security
     # أمان HTTPS
     SECURE_SSL_REDIRECT = config('SECURE_SSL_REDIRECT', default=True, cast=bool)
-    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     
     # Cookies Security
     # أمان Cookies

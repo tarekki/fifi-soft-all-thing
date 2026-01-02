@@ -38,6 +38,16 @@ import {
   Loader2,
   Save,
   RefreshCw,
+  Calendar,
+  Clock,
+  TrendingUp,
+  Package,
+  Users,
+  DollarSign,
+  Shield,
+  Building2,
+  Activity,
+  Award,
 } from 'lucide-react'
 import {
   getVendorProfile,
@@ -53,7 +63,9 @@ import {
   getVendorActiveSessions,
   revokeVendorSession,
   changeVendorPassword,
+  getVendorDashboardOverview,
 } from '@/lib/vendor/api'
+import { vendorFetch } from '@/lib/vendor/api'
 import type {
   VendorProfile,
   VendorProfileUpdate,
@@ -103,6 +115,8 @@ export default function VendorSettingsPage() {
   const [notifications, setNotifications] = React.useState<VendorNotificationPreferences | null>(null)
   const [storeSettings, setStoreSettings] = React.useState<VendorStoreSettings | null>(null)
   const [sessions, setSessions] = React.useState<VendorActiveSession[]>([])
+  const [vendorMe, setVendorMe] = React.useState<any>(null) // Vendor Me info (user, vendor, vendor_user)
+  const [quickStats, setQuickStats] = React.useState<any>(null) // Quick stats from dashboard
   
   // Loading state
   const [isLoading, setIsLoading] = React.useState(true)
@@ -116,12 +130,14 @@ export default function VendorSettingsPage() {
     setError(null)
 
     try {
-      const [profileRes, vendorRes, notificationsRes, storeRes, sessionsRes] = await Promise.all([
+      const [profileRes, vendorRes, notificationsRes, storeRes, sessionsRes, meRes, statsRes] = await Promise.all([
         getVendorProfile(),
         getVendorInfo(),
         getVendorNotificationPreferences(),
         getVendorStoreSettings(),
         getVendorActiveSessions(),
+        vendorFetch<{ user: any; vendor: any; vendor_user: any }>('/auth/me/'),
+        getVendorDashboardOverview(),
       ])
 
       // Log all responses for debugging
@@ -162,6 +178,16 @@ export default function VendorSettingsPage() {
         setSessions(sessionsRes.data)
       } else if (sessionsRes && !sessionsRes.success) {
         console.error('[Settings] Failed to fetch sessions:', sessionsRes.message, sessionsRes.errors)
+      }
+      
+      // Vendor Me info
+      if (meRes?.success && meRes?.data) {
+        setVendorMe(meRes.data)
+      }
+      
+      // Quick Stats
+      if (statsRes?.success && statsRes?.data) {
+        setQuickStats(statsRes.data)
       }
       
       // Show error if all requests failed
@@ -287,6 +313,8 @@ export default function VendorSettingsPage() {
           {activeTab === 'profile' && (
             <ProfileTab
               profile={profile}
+              vendorMe={vendorMe}
+              quickStats={quickStats}
               onUpdate={async (data) => {
                 setIsSaving(true)
                 setError(null)
@@ -453,6 +481,8 @@ export default function VendorSettingsPage() {
 
 function ProfileTab({
   profile,
+  vendorMe,
+  quickStats,
   onUpdate,
   onAvatarUpload,
   isLoading,
@@ -460,6 +490,8 @@ function ProfileTab({
   t,
 }: {
   profile: VendorProfile | null
+  vendorMe: any | null
+  quickStats: any | null
   onUpdate: (data: VendorProfileUpdate) => Promise<void>
   onAvatarUpload: (file: File) => Promise<void>
   isLoading: boolean
@@ -470,6 +502,16 @@ function ProfileTab({
   const [avatarFile, setAvatarFile] = React.useState<File | null>(null)
   const [avatarPreview, setAvatarPreview] = React.useState<string | null>(null)
   const fileInputRef = React.useRef<HTMLInputElement>(null)
+
+  // Debug logging
+  React.useEffect(() => {
+    console.log('[ProfileTab] Data received:', {
+      profile,
+      vendorMe,
+      quickStats,
+      isLoading,
+    })
+  }, [profile, vendorMe, quickStats, isLoading])
 
   React.useEffect(() => {
     if (profile) {
@@ -514,128 +556,411 @@ function ProfileTab({
 
   // Show loading or empty state if profile not loaded yet
   if (!profile) {
+    console.log('[ProfileTab] Profile is null, showing loading state')
     return (
-      <motion.div variants={itemVariants} className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 dark:border-gray-700 p-6">
+      <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 dark:border-gray-700 p-6">
         <div className="flex items-center justify-center min-h-[300px]">
           <div className="text-center">
             <Loader2 className="w-8 h-8 animate-spin text-historical-gold mx-auto mb-4" />
             <p className="text-historical-charcoal/70 dark:text-gray-300">
               {t.vendor.loadingProfile || 'جاري تحميل الملف الشخصي...'}
             </p>
+            <p className="text-xs text-historical-charcoal/50 dark:text-gray-500 mt-2">
+              Debug: profile is null
+            </p>
           </div>
         </div>
-      </motion.div>
+      </div>
     )
   }
 
+  console.log('[ProfileTab] Rendering profile content')
+
+  // Format date helper
+  const formatDate = (dateString: string | null | undefined) => {
+    if (!dateString) return 'N/A'
+    try {
+      return new Date(dateString).toLocaleDateString(language === 'ar' ? 'ar-SY' : 'en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      })
+    } catch {
+      return dateString
+    }
+  }
+
+  // Format currency helper
+  const formatCurrency = (value: string | number | null | undefined) => {
+    if (!value) return '0 ل.س'
+    const numValue = typeof value === 'string' ? parseFloat(value) : value
+    if (isNaN(numValue)) return '0 ل.س'
+    return new Intl.NumberFormat(language === 'ar' ? 'ar-SY' : 'en-US', {
+      style: 'decimal',
+      minimumFractionDigits: 0,
+    }).format(numValue) + ' ل.س'
+  }
+
   return (
-    <motion.div variants={itemVariants} className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 dark:border-gray-700 p-6">
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Avatar */}
-        <div className="flex items-center gap-6">
-          <div className="relative">
-            <div className="w-24 h-24 rounded-full bg-historical-gold/10 dark:bg-gray-700 flex items-center justify-center overflow-hidden">
-              {avatarPreview ? (
-                <img src={avatarPreview} alt="Avatar" className="w-full h-full object-cover" />
-              ) : (
-                <User className="w-12 h-12 text-historical-gold/50" />
+    <div className="space-y-6">
+      {/* Quick Stats Cards */}
+      {quickStats && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {quickStats.total_orders !== undefined && (
+            <div className="bg-gradient-to-br from-historical-gold/10 to-historical-red/10 dark:from-historical-gold/20 dark:to-historical-red/20 rounded-xl p-4 border border-historical-gold/20 dark:border-gray-700">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-historical-charcoal/70 dark:text-gray-300 mb-1">
+                    {language === 'ar' ? 'إجمالي الطلبات' : 'Total Orders'}
+                  </p>
+                  <p className="text-2xl font-bold text-historical-charcoal dark:text-white">
+                    {quickStats.total_orders || 0}
+                  </p>
+                </div>
+                <Package className="w-8 h-8 text-historical-gold" />
+              </div>
+            </div>
+          )}
+          {quickStats.total_revenue !== undefined && (
+            <div className="bg-gradient-to-br from-historical-gold/10 to-historical-red/10 dark:from-historical-gold/20 dark:to-historical-red/20 rounded-xl p-4 border border-historical-gold/20 dark:border-gray-700">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-historical-charcoal/70 dark:text-gray-300 mb-1">
+                    {language === 'ar' ? 'إجمالي الإيرادات' : 'Total Revenue'}
+                  </p>
+                  <p className="text-2xl font-bold text-historical-charcoal dark:text-white">
+                    {formatCurrency(quickStats.total_revenue)}
+                  </p>
+                </div>
+                <DollarSign className="w-8 h-8 text-historical-gold" />
+              </div>
+            </div>
+          )}
+          {quickStats.total_customers !== undefined && (
+            <div className="bg-gradient-to-br from-historical-gold/10 to-historical-red/10 dark:from-historical-gold/20 dark:to-historical-red/20 rounded-xl p-4 border border-historical-gold/20 dark:border-gray-700">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-historical-charcoal/70 dark:text-gray-300 mb-1">
+                    {language === 'ar' ? 'إجمالي الزبائن' : 'Total Customers'}
+                  </p>
+                  <p className="text-2xl font-bold text-historical-charcoal dark:text-white">
+                    {quickStats.total_customers || 0}
+                  </p>
+                </div>
+                <Users className="w-8 h-8 text-historical-gold" />
+              </div>
+            </div>
+          )}
+          {quickStats.pending_orders !== undefined && (
+            <div className="bg-gradient-to-br from-historical-gold/10 to-historical-red/10 dark:from-historical-gold/20 dark:to-historical-red/20 rounded-xl p-4 border border-historical-gold/20 dark:border-gray-700">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-historical-charcoal/70 dark:text-gray-300 mb-1">
+                    {language === 'ar' ? 'طلبات قيد الانتظار' : 'Pending Orders'}
+                  </p>
+                  <p className="text-2xl font-bold text-historical-charcoal dark:text-white">
+                    {quickStats.pending_orders || 0}
+                  </p>
+                </div>
+                <Clock className="w-8 h-8 text-historical-gold" />
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Main Profile Form */}
+      <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 dark:border-gray-700 p-6">
+        <h2 className="text-xl font-bold text-historical-charcoal dark:text-white mb-6 flex items-center gap-2">
+          <User className="w-5 h-5 text-historical-gold" />
+          {language === 'ar' ? 'معلومات الملف الشخصي' : 'Profile Information'}
+        </h2>
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Avatar Section */}
+          <div className="flex items-center gap-6 pb-6 border-b border-historical-gold/10 dark:border-gray-700">
+            <div className="relative">
+              <div className="w-28 h-28 rounded-full bg-historical-gold/10 dark:bg-gray-700 flex items-center justify-center overflow-hidden ring-4 ring-historical-gold/20">
+                {avatarPreview ? (
+                  <img src={avatarPreview} alt="Avatar" className="w-full h-full object-cover" />
+                ) : (
+                  <User className="w-14 h-14 text-historical-gold/50" />
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="absolute bottom-0 right-0 p-2.5 bg-historical-gold text-white rounded-full hover:bg-historical-red transition-colors shadow-lg"
+              >
+                <Upload className="w-4 h-4" />
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="hidden"
+              />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-lg font-semibold text-historical-charcoal dark:text-white mb-1">
+                {profile.full_name}
+              </h3>
+              <p className="text-sm text-historical-charcoal/70 dark:text-gray-300 mb-2">{profile.email}</p>
+              {vendorMe?.vendor_user && (
+                <div className="flex items-center gap-2 mt-2">
+                  <Award className="w-4 h-4 text-historical-gold" />
+                  <span className="text-xs text-historical-charcoal/60 dark:text-gray-400">
+                    {vendorMe.vendor_user.is_owner
+                      ? language === 'ar'
+                        ? 'مالك المتجر'
+                        : 'Store Owner'
+                      : language === 'ar'
+                      ? 'مدير المتجر'
+                      : 'Store Manager'}
+                  </span>
+                </div>
               )}
             </div>
+          </div>
+
+          {/* Form Fields */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-historical-charcoal/70 dark:text-gray-300 mb-2">
+                {t.vendor.email || 'البريد الإلكتروني'} *
+              </label>
+              <input
+                type="email"
+                value={formData.email || ''}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                required
+                className="w-full px-4 py-2.5 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700 text-historical-charcoal dark:text-white focus:ring-2 focus:ring-historical-gold/30 transition-all"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-historical-charcoal/70 dark:text-gray-300 mb-2">
+                {t.vendor.phone || 'رقم الهاتف'}
+              </label>
+              <input
+                type="tel"
+                value={formData.phone || ''}
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                className="w-full px-4 py-2.5 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700 text-historical-charcoal dark:text-white focus:ring-2 focus:ring-historical-gold/30 transition-all"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-historical-charcoal/70 dark:text-gray-300 mb-2">
+                {t.vendor.firstName || 'الاسم الأول'}
+              </label>
+              <input
+                type="text"
+                value={formData.first_name || ''}
+                onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
+                className="w-full px-4 py-2.5 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700 text-historical-charcoal dark:text-white focus:ring-2 focus:ring-historical-gold/30 transition-all"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-historical-charcoal/70 dark:text-gray-300 mb-2">
+                {t.vendor.lastName || 'الاسم الأخير'}
+              </label>
+              <input
+                type="text"
+                value={formData.last_name || ''}
+                onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
+                className="w-full px-4 py-2.5 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700 text-historical-charcoal dark:text-white focus:ring-2 focus:ring-historical-gold/30 transition-all"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-historical-charcoal/70 dark:text-gray-300 mb-2">
+                {t.vendor.preferredLanguage || 'اللغة المفضلة'}
+              </label>
+              <select
+                value={formData.preferred_language || 'ar'}
+                onChange={(e) => setFormData({ ...formData, preferred_language: e.target.value as 'ar' | 'en' })}
+                className="w-full px-4 py-2.5 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700 text-historical-charcoal dark:text-white focus:ring-2 focus:ring-historical-gold/30 transition-all"
+              >
+                <option value="ar">العربية</option>
+                <option value="en">English</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="flex justify-end pt-4 border-t border-historical-gold/10 dark:border-gray-700">
             <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              className="absolute bottom-0 right-0 p-2 bg-historical-gold text-white rounded-full hover:bg-historical-red transition-colors"
+              type="submit"
+              disabled={isLoading}
+              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-l from-historical-gold to-historical-red text-white rounded-xl font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg transition-all"
             >
-              <Upload className="w-4 h-4" />
+              {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+              {t.vendor.save || 'حفظ'}
             </button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              onChange={handleFileChange}
-              className="hidden"
-            />
           </div>
-          <div>
-            <h3 className="font-semibold text-historical-charcoal dark:text-white">{profile.full_name}</h3>
-            <p className="text-sm text-historical-charcoal/70 dark:text-gray-300">{profile.email}</p>
-          </div>
-        </div>
+        </form>
+      </div>
 
-        {/* Form Fields */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-historical-charcoal/70 dark:text-gray-300 mb-2">
-              {t.vendor.email || 'البريد الإلكتروني'} *
-            </label>
-            <input
-              type="email"
-              value={formData.email || ''}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              required
-              className="w-full px-4 py-2 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700 text-historical-charcoal dark:text-white focus:ring-2 focus:ring-historical-gold/30"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-historical-charcoal/70 dark:text-gray-300 mb-2">
-              {t.vendor.phone || 'رقم الهاتف'}
-            </label>
-            <input
-              type="tel"
-              value={formData.phone || ''}
-              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-              className="w-full px-4 py-2 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700 text-historical-charcoal dark:text-white focus:ring-2 focus:ring-historical-gold/30"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-historical-charcoal/70 dark:text-gray-300 mb-2">
-              {t.vendor.firstName || 'الاسم الأول'}
-            </label>
-            <input
-              type="text"
-              value={formData.first_name || ''}
-              onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
-              className="w-full px-4 py-2 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700 text-historical-charcoal dark:text-white focus:ring-2 focus:ring-historical-gold/30"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-historical-charcoal/70 dark:text-gray-300 mb-2">
-              {t.vendor.lastName || 'الاسم الأخير'}
-            </label>
-            <input
-              type="text"
-              value={formData.last_name || ''}
-              onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
-              className="w-full px-4 py-2 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700 text-historical-charcoal dark:text-white focus:ring-2 focus:ring-historical-gold/30"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-historical-charcoal/70 dark:text-gray-300 mb-2">
-              {t.vendor.preferredLanguage || 'اللغة المفضلة'}
-            </label>
-            <select
-              value={formData.preferred_language || 'ar'}
-              onChange={(e) => setFormData({ ...formData, preferred_language: e.target.value as 'ar' | 'en' })}
-              className="w-full px-4 py-2 rounded-xl border border-historical-gold/20 dark:border-gray-600 bg-white dark:bg-gray-700 text-historical-charcoal dark:text-white focus:ring-2 focus:ring-historical-gold/30"
-            >
-              <option value="ar">العربية</option>
-              <option value="en">English</option>
-            </select>
-          </div>
-        </div>
+      {/* Account Information Section */}
+      {vendorMe && (
+        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 dark:border-gray-700 p-6">
+          <h2 className="text-xl font-bold text-historical-charcoal dark:text-white mb-6 flex items-center gap-2">
+            <Shield className="w-5 h-5 text-historical-gold" />
+            {language === 'ar' ? 'معلومات الحساب' : 'Account Information'}
+          </h2>
 
-        <div className="flex justify-end pt-4 border-t border-historical-gold/10 dark:border-gray-700">
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-l from-historical-gold to-historical-red text-white rounded-xl font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg transition-all"
-          >
-            {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
-            {t.vendor.save || 'حفظ'}
-          </button>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-historical-charcoal/70 dark:text-gray-300 mb-1">
+                  {language === 'ar' ? 'معرف المستخدم' : 'User ID'}
+                </label>
+                <p className="text-sm text-historical-charcoal dark:text-white font-mono">
+                  #{vendorMe.user?.id || 'N/A'}
+                </p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-historical-charcoal/70 dark:text-gray-300 mb-1">
+                  {language === 'ar' ? 'الدور' : 'Role'}
+                </label>
+                <p className="text-sm text-historical-charcoal dark:text-white">
+                  {vendorMe.user?.role === 'vendor'
+                    ? language === 'ar'
+                      ? 'بائع'
+                      : 'Vendor'
+                    : vendorMe.user?.role || 'N/A'}
+                </p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-historical-charcoal/70 dark:text-gray-300 mb-1">
+                  {language === 'ar' ? 'حالة الحساب' : 'Account Status'}
+                </label>
+                <div className="flex items-center gap-2">
+                  {vendorMe.user?.is_active ? (
+                    <>
+                      <Check className="w-4 h-4 text-green-500" />
+                      <span className="text-sm text-green-600 dark:text-green-400">
+                        {language === 'ar' ? 'نشط' : 'Active'}
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <X className="w-4 h-4 text-red-500" />
+                      <span className="text-sm text-red-600 dark:text-red-400">
+                        {language === 'ar' ? 'غير نشط' : 'Inactive'}
+                      </span>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+            <div className="space-y-4">
+              {vendorMe.vendor && (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-historical-charcoal/70 dark:text-gray-300 mb-1">
+                      {language === 'ar' ? 'البائع المرتبط' : 'Associated Vendor'}
+                    </label>
+                    <div className="flex items-center gap-2">
+                      {vendorMe.vendor.logo && (
+                        <img
+                          src={vendorMe.vendor.logo}
+                          alt={vendorMe.vendor.name}
+                          className="w-6 h-6 rounded"
+                        />
+                      )}
+                      <p className="text-sm text-historical-charcoal dark:text-white font-medium">
+                        {vendorMe.vendor.name || 'N/A'}
+                      </p>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-historical-charcoal/70 dark:text-gray-300 mb-1">
+                      {language === 'ar' ? 'الصلاحيات' : 'Permissions'}
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <Award className="w-4 h-4 text-historical-gold" />
+                      <span className="text-sm text-historical-charcoal dark:text-white">
+                        {vendorMe.vendor_user?.is_owner
+                          ? language === 'ar'
+                            ? 'مالك'
+                            : 'Owner'
+                          : language === 'ar'
+                          ? 'مدير'
+                          : 'Manager'}
+                      </span>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-historical-charcoal/70 dark:text-gray-300 mb-1">
+                      {language === 'ar' ? 'حالة المتجر' : 'Store Status'}
+                    </label>
+                    <div className="flex items-center gap-2">
+                      {vendorMe.vendor.is_active ? (
+                        <>
+                          <Check className="w-4 h-4 text-green-500" />
+                          <span className="text-sm text-green-600 dark:text-green-400">
+                            {language === 'ar' ? 'نشط' : 'Active'}
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <X className="w-4 h-4 text-red-500" />
+                          <span className="text-sm text-red-600 dark:text-red-400">
+                            {language === 'ar' ? 'غير نشط' : 'Inactive'}
+                          </span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
         </div>
-      </form>
-    </motion.div>
+      )}
+
+      {/* Activity Summary */}
+      {quickStats && (
+        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 dark:border-gray-700 p-6">
+          <h2 className="text-xl font-bold text-historical-charcoal dark:text-white mb-6 flex items-center gap-2">
+            <Activity className="w-5 h-5 text-historical-gold" />
+            {language === 'ar' ? 'ملخص النشاط' : 'Activity Summary'}
+          </h2>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {quickStats.today_orders !== undefined && (
+              <div className="flex items-center justify-between p-4 bg-historical-gold/5 dark:bg-gray-700/50 rounded-xl">
+                <div className="flex items-center gap-3">
+                  <Calendar className="w-5 h-5 text-historical-gold" />
+                  <div>
+                    <p className="text-sm text-historical-charcoal/70 dark:text-gray-300">
+                      {language === 'ar' ? 'طلبات اليوم' : 'Today Orders'}
+                    </p>
+                    <p className="text-lg font-semibold text-historical-charcoal dark:text-white">
+                      {quickStats.today_orders || 0}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+            {quickStats.today_revenue !== undefined && (
+              <div className="flex items-center justify-between p-4 bg-historical-gold/5 dark:bg-gray-700/50 rounded-xl">
+                <div className="flex items-center gap-3">
+                  <TrendingUp className="w-5 h-5 text-historical-gold" />
+                  <div>
+                    <p className="text-sm text-historical-charcoal/70 dark:text-gray-300">
+                      {language === 'ar' ? 'إيرادات اليوم' : 'Today Revenue'}
+                    </p>
+                    <p className="text-lg font-semibold text-historical-charcoal dark:text-white">
+                      {formatCurrency(quickStats.today_revenue)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
   )
 }
 
@@ -658,6 +983,14 @@ function VendorTab({
   const [logoFile, setLogoFile] = React.useState<File | null>(null)
   const [logoPreview, setLogoPreview] = React.useState<string | null>(null)
   const fileInputRef = React.useRef<HTMLInputElement>(null)
+
+  // Debug logging
+  React.useEffect(() => {
+    console.log('[VendorTab] Data received:', {
+      vendorInfo,
+      isLoading,
+    })
+  }, [vendorInfo, isLoading])
 
   React.useEffect(() => {
     if (vendorInfo) {
@@ -699,8 +1032,9 @@ function VendorTab({
 
   // Show loading or empty state if vendor info not loaded yet
   if (!vendorInfo) {
+    console.log('[VendorTab] VendorInfo is null, showing loading state')
     return (
-      <motion.div variants={itemVariants} className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 dark:border-gray-700 p-6">
+      <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 dark:border-gray-700 p-6">
         <div className="flex items-center justify-center min-h-[300px]">
           <div className="text-center">
             <Loader2 className="w-8 h-8 animate-spin text-historical-gold mx-auto mb-4" />
@@ -709,12 +1043,13 @@ function VendorTab({
             </p>
           </div>
         </div>
-      </motion.div>
+      </div>
     )
   }
 
+  console.log('[VendorTab] Rendering vendor info content')
   return (
-    <motion.div variants={itemVariants} className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 dark:border-gray-700 p-6">
+    <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 dark:border-gray-700 p-6">
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Logo */}
         <div className="flex items-center gap-6">
@@ -793,7 +1128,7 @@ function VendorTab({
           </button>
         </div>
       </form>
-    </motion.div>
+    </div>
   )
 }
 
@@ -817,6 +1152,14 @@ function SecurityTab({
   const [isChangingPassword, setIsChangingPassword] = React.useState(false)
   const [passwordError, setPasswordError] = React.useState<string | null>(null)
   const [passwordSuccess, setPasswordSuccess] = React.useState<string | null>(null)
+
+  // Debug logging
+  React.useEffect(() => {
+    console.log('[SecurityTab] Data received:', {
+      sessionsCount: sessions?.length || 0,
+      sessions,
+    })
+  }, [sessions])
 
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -856,10 +1199,11 @@ function SecurityTab({
     }
   }
 
+  console.log('[SecurityTab] Rendering security content')
   return (
     <div className="space-y-6">
       {/* Change Password */}
-      <motion.div variants={itemVariants} className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 dark:border-gray-700 p-6">
+      <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 dark:border-gray-700 p-6">
         <h3 className="text-lg font-bold text-historical-charcoal dark:text-white mb-4">
           {t.vendor.changePassword || 'تغيير كلمة المرور'}
         </h3>
@@ -948,10 +1292,10 @@ function SecurityTab({
             {t.vendor.changePassword || 'تغيير كلمة المرور'}
           </button>
         </form>
-      </motion.div>
+      </div>
 
       {/* Active Sessions */}
-      <motion.div variants={itemVariants} className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 dark:border-gray-700 p-6">
+      <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 dark:border-gray-700 p-6">
         <h3 className="text-lg font-bold text-historical-charcoal dark:text-white mb-4">
           {t.vendor.activeSessions || 'الجلسات النشطة'}
         </h3>
@@ -990,7 +1334,7 @@ function SecurityTab({
             </div>
           ))}
         </div>
-      </motion.div>
+      </div>
     </div>
   )
 }
@@ -1007,6 +1351,14 @@ function NotificationsTab({
   t: any
 }) {
   const [formData, setFormData] = React.useState<VendorNotificationPreferencesUpdate>({})
+
+  // Debug logging
+  React.useEffect(() => {
+    console.log('[NotificationsTab] Data received:', {
+      notifications,
+      isLoading,
+    })
+  }, [notifications, isLoading])
 
   React.useEffect(() => {
     if (notifications) {
@@ -1029,8 +1381,9 @@ function NotificationsTab({
 
   // Show loading or empty state if notifications not loaded yet
   if (!notifications) {
+    console.log('[NotificationsTab] Notifications is null, showing loading state')
     return (
-      <motion.div variants={itemVariants} className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 dark:border-gray-700 p-6">
+      <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 dark:border-gray-700 p-6">
         <div className="flex items-center justify-center min-h-[300px]">
           <div className="text-center">
             <Loader2 className="w-8 h-8 animate-spin text-historical-gold mx-auto mb-4" />
@@ -1039,7 +1392,7 @@ function NotificationsTab({
             </p>
           </div>
         </div>
-      </motion.div>
+      </div>
     )
   }
 
@@ -1047,8 +1400,9 @@ function NotificationsTab({
     setFormData({ ...formData, [key]: !formData[key] })
   }
 
+  console.log('[NotificationsTab] Rendering notifications content')
   return (
-    <motion.div variants={itemVariants} className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 dark:border-gray-700 p-6">
+    <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 dark:border-gray-700 p-6">
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="space-y-4">
           <div className="flex items-center justify-between p-4 bg-historical-gold/5 dark:bg-gray-700/30 rounded-lg">
@@ -1164,10 +1518,10 @@ function NotificationsTab({
           >
             {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
             {t.vendor.save || 'حفظ'}
-          </button>
-        </div>
-      </form>
-    </motion.div>
+            </button>
+          </div>
+        </form>
+    </div>
   )
 }
 
@@ -1183,6 +1537,14 @@ function StoreTab({
   t: any
 }) {
   const [formData, setFormData] = React.useState<VendorStoreSettingsUpdate>({})
+
+  // Debug logging
+  React.useEffect(() => {
+    console.log('[StoreTab] Data received:', {
+      storeSettings,
+      isLoading,
+    })
+  }, [storeSettings, isLoading])
 
   React.useEffect(() => {
     if (storeSettings) {
@@ -1202,8 +1564,9 @@ function StoreTab({
 
   // Show loading or empty state if store settings not loaded yet
   if (!storeSettings) {
+    console.log('[StoreTab] StoreSettings is null, showing loading state')
     return (
-      <motion.div variants={itemVariants} className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 dark:border-gray-700 p-6">
+      <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 dark:border-gray-700 p-6">
         <div className="flex items-center justify-center min-h-[300px]">
           <div className="text-center">
             <Loader2 className="w-8 h-8 animate-spin text-historical-gold mx-auto mb-4" />
@@ -1212,12 +1575,13 @@ function StoreTab({
             </p>
           </div>
         </div>
-      </motion.div>
+      </div>
     )
   }
 
+  console.log('[StoreTab] Rendering store settings content')
   return (
-    <motion.div variants={itemVariants} className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 dark:border-gray-700 p-6">
+    <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl border border-historical-gold/10 dark:border-gray-700 p-6">
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="space-y-4">
           <div className="flex items-center justify-between p-4 bg-historical-gold/5 dark:bg-gray-700/30 rounded-lg">
@@ -1301,6 +1665,6 @@ function StoreTab({
           </button>
         </div>
       </form>
-    </motion.div>
+    </div>
   )
 }

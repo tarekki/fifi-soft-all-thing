@@ -25,9 +25,49 @@ logger = logging.getLogger(__name__)
 
 
 # ============================================================================
+# Proxy HTTPS Middleware
+# Middleware للتعامل مع HTTPS خلف البروكسي
+# ============================================================================
+
+class ProxyHTTPSMiddleware(MiddlewareMixin):
+    """
+    Middleware to handle HTTPS behind proxy.
+    Sets request._is_secure_override and wsgi.url_scheme when X-Forwarded-Proto is 'https'.
+    Middleware للتعامل مع HTTPS خلف البروكسي.
+    يضبط request._is_secure_override و wsgi.url_scheme عندما يكون X-Forwarded-Proto هو 'https'.
+    """
+    
+    def process_request(self, request):
+        """
+        Set request security flags based on X-Forwarded-Proto header.
+        ضبط علامات أمان الطلب بناءً على رأس X-Forwarded-Proto.
+        """
+        # Check if X-Forwarded-Proto header exists and is 'https'
+        # التحقق من وجود رأس X-Forwarded-Proto وأنه 'https'
+        forwarded_proto = request.META.get('HTTP_X_FORWARDED_PROTO', '').lower()
+        if forwarded_proto == 'https':
+            # Set is_secure override for Django's internal use
+            # ضبط is_secure override للاستخدام الداخلي في Django
+            request._is_secure_override = True
+            # Also update wsgi.url_scheme for build_absolute_uri()
+            # أيضاً تحديث wsgi.url_scheme لـ build_absolute_uri()
+            request.META['wsgi.url_scheme'] = 'https'
+        
+        return None
+    
+    def process_response(self, request, response):
+        """
+        Process response (no changes needed).
+        معالجة الاستجابة (لا حاجة لتغييرات).
+        """
+        return response
+
+
+# ============================================================================
 # Request Logging Middleware
 # Middleware لتسجيل الطلبات
 # ============================================================================
+
 
 class RequestLoggingMiddleware(MiddlewareMixin):
     """
