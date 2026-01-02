@@ -31,6 +31,16 @@ from .products import (
 from .customers import (
     VendorCustomerListSerializer,
 )
+from .analytics import (
+    VendorAnalyticsOverviewSerializer,
+    VendorSalesAnalyticsSerializer,
+    VendorProductAnalyticsSerializer,
+    VendorProductAnalyticsItemSerializer,
+    VendorCustomerAnalyticsSerializer,
+    VendorCustomerAnalyticsItemSerializer,
+    VendorTimeAnalysisSerializer,
+    VendorComparisonAnalyticsSerializer,
+)
 
 __all__ = [
     'VendorDashboardOverviewSerializer',
@@ -45,5 +55,13 @@ __all__ = [
     'VendorProductVariantSerializer',
     'VendorProductVariantCreateSerializer',
     'VendorCustomerListSerializer',
+    'VendorAnalyticsOverviewSerializer',
+    'VendorSalesAnalyticsSerializer',
+    'VendorProductAnalyticsSerializer',
+    'VendorProductAnalyticsItemSerializer',
+    'VendorCustomerAnalyticsSerializer',
+    'VendorCustomerAnalyticsItemSerializer',
+    'VendorTimeAnalysisSerializer',
+    'VendorComparisonAnalyticsSerializer',
 ]
 

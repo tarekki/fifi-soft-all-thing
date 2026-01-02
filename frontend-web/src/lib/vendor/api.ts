@@ -23,6 +23,13 @@ import type {
   VendorCustomer,
   VendorCustomerFilters,
   PaginatedCustomerResponse,
+  VendorAnalyticsOverview,
+  VendorSalesAnalytics,
+  VendorProductAnalytics,
+  VendorCustomerAnalytics,
+  VendorTimeAnalysis,
+  VendorComparisonAnalytics,
+  VendorAnalyticsFilters,
 } from './types'
 
 // =============================================================================
@@ -1357,5 +1364,160 @@ export async function getVendorCategories(
   const endpoint = `/categories/${queryString ? `?${queryString}` : ''}`
   
   return vendorFetch<VendorCategoryListResponse>(endpoint)
+}
+
+// =============================================================================
+// Analytics API Functions
+// دوال API التحليلات
+// =============================================================================
+
+/**
+ * Get analytics overview with key metrics
+ * الحصول على نظرة عامة على التحليلات مع المؤشرات الرئيسية
+ * 
+ * @param filters - Optional filters (date_from, date_to)
+ * @returns Promise with analytics overview data
+ */
+export async function getVendorAnalyticsOverview(
+  filters?: Pick<VendorAnalyticsFilters, 'date_from' | 'date_to'>
+): Promise<ApiResponse<VendorAnalyticsOverview>> {
+  const params = new URLSearchParams()
+  if (filters?.date_from) {
+    params.append('date_from', filters.date_from)
+  }
+  if (filters?.date_to) {
+    params.append('date_to', filters.date_to)
+  }
+  
+  const queryString = params.toString()
+  const endpoint = `/analytics/overview/${queryString ? `?${queryString}` : ''}`
+  return vendorFetch<VendorAnalyticsOverview>(endpoint)
+}
+
+/**
+ * Get sales analytics with charts and metrics
+ * الحصول على تحليلات المبيعات مع الرسوم البيانية والمؤشرات
+ * 
+ * @param filters - Optional filters (period, date_from, date_to)
+ * @returns Promise with sales analytics data
+ */
+export async function getVendorSalesAnalytics(
+  filters?: Pick<VendorAnalyticsFilters, 'period' | 'date_from' | 'date_to'>
+): Promise<ApiResponse<VendorSalesAnalytics>> {
+  const params = new URLSearchParams()
+  if (filters?.period) {
+    params.append('period', filters.period)
+  }
+  if (filters?.date_from) {
+    params.append('date_from', filters.date_from)
+  }
+  if (filters?.date_to) {
+    params.append('date_to', filters.date_to)
+  }
+  
+  const queryString = params.toString()
+  const endpoint = `/analytics/sales/${queryString ? `?${queryString}` : ''}`
+  return vendorFetch<VendorSalesAnalytics>(endpoint)
+}
+
+/**
+ * Get product analytics including top products and category breakdown
+ * الحصول على تحليلات المنتجات بما في ذلك أفضل المنتجات وتوزيع الفئات
+ * 
+ * @param filters - Optional filters (date_from, date_to, limit)
+ * @returns Promise with product analytics data
+ */
+export async function getVendorProductAnalytics(
+  filters?: Pick<VendorAnalyticsFilters, 'date_from' | 'date_to' | 'limit'>
+): Promise<ApiResponse<VendorProductAnalytics>> {
+  const params = new URLSearchParams()
+  if (filters?.date_from) {
+    params.append('date_from', filters.date_from)
+  }
+  if (filters?.date_to) {
+    params.append('date_to', filters.date_to)
+  }
+  if (filters?.limit) {
+    params.append('limit', filters.limit.toString())
+  }
+  
+  const queryString = params.toString()
+  const endpoint = `/analytics/products/${queryString ? `?${queryString}` : ''}`
+  return vendorFetch<VendorProductAnalytics>(endpoint)
+}
+
+/**
+ * Get customer analytics including growth and top customers
+ * الحصول على تحليلات الزبائن بما في ذلك النمو وأفضل الزبائن
+ * 
+ * @param filters - Optional filters (date_from, date_to, limit)
+ * @returns Promise with customer analytics data
+ */
+export async function getVendorCustomerAnalytics(
+  filters?: Pick<VendorAnalyticsFilters, 'date_from' | 'date_to' | 'limit'>
+): Promise<ApiResponse<VendorCustomerAnalytics>> {
+  const params = new URLSearchParams()
+  if (filters?.date_from) {
+    params.append('date_from', filters.date_from)
+  }
+  if (filters?.date_to) {
+    params.append('date_to', filters.date_to)
+  }
+  if (filters?.limit) {
+    params.append('limit', filters.limit.toString())
+  }
+  
+  const queryString = params.toString()
+  const endpoint = `/analytics/customers/${queryString ? `?${queryString}` : ''}`
+  return vendorFetch<VendorCustomerAnalytics>(endpoint)
+}
+
+/**
+ * Get time-based analysis including hourly, day of week, and monthly trends
+ * الحصول على التحليل الزمني بما في ذلك الساعات وأيام الأسبوع والاتجاهات الشهرية
+ * 
+ * @param filters - Optional filters (date_from, date_to)
+ * @returns Promise with time analysis data
+ */
+export async function getVendorTimeAnalysis(
+  filters?: Pick<VendorAnalyticsFilters, 'date_from' | 'date_to'>
+): Promise<ApiResponse<VendorTimeAnalysis>> {
+  const params = new URLSearchParams()
+  if (filters?.date_from) {
+    params.append('date_from', filters.date_from)
+  }
+  if (filters?.date_to) {
+    params.append('date_to', filters.date_to)
+  }
+  
+  const queryString = params.toString()
+  const endpoint = `/analytics/time-analysis/${queryString ? `?${queryString}` : ''}`
+  return vendorFetch<VendorTimeAnalysis>(endpoint)
+}
+
+/**
+ * Get period comparison analytics (current vs previous period)
+ * الحصول على تحليلات مقارنة الفترات (الفترة الحالية مقابل السابقة)
+ * 
+ * @param filters - Optional filters (period, date_from, date_to)
+ * @returns Promise with comparison analytics data
+ */
+export async function getVendorComparisonAnalytics(
+  filters?: VendorAnalyticsFilters
+): Promise<ApiResponse<VendorComparisonAnalytics>> {
+  const params = new URLSearchParams()
+  if (filters?.period) {
+    params.append('period', filters.period)
+  }
+  if (filters?.date_from) {
+    params.append('date_from', filters.date_from)
+  }
+  if (filters?.date_to) {
+    params.append('date_to', filters.date_to)
+  }
+  
+  const queryString = params.toString()
+  const endpoint = `/analytics/comparison/${queryString ? `?${queryString}` : ''}`
+  return vendorFetch<VendorComparisonAnalytics>(endpoint)
 }
 

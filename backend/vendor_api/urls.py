@@ -22,6 +22,14 @@ from vendor_api.views.products import VendorProductListCreateView, VendorProduct
 from vendor_api.views.categories import VendorCategoryListView
 from vendor_api.views.orders import VendorOrderListView, VendorOrderDetailView
 from vendor_api.views.customers import VendorCustomerListView
+from vendor_api.views.analytics import (
+    VendorAnalyticsOverviewView,
+    VendorSalesAnalyticsView,
+    VendorProductAnalyticsView,
+    VendorCustomerAnalyticsView,
+    VendorTimeAnalysisView,
+    VendorComparisonAnalyticsView,
+)
 from vendor_api.views.notifications import (
     VendorNotificationListView,
     VendorUnreadCountView,
@@ -241,6 +249,62 @@ notifications_urlpatterns = [
 
 
 # =============================================================================
+# Analytics URL Patterns
+# أنماط URLs للتحليلات
+# =============================================================================
+
+analytics_urlpatterns = [
+    # GET /api/v1/vendor/analytics/overview/
+    # نظرة عامة على التحليلات
+    path(
+        'overview/',
+        VendorAnalyticsOverviewView.as_view(),
+        name='vendor-analytics-overview'
+    ),
+    
+    # GET /api/v1/vendor/analytics/sales/
+    # تحليلات المبيعات
+    path(
+        'sales/',
+        VendorSalesAnalyticsView.as_view(),
+        name='vendor-analytics-sales'
+    ),
+    
+    # GET /api/v1/vendor/analytics/products/
+    # تحليلات المنتجات
+    path(
+        'products/',
+        VendorProductAnalyticsView.as_view(),
+        name='vendor-analytics-products'
+    ),
+    
+    # GET /api/v1/vendor/analytics/customers/
+    # تحليلات الزبائن
+    path(
+        'customers/',
+        VendorCustomerAnalyticsView.as_view(),
+        name='vendor-analytics-customers'
+    ),
+    
+    # GET /api/v1/vendor/analytics/time-analysis/
+    # التحليل الزمني
+    path(
+        'time-analysis/',
+        VendorTimeAnalysisView.as_view(),
+        name='vendor-analytics-time-analysis'
+    ),
+    
+    # GET /api/v1/vendor/analytics/comparison/
+    # تحليلات المقارنة
+    path(
+        'comparison/',
+        VendorComparisonAnalyticsView.as_view(),
+        name='vendor-analytics-comparison'
+    ),
+]
+
+
+# =============================================================================
 # Main URL Patterns
 # أنماط URLs الرئيسية
 # =============================================================================
@@ -277,6 +341,10 @@ urlpatterns = [
     # Customers endpoints
     # نقاط نهاية الزبائن
     path('customers/', include((customers_urlpatterns, 'customers'))),
+    
+    # Analytics endpoints
+    # نقاط نهاية التحليلات
+    path('analytics/', include((analytics_urlpatterns, 'analytics'))),
     
     # Notifications endpoints
     # نقاط نهاية الإشعارات
