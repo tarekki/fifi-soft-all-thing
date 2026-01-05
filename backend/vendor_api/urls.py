@@ -18,7 +18,12 @@ from django.urls import path, include
 from vendor_api.views.dashboard import VendorDashboardOverviewView, VendorSalesChartView, VendorDashboardTipsView, VendorRecentOrdersView, VendorReportExportView
 from vendor_api.views.auth import VendorLoginView, VendorMeView, VendorPasswordChangeView
 from vendor_api.views.application import VendorApplicationView
-from vendor_api.views.products import VendorProductListCreateView, VendorProductDetailView
+from vendor_api.views.products import (
+    VendorProductListCreateView,
+    VendorProductDetailView,
+    VendorProductVariantStockUpdateView,
+    VendorProductVariantCreateView,
+)
 from vendor_api.views.categories import VendorCategoryListView
 from vendor_api.views.orders import VendorOrderListView, VendorOrderDetailView
 from vendor_api.views.customers import VendorCustomerListView
@@ -158,6 +163,20 @@ products_urlpatterns = [
         '<int:pk>/',
         VendorProductDetailView.as_view(),
         name='vendor-products-detail'
+    ),
+    # PUT /api/v1/vendor/products/{id}/stock/
+    # تحديث مخزون متغيرات المنتج
+    path(
+        '<int:product_pk>/stock/',
+        VendorProductVariantStockUpdateView.as_view(),
+        name='vendor-products-stock-update'
+    ),
+    # POST /api/v1/vendor/products/{id}/variants/
+    # إنشاء متغير جديد للمنتج
+    path(
+        '<int:product_pk>/variants/',
+        VendorProductVariantCreateView.as_view(),
+        name='vendor-products-variant-create'
     ),
 ]
 

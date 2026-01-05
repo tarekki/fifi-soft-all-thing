@@ -1421,6 +1421,80 @@ export async function getVendorCategories(
   return vendorFetch<VendorCategoryListResponse>(endpoint)
 }
 
+/**
+ * Update product variants stock quantities
+ * تحديث كميات مخزون متغيرات المنتج
+ * 
+ * @param productId - Product ID
+ * @param variants - Array of variants with id and stock_quantity
+ * @returns Promise with updated product details
+ */
+export async function updateVendorProductStock(
+  productId: number,
+  variants: Array<{ id: number; stock_quantity: number }>
+): Promise<ApiResponse<VendorProductDetail>> {
+  return vendorFetch<VendorProductDetail>(`/products/${productId}/stock/`, {
+    method: 'PUT',
+    body: JSON.stringify({ variants }),
+  })
+}
+
+/**
+ * Create a new variant for a product
+ * إنشاء متغير جديد للمنتج
+ * 
+ * @param productId - Product ID
+ * @param variantData - Variant data (color, size, model, stock_quantity, etc.)
+ * @returns Promise with updated product details
+ */
+export interface VendorProductVariantCreatePayload {
+  color: string
+  color_hex?: string | null
+  size?: string | null
+  model?: string | null
+  sku?: string | null
+  stock_quantity: number
+  price_override?: string | null
+  image?: File | null
+  is_available?: boolean
+}
+
+export async function createVendorProductVariant(
+  productId: number,
+  variantData: VendorProductVariantCreatePayload
+): Promise<ApiResponse<VendorProductDetail>> {
+  const formData = new FormData()
+  
+  formData.append('color', variantData.color)
+  if (variantData.color_hex) {
+    formData.append('color_hex', variantData.color_hex)
+  }
+  if (variantData.size) {
+    formData.append('size', variantData.size)
+  }
+  if (variantData.model) {
+    formData.append('model', variantData.model)
+  }
+  if (variantData.sku) {
+    formData.append('sku', variantData.sku)
+  }
+  formData.append('stock_quantity', variantData.stock_quantity.toString())
+  if (variantData.price_override) {
+    formData.append('price_override', variantData.price_override)
+  }
+  if (variantData.image) {
+    formData.append('image', variantData.image)
+  }
+  if (variantData.is_available !== undefined) {
+    formData.append('is_available', variantData.is_available.toString())
+  }
+  
+  return vendorFetch<VendorProductDetail>(`/products/${productId}/variants/`, {
+    method: 'POST',
+    body: formData,
+  })
+}
+
 // =============================================================================
 // Analytics API Functions
 // دوال API التحليلات

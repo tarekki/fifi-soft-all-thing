@@ -17,7 +17,7 @@
  * - التقسيم
  */
 
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useTranslation } from '@/lib/i18n/use-translation'
 import { useLanguage } from '@/lib/i18n/context'
@@ -35,6 +35,10 @@ import {
   ArrowUpDown,
   X,
   Loader2,
+  Warehouse,
+  Minus,
+  TrendingUp,
+  TrendingDown,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
@@ -44,9 +48,12 @@ import {
   updateVendorProduct,
   deleteVendorProduct,
   getVendorCategories,
+  updateVendorProductStock,
+  createVendorProductVariant,
   type VendorProduct,
   type VendorProductDetail,
   type VendorProductCreatePayload,
+  type VendorProductVariantCreatePayload,
   type VendorProductUpdatePayload,
   type VendorProductFilters,
   type VendorCategory,
@@ -523,6 +530,13 @@ export default function ProductsPage() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [deletingProduct, setDeletingProduct] = useState<VendorProduct | null>(null)
   
+  // Stock Management Modal State
+  const [isStockModalOpen, setIsStockModalOpen] = useState(false)
+  const [stockProduct, setStockProduct] = useState<VendorProductDetail | null>(null)
+  const [stockVariants, setStockVariants] = useState<Array<{id: number, stock_quantity: number}>>([])
+  const [isLoadingStock, setIsLoadingStock] = useState(false)
+  
+  
   // Alert State
   const [alertModal, setAlertModal] = useState<{
     isOpen: boolean
@@ -544,7 +558,6 @@ export default function ProductsPage() {
         setCategories(response.data.results)
       }
     } catch (err) {
-      console.error('Failed to fetch categories:', err)
     }
   }, [])
   
@@ -581,7 +594,6 @@ export default function ProductsPage() {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error'
       setError(errorMessage)
-      console.error('Error fetching products:', err)
     } finally {
       setIsLoading(false)
     }
@@ -756,6 +768,121 @@ export default function ProductsPage() {
     setEditingProduct(null)
     setIsModalOpen(true)
   }, [])
+  
+  // Handle Stock Management
+  const handleStockManagement = useCallback(async (product: VendorProduct) => {
+    setIsLoadingStock(true)
+    
+    // Set basic product info immediately to show modal
+    // ضبط معلومات المنتج الأساسية فوراً لعرض Modal
+    const basicProductData: VendorProductDetail = {
+      ...product,
+      images: [],
+      variants: [],
+    } as VendorProductDetail
+    
+    setStockProduct(basicProductData)
+    setStockVariants([])
+    setIsStockModalOpen(true)
+    
+    try {
+      const response = await getVendorProduct(product.id)
+      
+      if (response.success && response.data) {
+        setStockProduct(response.data)
+        
+        // Ensure we have variants data
+        const variantsData = response.data.variants && Array.isArray(response.data.variants) && response.data.variants.length > 0
+          ? response.data.variants.map(v => ({
+              id: v.id,
+              stock_quantity: v.stock_quantity || 0
+            }))
+          : []
+        
+        setStockVariants(variantsData)
+      } else {
+        showAlert(
+          language === 'ar' ? 'تحذير' : 'Warning',
+          response.message || (language === 'ar' ? 'فشل جلب تفاصيل المنتج، لكن يمكنك إدارة المخزون' : 'Failed to fetch product details, but you can manage stock'),
+          'warning'
+        )
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error'
+      showAlert(
+        language === 'ar' ? 'تحذير' : 'Warning',
+        language === 'ar' ? 'فشل جلب تفاصيل المنتج، لكن يمكنك إدارة المخزون' : 'Failed to fetch product details, but you can manage stock',
+        'warning'
+      )
+    } finally {
+      setIsLoadingStock(false)
+    }
+  }, [showAlert, language])
+  
+  
+  // Handle Stock Update
+  const handleStockUpdate = useCallback(async () => {
+    if (!stockProduct) return
+    
+    setIsSubmitting(true)
+    setError(null)
+    
+    try {
+      // Prepare variants data for API
+      // تحضير بيانات المتغيرات للـ API
+      const variantsPayload = stockVariants.map(v => ({
+        id: v.id,
+        stock_quantity: v.stock_quantity,
+      }))
+      
+      // Call API to update stock
+      // استدعاء API لتحديث المخزون
+      const response = await updateVendorProductStock(stockProduct.id, variantsPayload)
+      
+      if (response.success && response.data) {
+        showAlert(
+          language === 'ar' ? 'نجح' : 'Success',
+          language === 'ar' ? 'تم تحديث المخزون بنجاح' : 'Stock updated successfully',
+          'success'
+        )
+        
+        // Update local state with new data
+        // تحديث الحالة المحلية بالبيانات الجديدة
+        setStockProduct(response.data)
+        setStockVariants(response.data.variants.map(v => ({
+          id: v.id,
+          stock_quantity: v.stock_quantity
+        })))
+        
+        // Refresh products list
+        // تحديث قائمة المنتجات
+        await fetchProducts()
+        
+        // Close modal after short delay
+        // إغلاق الـ modal بعد تأخير قصير
+        setTimeout(() => {
+          setIsStockModalOpen(false)
+          setStockProduct(null)
+          setStockVariants([])
+        }, 1500)
+      } else {
+        showAlert(
+          language === 'ar' ? 'خطأ' : 'Error',
+          response.message || (language === 'ar' ? 'فشل تحديث المخزون' : 'Failed to update stock'),
+          'error'
+        )
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error'
+      showAlert(
+        language === 'ar' ? 'خطأ' : 'Error',
+        errorMessage,
+        'error'
+      )
+    } finally {
+      setIsSubmitting(false)
+    }
+  }, [stockProduct, stockVariants, showAlert, language, fetchProducts])
 
   return (
     <motion.div
@@ -940,16 +1067,29 @@ export default function ProductsPage() {
                         </div>
                       </td>
                       <td className="px-8 py-6 text-center">
-                        <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all justify-center">
+                        <div className="flex items-center gap-2 justify-center">
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault()
+                              e.stopPropagation()
+                              handleStockManagement(product)
+                            }}
+                            className="p-2.5 rounded-xl border border-blue-200 dark:border-blue-700 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 hover:border-blue-300 dark:hover:border-blue-600 hover:text-blue-600 dark:hover:text-blue-400 transition-all text-blue-500 dark:text-blue-400"
+                            title={language === 'ar' ? 'إدارة المخزون' : 'Manage Stock'}
+                          >
+                            <Warehouse className="w-4 h-4" />
+                          </button>
                           <button
                             onClick={() => handleEdit(product)}
-                            className="p-2.5 rounded-xl border border-gray-100 dark:border-gray-700 dark:border-gray-600 bg-white dark:bg-gray-800 hover:bg-white dark:hover:bg-gray-700 hover:border-[#C5A065]/30 dark:hover:border-yellow-600/30 hover:text-[#C5A065] dark:hover:text-yellow-400 transition-all text-gray-400 dark:text-gray-500"
+                            className="p-2.5 rounded-xl border border-gray-100 dark:border-gray-700 dark:border-gray-600 bg-white dark:bg-gray-800 hover:bg-white dark:hover:bg-gray-700 hover:border-[#C5A065]/30 dark:hover:border-yellow-600/30 hover:text-[#C5A065] dark:hover:text-yellow-400 transition-all text-gray-400 dark:text-gray-500 opacity-0 group-hover:opacity-100"
+                            title={language === 'ar' ? 'تعديل' : 'Edit'}
                           >
                             <Edit2 className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => handleDeleteClick(product)}
-                            className="p-2.5 rounded-xl border border-gray-100 dark:border-gray-700 dark:border-gray-600 bg-white dark:bg-gray-800 hover:bg-white dark:hover:bg-gray-700 hover:border-red-100 dark:hover:border-red-900/30 hover:text-red-500 dark:hover:text-red-400 transition-all text-gray-400 dark:text-gray-500"
+                            className="p-2.5 rounded-xl border border-gray-100 dark:border-gray-700 dark:border-gray-600 bg-white dark:bg-gray-800 hover:bg-white dark:hover:bg-gray-700 hover:border-red-100 dark:hover:border-red-900/30 hover:text-red-500 dark:hover:text-red-400 transition-all text-gray-400 dark:text-gray-500 opacity-0 group-hover:opacity-100"
+                            title={language === 'ar' ? 'حذف' : 'Delete'}
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -1036,7 +1176,505 @@ export default function ProductsPage() {
             type={alertModal.type}
           />
         )}
+        
+        {isStockModalOpen && stockProduct && (
+          <StockManagementModal
+            key="stock-modal"
+            isOpen={isStockModalOpen}
+            product={stockProduct}
+            variants={stockVariants}
+            onClose={() => {
+              setIsStockModalOpen(false)
+              setStockProduct(null)
+              setStockVariants([])
+            }}
+            onSave={handleStockUpdate}
+            onVariantChange={(variantId, stockQuantity) => {
+              setStockVariants(prev => 
+                prev.map(v => v.id === variantId ? { ...v, stock_quantity: stockQuantity } : v)
+              )
+            }}
+            isSubmitting={isSubmitting}
+            isLoading={isLoadingStock}
+          />
+        )}
+        
       </AnimatePresence>
     </motion.div>
   )
 }
+
+// =============================================================================
+// Stock Management Modal
+// Modal إدارة المخزون
+// =============================================================================
+
+interface StockManagementModalProps {
+  isOpen: boolean
+  product: VendorProductDetail
+  variants: Array<{id: number, stock_quantity: number}>
+  onClose: () => void
+  onSave: () => void
+  onVariantChange: (variantId: number, stockQuantity: number) => void
+  isSubmitting: boolean
+  isLoading: boolean
+}
+
+function StockManagementModal({
+  isOpen,
+  product,
+  variants,
+  onClose,
+  onSave,
+  onVariantChange,
+  isSubmitting,
+  isLoading
+}: StockManagementModalProps) {
+  const { t, language } = useLanguage()
+  const { dir } = useTranslation()
+  
+  const [showAddVariant, setShowAddVariant] = useState(false)
+  const [isCreatingVariant, setIsCreatingVariant] = useState(false)
+  const [newVariantData, setNewVariantData] = useState({
+    color: '',
+    color_hex: '#000000',
+    size: '',
+    model: '',
+    stock_quantity: 0,
+    sku: ''
+  })
+  
+  const totalStock = variants.reduce((sum, v) => sum + (v.stock_quantity || 0), 0)
+  
+  const handleAddVariant = useCallback(async () => {
+    if (!newVariantData.color.trim()) {
+      alert(language === 'ar' ? 'اللون مطلوب' : 'Color is required')
+      return
+    }
+    
+    setIsCreatingVariant(true)
+    try {
+      const response = await createVendorProductVariant(product.id, {
+        color: newVariantData.color.trim(),
+        color_hex: newVariantData.color_hex || null,
+        size: newVariantData.size.trim() || null,
+        model: newVariantData.model.trim() || null,
+        stock_quantity: newVariantData.stock_quantity || 0,
+        sku: newVariantData.sku.trim() || null,
+        is_available: true,
+      })
+      
+      if (response.success && response.data) {
+        setShowAddVariant(false)
+        setNewVariantData({ color: '', color_hex: '#000000', size: '', model: '', stock_quantity: 0, sku: '' })
+        alert(language === 'ar' ? 'تم إضافة المتغير بنجاح' : 'Variant added successfully')
+        window.location.reload()
+      } else {
+        alert(response.message || (language === 'ar' ? 'فشل إضافة المتغير' : 'Failed to add variant'))
+      }
+    } catch (err) {
+      alert(language === 'ar' ? 'حدث خطأ' : 'Error occurred')
+    } finally {
+      setIsCreatingVariant(false)
+    }
+  }, [product.id, newVariantData, language])
+  
+  if (!isOpen) return null
+  
+  return (
+    <>
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center">
+      <div 
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm" 
+        onClick={onClose}
+      />
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        className="relative w-full max-w-4xl bg-white dark:bg-gray-800 rounded-2xl shadow-2xl mx-4 my-4 max-h-[90vh] flex flex-col"
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b border-historical-gold/10 dark:border-gray-700 flex-shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+              <Warehouse className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-historical-charcoal dark:text-gray-100">
+                {language === 'ar' ? 'إدارة المخزون' : 'Stock Management'}
+              </h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+                {product.name}
+              </p>
+            </div>
+          </div>
+          <button 
+            onClick={onClose}
+            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-historical-charcoal dark:text-gray-200"
+          >
+            {Icons.close}
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto p-6">
+          {isLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="w-8 h-8 animate-spin text-historical-gold" />
+            </div>
+          ) : variants.length === 0 ? (
+            <div className="text-center py-12">
+              <Package className="w-16 h-16 mx-auto text-gray-300 dark:text-gray-600 mb-4" />
+              <p className="text-gray-500 dark:text-gray-400 mb-4">
+                {language === 'ar' ? 'لا توجد متغيرات لهذا المنتج' : 'No variants for this product'}
+              </p>
+              <p className="text-sm text-gray-400 dark:text-gray-500 mb-6">
+                {language === 'ar' 
+                  ? 'ابدأ بإضافة أول متغير للمنتج' 
+                  : 'Start by adding the first variant to the product'}
+              </p>
+              <button
+                onClick={() => setShowAddVariant(true)}
+                className="px-6 py-3 rounded-xl bg-blue-600 dark:bg-blue-500 text-white font-bold hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors flex items-center gap-2 mx-auto"
+              >
+                <Plus className="w-5 h-5" />
+                {language === 'ar' ? 'إضافة أول متغير' : 'Add First Variant'}
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {/* Total Stock Summary */}
+              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-blue-900 dark:text-blue-100">
+                    {language === 'ar' ? 'إجمالي المخزون' : 'Total Stock'}
+                  </span>
+                  <span className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                    {totalStock}
+                  </span>
+                </div>
+              </div>
+              
+              {/* Variants List */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
+                    {language === 'ar' ? 'المتغيرات' : 'Variants'} ({variants.length})
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={() => setShowAddVariant(true)}
+                    className="flex items-center gap-2 px-3 py-1.5 text-xs font-bold text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                  >
+                    <Plus className="w-3 h-3" />
+                    {language === 'ar' ? 'إضافة متغير' : 'Add Variant'}
+                  </button>
+                </div>
+                {variants.map((variant) => {
+                  const originalVariant = product.variants.find(v => v.id === variant.id)
+                  if (!originalVariant) return null
+                  
+                  return (
+                    <div
+                      key={variant.id}
+                      className="bg-gray-50 dark:bg-gray-700/30 rounded-xl p-4 border border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-600 transition-colors group"
+                    >
+                      <div className="flex items-center justify-between gap-4">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            {originalVariant.color_hex && (
+                              <div
+                                className="w-6 h-6 rounded-full border-2 border-gray-300 dark:border-gray-600 flex-shrink-0"
+                                style={{ backgroundColor: originalVariant.color_hex }}
+                                title={originalVariant.color_hex}
+                              />
+                            )}
+                            <span className="font-bold text-gray-900 dark:text-gray-100">
+                              {originalVariant.color}
+                            </span>
+                            {originalVariant.size && (
+                              <span className="text-sm text-gray-500 dark:text-gray-400 bg-gray-200 dark:bg-gray-600 px-2 py-0.5 rounded">
+                                {language === 'ar' ? 'مقاس' : 'Size'}: {originalVariant.size}
+                              </span>
+                            )}
+                            {originalVariant.model && (
+                              <span className="text-sm text-gray-500 dark:text-gray-400 bg-gray-200 dark:bg-gray-600 px-2 py-0.5 rounded">
+                                {originalVariant.model}
+                              </span>
+                            )}
+                          </div>
+                          {originalVariant.sku && (
+                            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                              <span className="font-medium">SKU:</span> {originalVariant.sku}
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <label className="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                            {language === 'ar' ? 'الكمية' : 'Quantity'}:
+                          </label>
+                          <div className="flex items-center gap-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newValue = Math.max(0, variant.stock_quantity - 1)
+                                onVariantChange(variant.id, newValue)
+                              }}
+                              className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-l-lg transition-colors text-gray-600 dark:text-gray-400 disabled:opacity-50 disabled:cursor-not-allowed"
+                              disabled={variant.stock_quantity === 0}
+                              title={language === 'ar' ? 'تقليل الكمية' : 'Decrease quantity'}
+                            >
+                              <Minus className="w-4 h-4" />
+                            </button>
+                            <input
+                              type="number"
+                              min="0"
+                              step="1"
+                              value={variant.stock_quantity}
+                              onChange={(e) => {
+                                const value = parseInt(e.target.value) || 0
+                                onVariantChange(variant.id, Math.max(0, value))
+                              }}
+                              onKeyDown={(e) => {
+                                if (e.key === 'ArrowUp') {
+                                  e.preventDefault()
+                                  onVariantChange(variant.id, variant.stock_quantity + 1)
+                                } else if (e.key === 'ArrowDown') {
+                                  e.preventDefault()
+                                  onVariantChange(variant.id, Math.max(0, variant.stock_quantity - 1))
+                                }
+                              }}
+                              className="w-20 px-2 py-2 text-center font-bold text-gray-900 dark:text-gray-100 bg-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 rounded"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newValue = variant.stock_quantity + 1
+                                onVariantChange(variant.id, newValue)
+                              }}
+                              className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-r-lg transition-colors text-gray-600 dark:text-gray-400"
+                              title={language === 'ar' ? 'زيادة الكمية' : 'Increase quantity'}
+                            >
+                              <Plus className="w-4 h-4" />
+                            </button>
+                          </div>
+                          {/* Quick Actions */}
+                          <div className="flex items-center gap-1">
+                            <button
+                              type="button"
+                              onClick={() => onVariantChange(variant.id, variant.stock_quantity + 10)}
+                              className="px-2 py-1 text-xs font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
+                              title={language === 'ar' ? 'إضافة 10' : 'Add 10'}
+                            >
+                              +10
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => onVariantChange(variant.id, Math.max(0, variant.stock_quantity - 10))}
+                              className="px-2 py-1 text-xs font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                              disabled={variant.stock_quantity < 10}
+                              title={language === 'ar' ? 'طرح 10' : 'Subtract 10'}
+                            >
+                              -10
+                            </button>
+                          </div>
+                          {/* Stock Status Indicator */}
+                          {variant.stock_quantity === 0 ? (
+                            <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400">
+                              <AlertCircle className="w-3 h-3" />
+                              <span className="text-xs font-medium">{language === 'ar' ? 'نفد' : 'Out'}</span>
+                            </div>
+                          ) : variant.stock_quantity < 10 ? (
+                            <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-orange-100 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400">
+                              <TrendingDown className="w-3 h-3" />
+                              <span className="text-xs font-medium">{language === 'ar' ? 'منخفض' : 'Low'}</span>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-green-100 dark:bg-green-900/20 text-green-600 dark:text-green-400">
+                              <TrendingUp className="w-3 h-3" />
+                              <span className="text-xs font-medium">{language === 'ar' ? 'جيد' : 'Good'}</span>
+                            </div>
+                          )}
+                        </div>
+                        {/* Edit/Delete Actions */}
+                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity ml-2">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              // TODO: Add edit variant functionality
+                              alert(language === 'ar' ? 'لتعديل المتغير، يرجى استخدام صفحة تعديل المنتج' : 'To edit variant, please use the edit product page')
+                            }}
+                            className="p-1.5 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-600 dark:text-blue-400 transition-colors"
+                            title={language === 'ar' ? 'تعديل المتغير' : 'Edit Variant'}
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              // TODO: Add delete variant functionality
+                              if (confirm(language === 'ar' ? 'هل أنت متأكد من حذف هذا المتغير؟' : 'Are you sure you want to delete this variant?')) {
+                                alert(language === 'ar' ? 'لحذف المتغير، يرجى استخدام صفحة تعديل المنتج' : 'To delete variant, please use the edit product page')
+                              }
+                            }}
+                            className="p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 transition-colors"
+                            title={language === 'ar' ? 'حذف المتغير' : 'Delete Variant'}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="flex gap-3 p-6 border-t border-historical-gold/10 dark:border-gray-700 flex-shrink-0">
+          <button
+            onClick={onClose}
+            className="flex-1 px-6 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-bold hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+          >
+            {language === 'ar' ? 'إلغاء' : 'Cancel'}
+          </button>
+          <button
+            onClick={onSave}
+            disabled={isSubmitting || isLoading}
+            className="flex-1 px-6 py-3 rounded-xl bg-blue-600 dark:bg-blue-500 text-white font-bold hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                {language === 'ar' ? 'جاري الحفظ...' : 'Saving...'}
+              </>
+            ) : (
+              language === 'ar' ? 'حفظ المخزون' : 'Save Stock'
+            )}
+          </button>
+        </div>
+      </motion.div>
+    </div>
+    
+    {/* Add Variant Modal */}
+    {showAddVariant && (
+      <div className="fixed inset-0 z-[10000] flex items-center justify-center">
+        <div className="absolute inset-0 bg-black/70" onClick={() => setShowAddVariant(false)} />
+        <div 
+          className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-bold">{language === 'ar' ? 'إضافة متغير جديد' : 'Add New Variant'}</h3>
+            <button onClick={() => setShowAddVariant(false)} className="text-gray-500 hover:text-gray-700">
+              {Icons.close}
+            </button>
+          </div>
+          
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">{language === 'ar' ? 'اللون *' : 'Color *'}</label>
+              <div className="flex gap-2">
+                <input
+                  type="color"
+                  value={newVariantData.color_hex}
+                  onChange={(e) => setNewVariantData({ ...newVariantData, color_hex: e.target.value })}
+                  className="w-12 h-10 rounded border"
+                />
+                <input
+                  type="text"
+                  value={newVariantData.color}
+                  onChange={(e) => setNewVariantData({ ...newVariantData, color: e.target.value })}
+                  placeholder={language === 'ar' ? 'اسم اللون' : 'Color name'}
+                  className="flex-1 px-3 py-2 border rounded-lg"
+                  required
+                />
+              </div>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium mb-1">{language === 'ar' ? 'المقاس' : 'Size'}</label>
+              <input
+                type="text"
+                value={newVariantData.size}
+                onChange={(e) => setNewVariantData({ ...newVariantData, size: e.target.value })}
+                placeholder={language === 'ar' ? 'مثال: 38, L' : 'e.g., 38, L'}
+                className="w-full px-3 py-2 border rounded-lg"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium mb-1">{language === 'ar' ? 'الموديل' : 'Model'}</label>
+              <input
+                type="text"
+                value={newVariantData.model}
+                onChange={(e) => setNewVariantData({ ...newVariantData, model: e.target.value })}
+                className="w-full px-3 py-2 border rounded-lg"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium mb-1">{language === 'ar' ? 'كمية المخزون *' : 'Stock Quantity *'}</label>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setNewVariantData({ ...newVariantData, stock_quantity: Math.max(0, newVariantData.stock_quantity - 1) })}
+                  className="px-3 py-1 border rounded"
+                >
+                  <Minus className="w-4 h-4" />
+                </button>
+                <input
+                  type="number"
+                  min="0"
+                  value={newVariantData.stock_quantity}
+                  onChange={(e) => setNewVariantData({ ...newVariantData, stock_quantity: parseInt(e.target.value) || 0 })}
+                  className="flex-1 px-3 py-2 border rounded-lg text-center"
+                />
+                <button
+                  type="button"
+                  onClick={() => setNewVariantData({ ...newVariantData, stock_quantity: newVariantData.stock_quantity + 1 })}
+                  className="px-3 py-1 border rounded"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium mb-1">SKU</label>
+              <input
+                type="text"
+                value={newVariantData.sku}
+                onChange={(e) => setNewVariantData({ ...newVariantData, sku: e.target.value })}
+                placeholder={language === 'ar' ? 'اختياري' : 'Optional'}
+                className="w-full px-3 py-2 border rounded-lg"
+              />
+            </div>
+          </div>
+          
+          <div className="flex gap-3 mt-6">
+            <button
+              onClick={() => setShowAddVariant(false)}
+              className="flex-1 px-4 py-2 border rounded-lg hover:bg-gray-50"
+              disabled={isCreatingVariant}
+            >
+              {language === 'ar' ? 'إلغاء' : 'Cancel'}
+            </button>
+            <button
+              onClick={handleAddVariant}
+              disabled={isCreatingVariant || !newVariantData.color.trim()}
+              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+            >
+              {isCreatingVariant ? (language === 'ar' ? 'جاري الحفظ...' : 'Saving...') : (language === 'ar' ? 'إضافة' : 'Add')}
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+    </>
+  )
+}
+

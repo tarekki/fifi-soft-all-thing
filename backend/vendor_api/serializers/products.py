@@ -148,6 +148,53 @@ class VendorProductVariantCreateSerializer(serializers.ModelSerializer):
         ]
 
 
+class VendorProductVariantStockUpdateSerializer(serializers.Serializer):
+    """
+    Vendor Product Variant Stock Update Serializer
+    متسلسل تحديث مخزون متغير المنتج
+    
+    Used for bulk updating stock quantities for multiple variants.
+    يُستخدم لتحديث كميات المخزون لعدة متغيرات دفعة واحدة.
+    """
+    
+    variants = serializers.ListField(
+        child=serializers.DictField(
+            child=serializers.IntegerField()
+        ),
+        min_length=1,
+        help_text=_('قائمة المتغيرات مع كميات المخزون / List of variants with stock quantities')
+    )
+    
+    def validate_variants(self, value):
+        """
+        Validate variants data structure.
+        التحقق من بنية بيانات المتغيرات.
+        """
+        if not isinstance(value, list):
+            raise serializers.ValidationError(_('يجب أن تكون المتغيرات قائمة / Variants must be a list'))
+        
+        for variant_data in value:
+            if not isinstance(variant_data, dict):
+                raise serializers.ValidationError(_('كل متغير يجب أن يكون قاموس / Each variant must be a dictionary'))
+            
+            if 'id' not in variant_data:
+                raise serializers.ValidationError(_('معرف المتغير مطلوب / Variant ID is required'))
+            
+            if 'stock_quantity' not in variant_data:
+                raise serializers.ValidationError(_('كمية المخزون مطلوبة / Stock quantity is required'))
+            
+            variant_id = variant_data.get('id')
+            stock_quantity = variant_data.get('stock_quantity')
+            
+            if not isinstance(variant_id, int) or variant_id <= 0:
+                raise serializers.ValidationError(_('معرف المتغير يجب أن يكون رقماً صحيحاً موجباً / Variant ID must be a positive integer'))
+            
+            if not isinstance(stock_quantity, int) or stock_quantity < 0:
+                raise serializers.ValidationError(_('كمية المخزون يجب أن تكون رقماً صحيحاً غير سالب / Stock quantity must be a non-negative integer'))
+        
+        return value
+
+
 # =============================================================================
 # Product List Serializer
 # متسلسل قائمة المنتجات

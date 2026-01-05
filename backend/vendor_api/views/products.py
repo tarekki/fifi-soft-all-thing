@@ -24,6 +24,7 @@ from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from django.utils.translation import gettext_lazy as _
 from django.db.models import Q, Sum
 from django.db import transaction
+import logging
 from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiResponse
 
 from vendor_api.permissions import IsVendorUser, IsVendorOwner
@@ -34,11 +35,15 @@ from vendor_api.serializers.products import (
     VendorProductCreateSerializer,
     VendorProductUpdateSerializer,
     VendorProductImageCreateSerializer,
+    VendorProductVariantStockUpdateSerializer,
+    VendorProductVariantCreateSerializer,
 )
-from products.models import Product, ProductImage
+from products.models import Product, ProductImage, ProductVariant
 from users.models import VendorUser
 from core.utils import success_response, error_response
 from core.pagination import StandardResultsSetPagination
+
+logger = logging.getLogger(__name__)
 
 
 # =============================================================================
@@ -59,27 +64,24 @@ def get_vendor_from_user(user):
 
 
 # =============================================================================
-# Product List & Create View
-# عرض قائمة وإنشاء المنتجات
+# Product List/Create View
+# عرض قائمة/إنشاء المنتجات
 # =============================================================================
 
 class VendorProductListCreateView(APIView):
     """
-    List vendor products or create a new one.
-    عرض منتجات البائع أو إنشاء منتج جديد.
-    
-    GET: List products with filtering, search, pagination
-    POST: Create new product (vendor_id from session)
+    List all products for the authenticated vendor or create a new product.
+    عرض جميع منتجات البائع المسجل أو إنشاء منتج جديد.
     
     Security:
     - Only authenticated vendors can access
-    - Returns only products for the authenticated vendor
-    - vendor_id is set automatically from session (not from request)
+    - Returns only products belonging to the authenticated vendor
+    - Vendor isolation (vendor_id from session, not from request)
     
     الأمان:
     - فقط البائعون المسجلون يمكنهم الوصول
-    - يعيد فقط منتجات البائع المسجل
-    - vendor_id يُضاف تلقائياً من الجلسة (وليس من الطلب)
+    - يعيد فقط المنتجات التي تنتمي للبائع المسجل
+    - عزل البائع (vendor_id من الجلسة، وليس من الطلب)
     """
     
     permission_classes = [IsVendorUser, IsVendorOwner]
@@ -108,8 +110,6 @@ class VendorProductListCreateView(APIView):
         عرض جميع منتجات البائع المسجل.
         """
         try:
-            # Get vendor from session (security)
-            # الحصول على البائع من الجلسة (أمان)
             vendor = get_vendor_from_user(request.user)
         except VendorUser.DoesNotExist:
             return error_response(
@@ -398,6 +398,7 @@ class VendorProductDetailView(APIView):
             serializer.save()
             
             # Return updated product with full details
+            # إرجاع المنتج المحدث مع التفاصيل الكاملة
             detail_serializer = VendorProductDetailSerializer(
                 product,
                 context={'request': request}
@@ -426,9 +427,10 @@ class VendorProductDetailView(APIView):
     def delete(self, request, pk):
         """
         Delete product.
-        الحذف سيحذف أيضاً المتغيرات والصور (CASCADE).
+        CASCADE will delete variants and images.
         
         حذف المنتج.
+        CASCADE سيحذف المتغيرات والصور.
         """
         try:
             vendor = get_vendor_from_user(request.user)
@@ -455,3 +457,255 @@ class VendorProductDetailView(APIView):
             message=_(f'تم حذف المنتج "{product_name}" بنجاح / Product "{product_name}" deleted successfully')
         )
 
+
+# =============================================================================
+# Product Variant Stock Update View
+# عرض تحديث مخزون متغيرات المنتج
+# =============================================================================
+
+class VendorProductVariantStockUpdateView(APIView):
+    """
+    Bulk update stock quantities for product variants.
+    تحديث كميات المخزون لعدة متغيرات دفعة واحدة.
+    
+    Security:
+    - Only authenticated vendors can access
+    - Vendors can only update variants of their own products
+    - Ownership verification on every request
+    
+    الأمان:
+    - فقط البائعون المسجلون يمكنهم الوصول
+    - البائعون يمكنهم تحديث متغيرات منتجاتهم فقط
+    - التحقق من الملكية في كل طلب
+    """
+    
+    permission_classes = [IsVendorUser, IsVendorOwner]
+    throttle_classes = [VendorUserRateThrottle]
+    
+    @extend_schema(
+        summary='Update Product Variants Stock',
+        description='Bulk update stock quantities for multiple variants of a product',
+        request={
+            'application/json': {
+                'type': 'object',
+                'properties': {
+                    'variants': {
+                        'type': 'array',
+                        'items': {
+                            'type': 'object',
+                            'properties': {
+                                'id': {'type': 'integer'},
+                                'stock_quantity': {'type': 'integer', 'minimum': 0}
+                            },
+                            'required': ['id', 'stock_quantity']
+                        }
+                    }
+                },
+                'required': ['variants']
+            }
+        },
+        responses={
+            200: VendorProductDetailSerializer,
+            400: OpenApiResponse(description='Validation error'),
+            404: OpenApiResponse(description='Product not found or not owned by vendor'),
+        },
+        tags=['Vendor Products'],
+    )
+    def put(self, request, product_pk):
+        """
+        Update stock quantities for multiple variants.
+        تحديث كميات المخزون لعدة متغيرات.
+        """
+        try:
+            vendor = get_vendor_from_user(request.user)
+        except VendorUser.DoesNotExist:
+            return error_response(
+                message=_('لا يوجد بائع مرتبط بهذا المستخدم / No vendor associated with this user'),
+                status_code=status.HTTP_404_NOT_FOUND
+            )
+        
+        # Verify product ownership
+        # التحقق من ملكية المنتج
+        try:
+            product = Product.objects.select_related('vendor').get(
+                pk=product_pk,
+                vendor=vendor  # Ownership verification (security)
+            )
+        except Product.DoesNotExist:
+            return error_response(
+                message=_('المنتج غير موجود أو لا ينتمي لهذا البائع / Product not found or not owned by this vendor'),
+                status_code=status.HTTP_404_NOT_FOUND
+            )
+        
+        # Validate request data
+        # التحقق من بيانات الطلب
+        serializer = VendorProductVariantStockUpdateSerializer(data=request.data)
+        if not serializer.is_valid():
+            return error_response(
+                message=_('بيانات غير صالحة / Invalid data'),
+                errors=serializer.errors,
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
+        
+        variants_data = serializer.validated_data['variants']
+        
+        # Get all variant IDs to update
+        # الحصول على جميع معرفات المتغيرات للتحديث
+        variant_ids = [v['id'] for v in variants_data]
+        
+        # Verify all variants belong to this product
+        # التحقق من أن جميع المتغيرات تنتمي لهذا المنتج
+        variants_count = ProductVariant.objects.filter(
+            id__in=variant_ids,
+            product=product
+        ).count()
+        
+        if variants_count != len(variant_ids):
+            return error_response(
+                message=_('بعض المتغيرات غير موجودة أو لا تنتمي لهذا المنتج / Some variants not found or do not belong to this product'),
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Update stock quantities in transaction
+        # تحديث كميات المخزون في transaction
+        try:
+            with transaction.atomic():
+                updated_variants = []
+                for variant_data in variants_data:
+                    variant_id = variant_data['id']
+                    stock_quantity = variant_data['stock_quantity']
+                    
+                    variant = ProductVariant.objects.get(
+                        id=variant_id,
+                        product=product
+                    )
+                    variant.stock_quantity = stock_quantity
+                    variant.save(update_fields=['stock_quantity', 'updated_at'])
+                    updated_variants.append(variant)
+                
+                # Refresh product from database
+                # تحديث المنتج من قاعدة البيانات
+                product.refresh_from_db()
+                
+                # Return updated product with full details
+                # إرجاع المنتج المحدث مع التفاصيل الكاملة
+                detail_serializer = VendorProductDetailSerializer(
+                    product,
+                    context={'request': request}
+                )
+                
+                return success_response(
+                    data=detail_serializer.data,
+                    message=_('تم تحديث المخزون بنجاح / Stock updated successfully'),
+                    status_code=status.HTTP_200_OK
+                )
+        
+        except Exception as e:
+            logger.error(f'Error updating stock for product {product_pk}: {str(e)}')
+            return error_response(
+                message=_('حدث خطأ أثناء تحديث المخزون / Error occurred while updating stock'),
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+# =============================================================================
+# Product Variant Create View
+# عرض إنشاء متغير المنتج
+# =============================================================================
+
+class VendorProductVariantCreateView(APIView):
+    """
+    Create a new variant for a product.
+    إنشاء متغير جديد للمنتج.
+    
+    Security:
+    - Only authenticated vendors can access
+    - Vendors can only create variants for their own products
+    - Ownership verification on every request
+    
+    الأمان:
+    - فقط البائعون المسجلون يمكنهم الوصول
+    - البائعون يمكنهم إنشاء متغيرات لمنتجاتهم فقط
+    - التحقق من الملكية في كل طلب
+    """
+    
+    permission_classes = [IsVendorUser, IsVendorOwner]
+    throttle_classes = [VendorUserRateThrottle]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
+    
+    @extend_schema(
+        summary='Create Product Variant',
+        description='Create a new variant for a product with stock quantity',
+        request=VendorProductVariantCreateSerializer,
+        responses={
+            201: VendorProductDetailSerializer,
+            400: OpenApiResponse(description='Validation error'),
+            404: OpenApiResponse(description='Product not found or not owned by vendor'),
+        },
+        tags=['Vendor Products'],
+    )
+    def post(self, request, product_pk):
+        """
+        Create a new variant for a product.
+        إنشاء متغير جديد للمنتج.
+        """
+        try:
+            vendor = get_vendor_from_user(request.user)
+        except VendorUser.DoesNotExist:
+            return error_response(
+                message=_('لا يوجد بائع مرتبط بهذا المستخدم / No vendor associated with this user'),
+                status_code=status.HTTP_404_NOT_FOUND
+            )
+        
+        # Verify product ownership
+        # التحقق من ملكية المنتج
+        try:
+            product = Product.objects.select_related('vendor').get(
+                pk=product_pk,
+                vendor=vendor  # Ownership verification (security)
+            )
+        except Product.DoesNotExist:
+            return error_response(
+                message=_('المنتج غير موجود أو لا ينتمي لهذا البائع / Product not found or not owned by this vendor'),
+                status_code=status.HTTP_404_NOT_FOUND
+            )
+        
+        # Validate and create variant
+        # التحقق وإنشاء المتغير
+        serializer = VendorProductVariantCreateSerializer(data=request.data)
+        if not serializer.is_valid():
+            return error_response(
+                message=_('بيانات غير صالحة / Invalid data'),
+                errors=serializer.errors,
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            with transaction.atomic():
+                # Create variant
+                # إنشاء المتغير
+                variant = serializer.save(product=product)
+                
+                # Refresh product from database
+                # تحديث المنتج من قاعدة البيانات
+                product.refresh_from_db()
+                
+                # Return updated product with full details
+                # إرجاع المنتج المحدث مع التفاصيل الكاملة
+                detail_serializer = VendorProductDetailSerializer(
+                    product,
+                    context={'request': request}
+                )
+                
+                return success_response(
+                    data=detail_serializer.data,
+                    message=_('تم إنشاء المتغير بنجاح / Variant created successfully'),
+                    status_code=status.HTTP_201_CREATED
+                )
+        
+        except Exception as e:
+            logger.error(f'Error creating variant for product {product_pk}: {str(e)}')
+            return error_response(
+                message=_('حدث خطأ أثناء إنشاء المتغير / Error occurred while creating variant'),
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
