@@ -11,7 +11,7 @@
  * - Real-time API integration
  */
 
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useCategories, type Category, type CategoryFormData } from '@/lib/admin'
 import { useLanguage } from '@/lib/i18n/context'
@@ -112,6 +112,8 @@ const itemVariants = {
 interface CategoryItemProps {
   category: Category
   level: number
+  children: Category[]
+  categories?: Category[] // For finding children recursively
   onEdit: (category: Category) => void
   onDelete: (category: Category) => void
   onToggleFeatured: (id: number, isFeatured: boolean) => void
@@ -122,6 +124,8 @@ interface CategoryItemProps {
 function CategoryItem({ 
   category, 
   level, 
+  children,
+  categories = [],
   onEdit, 
   onDelete, 
   onToggleFeatured,
@@ -130,7 +134,7 @@ function CategoryItem({
 }: CategoryItemProps) {
   const { t } = useLanguage()
   const [isExpanded, setIsExpanded] = useState(true)
-  const hasChildren = category.is_parent
+  const hasChildren = children && children.length > 0
 
   return (
     <div>
@@ -149,6 +153,7 @@ function CategoryItem({
           <button
             onClick={() => setIsExpanded(!isExpanded)}
             className="p-1 rounded-lg hover:bg-historical-gold/10 dark:hover:bg-gray-700 transition-colors text-historical-charcoal dark:text-gray-300"
+            aria-label={isExpanded ? t.admin.categories.collapse || 'إخفاء' : t.admin.categories.expand || 'إظهار'}
           >
             <motion.div
               animate={{ rotate: isExpanded ? 0 : -90 }}
@@ -222,6 +227,46 @@ function CategoryItem({
           </button>
         </div>
       </motion.div>
+
+      {/* Children - Animated Expand/Collapse */}
+      {hasChildren && (
+        <AnimatePresence>
+          {isExpanded && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.2 }}
+              className="overflow-hidden"
+            >
+              <div className="mt-1">
+                {children.map((child) => {
+                  // Find children of this child category
+                  // البحث عن أطفال هذه الفئة الفرعية
+                  const childChildren = categories.length > 0 
+                    ? categories.filter(c => c.parent === child.id)
+                    : []
+                  
+                  return (
+                    <CategoryItem
+                      key={child.id}
+                      category={child}
+                      level={level + 1}
+                      children={childChildren}
+                      categories={categories}
+                      onEdit={onEdit}
+                      onDelete={onDelete}
+                      onToggleFeatured={onToggleFeatured}
+                      onToggleActive={onToggleActive}
+                      isDeleting={isDeleting}
+                    />
+                  )
+                })}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      )}
     </div>
   )
 }
@@ -694,6 +739,49 @@ export default function CategoriesPage() {
   const mainCategoriesCount = categories.filter(c => !c.parent).length
   const subCategoriesCount = categories.filter(c => c.parent).length
 
+  // Build category tree structure
+  // بناء هيكل شجرة الفئات
+  const buildCategoryTree = useCallback((allCategories: Category[]): (Category & { children: Category[] })[] => {
+    // Create a map for quick lookup
+    // إنشاء خريطة للبحث السريع
+    const categoryMap = new Map<number, Category & { children: Category[] }>()
+    
+    // Initialize all categories with empty children array
+    // تهيئة جميع الفئات بمصفوفة أطفال فارغة
+    allCategories.forEach(cat => {
+      categoryMap.set(cat.id, { ...cat, children: [] })
+    })
+    
+    // Build tree structure
+    // بناء هيكل الشجرة
+    const rootCategories: (Category & { children: Category[] })[] = []
+    
+    allCategories.forEach(cat => {
+      const categoryWithChildren = categoryMap.get(cat.id)!
+      
+      if (cat.parent) {
+        // Add to parent's children
+        // إضافة إلى أطفال الأب
+        const parent = categoryMap.get(cat.parent)
+        if (parent) {
+          parent.children.push(categoryWithChildren)
+        }
+      } else {
+        // Root category
+        // فئة رئيسية
+        rootCategories.push(categoryWithChildren)
+      }
+    })
+    
+    return rootCategories
+  }, [])
+
+  // Get root categories (categories without parent)
+  // الحصول على الفئات الرئيسية (الفئات بدون أب)
+  const rootCategories = useMemo(() => {
+    return buildCategoryTree(categories)
+  }, [categories, buildCategoryTree])
+
   return (
     <motion.div
       variants={containerVariants}
@@ -814,11 +902,13 @@ export default function CategoriesPage() {
           </div>
         ) : (
           <div className="p-2">
-            {categories.map(category => (
+            {rootCategories.map(category => (
               <CategoryItem
                 key={category.id}
                 category={category}
-                level={category.depth}
+                level={0}
+                children={category.children || []}
+                categories={categories}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
                 onToggleFeatured={handleToggleFeatured}
