@@ -153,7 +153,7 @@ function CategoryItem({
           <button
             onClick={() => setIsExpanded(!isExpanded)}
             className="p-1 rounded-lg hover:bg-historical-gold/10 dark:hover:bg-gray-700 transition-colors text-historical-charcoal dark:text-gray-300"
-            aria-label={isExpanded ? t.admin.categories.collapse || 'إخفاء' : t.admin.categories.expand || 'إظهار'}
+            aria-label={isExpanded ? 'إخفاء' : 'إظهار'}
           >
             <motion.div
               animate={{ rotate: isExpanded ? 0 : -90 }}
