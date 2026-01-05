@@ -1238,9 +1238,13 @@ function ViewProductModal({ isOpen, onClose, product, showAlert, showConfirm }: 
                         <div key={img.id} className="relative group">
                           <div className="relative aspect-square rounded-lg overflow-hidden border-2 border-historical-gold/20">
                             <img 
-                              src={img.image_url || img.image} 
+                              src={img.image_url || (img.image ? `${process.env.NEXT_PUBLIC_API_URL?.replace('/api/v1', '') || 'http://localhost:8000'}${img.image}` : '')} 
                               alt={img.alt_text || product.name} 
                               className="w-full h-full object-cover" 
+                              onError={(e) => {
+                                // Fallback if image fails to load
+                                e.currentTarget.src = '/placeholder-image.png'
+                              }}
                             />
                             
                             {/* Overlay with actions */}

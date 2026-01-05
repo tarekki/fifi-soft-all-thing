@@ -996,6 +996,7 @@ export default function ProductsPage() {
       <AnimatePresence>
         {isModalOpen && (
           <ProductModal
+            key="product-modal"
             isOpen={isModalOpen}
             onClose={() => {
               setIsModalOpen(false)
@@ -1010,6 +1011,7 @@ export default function ProductsPage() {
         
         {isDeleteModalOpen && deletingProduct && (
           <ConfirmModal
+            key="delete-modal"
             isOpen={isDeleteModalOpen}
             onClose={() => {
               setIsDeleteModalOpen(false)
@@ -1026,6 +1028,7 @@ export default function ProductsPage() {
         
         {alertModal.isOpen && (
           <AlertModal
+            key="alert-modal"
             isOpen={alertModal.isOpen}
             onClose={() => setAlertModal(prev => ({ ...prev, isOpen: false }))}
             title={alertModal.title}

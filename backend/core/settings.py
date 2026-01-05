@@ -147,19 +147,20 @@ if database_url:
     if DATABASES['default']['ENGINE'] == 'django.db.backends.postgresql':
         DATABASES['default']['ENGINE'] = 'dj_db_conn_pool.backends.postgresql'
         DATABASES['default']['POOL_OPTIONS'] = {
-            'POOL_SIZE': config('DB_POOL_SIZE', default=10, cast=int),  # Reduced to prevent exhaustion
-            'MAX_OVERFLOW': config('DB_MAX_OVERFLOW', default=20, cast=int),  # Reduced overflow
-            'RECYCLE': 1800,  # 30 minutes - recycle connections faster
+            'POOL_SIZE': config('DB_POOL_SIZE', default=15, cast=int),  # Increased for better performance
+            'MAX_OVERFLOW': config('DB_MAX_OVERFLOW', default=25, cast=int),  # Increased overflow
+            'RECYCLE': 600,  # 10 minutes - recycle connections faster to prevent stale connections
             'PRE_PING': True,  # Verify connections before using
-            'POOL_TIMEOUT': 30,  # Timeout for getting connection from pool
+            'POOL_TIMEOUT': 20,  # Reduced timeout for faster failure detection
+            'POOL_RESET_ON_RETURN': 'commit',  # Reset connection state on return
         }
         # Performance optimizations
         DATABASES['default']['OPTIONS'] = {
             'connect_timeout': 10,
-            'options': '-c statement_timeout=30000 -c idle_in_transaction_session_timeout=30000',
+            'options': '-c statement_timeout=20000 -c idle_in_transaction_session_timeout=20000',  # Reduced timeouts
         }
-        # Connection age for pooling
-        DATABASES['default']['CONN_MAX_AGE'] = 300  # 5 minutes - close idle connections faster
+        # Connection age for pooling - reduced to close idle connections faster
+        DATABASES['default']['CONN_MAX_AGE'] = 60  # 1 minute - close idle connections much faster
 else:
     # Individual Database Settings (Priority 2: For Local Development)
     # إعدادات قاعدة البيانات الفردية (الأولوية الثانية: للتطوير المحلي)
@@ -173,19 +174,20 @@ else:
             "HOST": config('DB_HOST', default='localhost'),  # افتراضي: localhost
             "PORT": config('DB_PORT', default='5432'),  # افتراضي: 5432
             "POOL_OPTIONS": {
-                'POOL_SIZE': 10,  # Reduced to prevent exhaustion
-                'MAX_OVERFLOW': 20,  # Reduced overflow
-                'RECYCLE': 1800,  # 30 minutes - recycle connections faster
+                'POOL_SIZE': 15,  # Increased for better performance
+                'MAX_OVERFLOW': 25,  # Increased overflow
+                'RECYCLE': 600,  # 10 minutes - recycle connections faster to prevent stale connections
                 'PRE_PING': True,  # Verify connections before using
-                'POOL_TIMEOUT': 30,  # Timeout for getting connection from pool
+                'POOL_TIMEOUT': 20,  # Reduced timeout for faster failure detection
+                'POOL_RESET_ON_RETURN': 'commit',  # Reset connection state on return
             },
             # Performance optimizations
             "OPTIONS": {
                 'connect_timeout': 10,
-                'options': '-c statement_timeout=30000 -c idle_in_transaction_session_timeout=30000',
+                'options': '-c statement_timeout=20000 -c idle_in_transaction_session_timeout=20000',  # Reduced timeouts
             },
-            # Connection age for pooling
-            "CONN_MAX_AGE": 300,  # 5 minutes - close idle connections faster
+            # Connection age for pooling - reduced to close idle connections faster
+            "CONN_MAX_AGE": 60,  # 1 minute - close idle connections much faster
         }
     }
 
