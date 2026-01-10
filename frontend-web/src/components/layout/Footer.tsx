@@ -7,6 +7,35 @@ import { useTranslation } from '@/lib/i18n/use-translation';
 import { useSocialLinks, useSettings } from '@/lib/settings/context';
 import type { SocialLink } from '@/types/settings';
 
+/**
+ * Clean email address from various formats
+ * تنظيف عنوان البريد الإلكتروني من تنسيقات مختلفة
+ * 
+ * Handles formats like:
+ * - "name <email@example.com>"
+ * - "email@example.com <email@example.com>"
+ * - "mailto:email@example.com"
+ * - "email@example.com"
+ */
+function cleanEmail(email: string): string {
+    if (!email) return '';
+    
+    // Remove mailto: prefix if present
+    // إزالة بادئة mailto: إذا كانت موجودة
+    let cleaned = email.replace(/^mailto:/i, '').trim();
+    
+    // Extract email from < > format: "name <email@example.com>"
+    // استخراج الإيميل من تنسيق < >: "name <email@example.com>"
+    const match = cleaned.match(/<([^>]+)>/);
+    if (match) {
+        cleaned = match[1].trim();
+    }
+    
+    // Remove any remaining whitespace
+    // إزالة أي مسافات متبقية
+    return cleaned.trim();
+}
+
 export function Footer() {
     const { t } = useTranslation();
     const pathname = usePathname();
@@ -248,10 +277,10 @@ export function Footer() {
                                 <li className="flex items-center gap-3">
                                     <Mail className="w-5 h-5 text-historical-gold shrink-0" />
                                     <a 
-                                        href={`mailto:${site.contact_email}`}
+                                        href={`mailto:${cleanEmail(site.contact_email)}`}
                                         className="hover:text-historical-red transition-colors"
                                     >
-                                        {site.contact_email}
+                                        {cleanEmail(site.contact_email)}
                                     </a>
                                 </li>
                             ) : null}
