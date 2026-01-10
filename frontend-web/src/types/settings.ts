@@ -33,6 +33,20 @@ export type SiteSettings = {
   meta_description: string
   meta_description_ar: string
   
+  // Contact Information - معلومات الاتصال
+  contact_email: string
+  contact_phone: string
+  contact_whatsapp: string
+  
+  // Address - العنوان
+  address: string
+  address_ar: string
+  google_maps_url: string
+  
+  // Working Hours - ساعات العمل
+  working_hours: string
+  working_hours_ar: string
+  
   // Currency - العملة
   currency_code: string
   currency_symbol: string

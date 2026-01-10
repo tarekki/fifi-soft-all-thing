@@ -117,6 +117,20 @@ class SiteSettingsPublicSerializer(serializers.ModelSerializer):
             'meta_description',
             'meta_description_ar',
             
+            # Contact Information
+            'contact_email',
+            'contact_phone',
+            'contact_whatsapp',
+            
+            # Address
+            'address',
+            'address_ar',
+            'google_maps_url',
+            
+            # Working Hours
+            'working_hours',
+            'working_hours_ar',
+            
             # Currency
             'currency_code',
             'currency_symbol',
