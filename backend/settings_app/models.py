@@ -432,7 +432,9 @@ class SocialLink(models.Model):
     url = models.URLField(
         max_length=500,
         verbose_name=_("URL"),
-        help_text=_("Full URL to the social media page/profile")
+        help_text=_("Full URL to the social media page/profile"),
+        blank=True,
+        default=''
     )
     
     icon = models.CharField(

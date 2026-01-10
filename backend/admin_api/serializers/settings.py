@@ -145,14 +145,19 @@ class AdminSocialLinkSerializer(serializers.ModelSerializer):
             'open_in_new_tab',
         ]
         read_only_fields = ['id', 'platform_display']
+        extra_kwargs = {
+            'url': {'required': False, 'allow_blank': True},
+        }
     
     def validate_url(self, value):
         """Validate URL format."""
-        if value and not value.startswith(('http://', 'https://')):
+        # Allow empty URL during creation (can be filled later)
+        # السماح بـ URL فارغ أثناء الإنشاء (يمكن ملؤه لاحقاً)
+        if value and value.strip() and not value.startswith(('http://', 'https://')):
             raise serializers.ValidationError(
                 _("الرابط يجب أن يبدأ بـ http:// أو https:// / URL must start with http:// or https://")
             )
-        return value
+        return value.strip() if value else ''
 
 
 class AdminSocialLinkBulkSerializer(serializers.Serializer):

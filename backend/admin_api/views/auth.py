@@ -20,6 +20,7 @@ from rest_framework.throttling import AnonRateThrottle
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
 from django.utils.translation import gettext_lazy as _
+from django.conf import settings
 from drf_spectacular.utils import extend_schema, OpenApiResponse
 
 from admin_api.permissions import IsAdminUser
@@ -42,10 +43,23 @@ class AdminLoginThrottle(AnonRateThrottle):
     Rate limiting for admin login attempts.
     تحديد معدل محاولات تسجيل دخول الأدمن.
     
-    Limits: 5 attempts per minute to prevent brute force attacks.
-    الحدود: 5 محاولات في الدقيقة لمنع هجمات القوة الغاشمة.
+    Limits:
+    - Development (DEBUG=True): 50 attempts per minute for easier testing
+    - Production (DEBUG=False): 5 attempts per minute to prevent brute force attacks
+    
+    الحدود:
+    - التطوير (DEBUG=True): 50 محاولة في الدقيقة لتسهيل الاختبار
+    - الإنتاج (DEBUG=False): 5 محاولات في الدقيقة لمنع هجمات القوة الغاشمة
     """
-    rate = '5/minute'
+    
+    def get_rate(self):
+        """
+        Get throttle rate based on DEBUG setting.
+        الحصول على معدل التحديد بناءً على إعداد DEBUG.
+        """
+        if settings.DEBUG:
+            return '50/minute'  # Higher limit in development
+        return '5/minute'  # Stricter limit in production
 
 
 # =============================================================================

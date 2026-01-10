@@ -78,6 +78,7 @@ export type SocialLink = {
   url: string
   icon: string
   order: number
+  is_active?: boolean
   open_in_new_tab: boolean
 }
 

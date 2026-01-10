@@ -158,6 +158,7 @@ class SocialLinkSerializer(serializers.ModelSerializer):
             'url',
             'icon',
             'order',
+            'is_active',
             'open_in_new_tab',
         ]
         read_only_fields = fields

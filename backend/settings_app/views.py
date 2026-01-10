@@ -41,7 +41,7 @@ from .serializers import (
 
 # Cache duration constants (in seconds)
 # ثوابت مدة الكاش (بالثواني)
-CACHE_SHORT = 60 * 5        # 5 minutes - للبيانات المتغيرة
+CACHE_SHORT = 60 * 1        # 1 minute - للبيانات المتغيرة (ينتهي تلقائياً كل دقيقة)
 CACHE_MEDIUM = 60 * 30      # 30 minutes - للبيانات شبه الثابتة
 CACHE_LONG = 60 * 60 * 24   # 24 hours - للبيانات الثابتة
 
@@ -430,7 +430,9 @@ class AllSettingsView(APIView):
         
         # Get all active items
         # الحصول على جميع العناصر النشطة
-        social_links = SocialLink.objects.filter(is_active=True).order_by('order')
+        # Use same ordering as model: order, then name, then id for consistency
+        # استخدام نفس الترتيب في الـ model: order، ثم name، ثم id للاتساق
+        social_links = SocialLink.objects.filter(is_active=True).order_by('order', 'name', 'id')
         languages = Language.objects.filter(is_active=True).order_by('order')
         trust_signals = TrustSignal.objects.filter(is_active=True).order_by('order')
         payment_methods = PaymentMethod.objects.filter(is_active=True).order_by('order')
